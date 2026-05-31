@@ -1,0 +1,839 @@
+[debug] [2026-05-29T17:41:47.721Z] ----------------------------------------------------------------------
+[debug] [2026-05-29T17:41:47.727Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\jayde\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-05-29T17:41:47.728Z] CLI Version:   15.19.0
+[debug] [2026-05-29T17:41:47.728Z] Platform:      win32
+[debug] [2026-05-29T17:41:47.728Z] Node Version:  v24.14.0
+[debug] [2026-05-29T17:41:47.729Z] Time:          Fri May 29 2026 23:11:47 GMT+0530 (India Standard Time)
+[debug] [2026-05-29T17:41:47.729Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-29T17:41:51.621Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-29T17:41:51.621Z] > authorizing via signed-in user (thedevam2024@gmail.com)
+[debug] [2026-05-29T17:41:51.622Z] [iam] checking project the-devam-ecom for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-05-29T17:41:51.624Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:41:51.624Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:41:51.626Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions [none]
+[debug] [2026-05-29T17:41:51.626Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions  x-goog-user-project=the-devam-ecom
+[debug] [2026-05-29T17:41:51.626Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:41:54.355Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions 200
+[debug] [2026-05-29T17:41:54.355Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:41:54.356Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:41:54.356Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:41:54.357Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom [none]
+[debug] [2026-05-29T17:41:57.163Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom 200
+[debug] [2026-05-29T17:41:57.163Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom {"projectId":"the-devam-ecom","projectNumber":"399488069417","displayName":"THE-Devam-ECOM","name":"projects/the-devam-ecom","resources":{"hostingSite":"the-devam-ecom"},"state":"ACTIVE","etag":"1_ec61f5ff-6c7d-4c24-8389-5af5e9dd62f9"}
+[debug] [2026-05-29T17:42:02.388Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:42:02.388Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:42:02.389Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites pageToken=&pageSize=10
+[debug] [2026-05-29T17:42:06.428Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:42:06.428Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:42:06.429Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:42:06.430Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:42:06.430Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 
+[debug] [2026-05-29T17:42:09.290Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:42:09.290Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:42:09.290Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:42:09.290Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:42:09.291Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config [none]
+[debug] [2026-05-29T17:42:11.202Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config 200
+[debug] [2026-05-29T17:42:11.203Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config {"projectId":"the-devam-ecom","storageBucket":"the-devam-ecom.firebasestorage.app","apiKey":"AIzaSyAG2dsRoy5xEib_57sPfJ2TSyJ79MqNMes","authDomain":"the-devam-ecom.firebaseapp.com","messagingSenderId":"399488069417","projectNumber":"399488069417","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 16.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-05-29T17:42:20.998Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:42:20.998Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:42:20.998Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:42:23.386Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:42:23.387Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}
+[info] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\jayde\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\package-lock.json
+
+
+[info] ▲ Next.js 16.2.6 (Turbopack)
+
+[info] - Environments: .env.local
+
+
+[info]   Creating an optimized production build ...
+
+[info] ✓ Compiled successfully in 9.2s
+
+[info]   Running TypeScript ...
+
+[info]   Finished TypeScript in 10.6s ...
+
+[info]   Collecting page data using 11 workers ...
+
+[info]   Generating static pages using 11 workers (0/19) ...
+
+[info]   Generating static pages using 11 workers (4/19) 
+
+[info]   Generating static pages using 11 workers (9/19) 
+
+[info]   Generating static pages using 11 workers (14/19) 
+
+[info] ✓ Generating static pages using 11 workers (19/19) in 1728ms
+
+[info]   Finalizing page optimization ...
+
+[info] 
+
+[info] Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /account
+├ ○ /admin
+├ ○ /admin/customers
+├ ○ /admin/inventory
+├ ○ /admin/orders
+├ ƒ /api/distributors
+├ ƒ /api/products
+├ ƒ /api/razorpay
+├ ○ /cart
+├ ○ /checkout
+├ ○ /distributors
+├ ○ /export
+├ ○ /icon.svg
+├ ƒ /product/[id]
+├ ○ /recipes
+├ ƒ /recipes/[id]
+└ ○ /shop
+
+
+[info] 
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/distributors/route
+[info]  • non-static component /api/products/route
+[info]  • non-static component /api/razorpay/route
+[info]  • non-static component /product/[id]/page
+[info]  • non-static component /recipes/[id]/page
+[info] 
+[debug] [2026-05-29T17:43:17.898Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:43:17.899Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:43:17.899Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:43:21.548Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:43:21.548Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}
+[debug] [2026-05-29T17:43:26.165Z] Error: EPERM: operation not permitted, symlink 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\node_modules\mongoose' -> 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\.firebase\the-devam-ecom\functions\.next\node_modules\mongoose-3844699b6046a5bd'
+[debug] [2026-05-29T17:43:46.362Z] ----------------------------------------------------------------------
+[debug] [2026-05-29T17:43:46.370Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\jayde\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-05-29T17:43:46.371Z] CLI Version:   15.19.0
+[debug] [2026-05-29T17:43:46.371Z] Platform:      win32
+[debug] [2026-05-29T17:43:46.372Z] Node Version:  v24.14.0
+[debug] [2026-05-29T17:43:46.372Z] Time:          Fri May 29 2026 23:13:46 GMT+0530 (India Standard Time)
+[debug] [2026-05-29T17:43:46.372Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-29T17:43:49.932Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-29T17:43:49.933Z] > authorizing via signed-in user (thedevam2024@gmail.com)
+[debug] [2026-05-29T17:43:49.933Z] [iam] checking project the-devam-ecom for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-05-29T17:43:49.935Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:43:49.936Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:43:49.937Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions [none]
+[debug] [2026-05-29T17:43:49.938Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions  x-goog-user-project=the-devam-ecom
+[debug] [2026-05-29T17:43:49.938Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:43:52.340Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions 200
+[debug] [2026-05-29T17:43:52.340Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:43:52.341Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:43:52.341Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:43:52.342Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom [none]
+[debug] [2026-05-29T17:43:55.129Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom 200
+[debug] [2026-05-29T17:43:55.129Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom {"projectId":"the-devam-ecom","projectNumber":"399488069417","displayName":"THE-Devam-ECOM","name":"projects/the-devam-ecom","resources":{"hostingSite":"the-devam-ecom"},"state":"ACTIVE","etag":"1_ec61f5ff-6c7d-4c24-8389-5af5e9dd62f9"}
+[debug] [2026-05-29T17:43:59.266Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:43:59.266Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:43:59.266Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites pageToken=&pageSize=10
+[debug] [2026-05-29T17:44:02.789Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:44:02.789Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:44:02.790Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:44:02.790Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:44:02.791Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 
+[debug] [2026-05-29T17:44:05.373Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:44:05.373Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:44:05.373Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:44:05.373Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:44:05.374Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config [none]
+[debug] [2026-05-29T17:44:07.183Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config 200
+[debug] [2026-05-29T17:44:07.183Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config {"projectId":"the-devam-ecom","storageBucket":"the-devam-ecom.firebasestorage.app","apiKey":"AIzaSyAG2dsRoy5xEib_57sPfJ2TSyJ79MqNMes","authDomain":"the-devam-ecom.firebaseapp.com","messagingSenderId":"399488069417","projectNumber":"399488069417","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 16.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-05-29T17:44:17.283Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:44:17.283Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:44:17.284Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:44:19.248Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:44:19.248Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}
+[info] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\jayde\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\package-lock.json
+
+
+[info] ▲ Next.js 16.2.6 (Turbopack)
+
+[info] - Environments: .env.local
+
+
+[info]   Creating an optimized production build ...
+
+[info] ✓ Compiled successfully in 10.8s
+
+[info]   Running TypeScript ...
+
+[info]   Finished TypeScript in 12.4s ...
+
+[info]   Collecting page data using 11 workers ...
+
+[info]   Generating static pages using 11 workers (0/19) ...
+
+[info]   Generating static pages using 11 workers (4/19) 
+
+[info]   Generating static pages using 11 workers (9/19) 
+
+[info]   Generating static pages using 11 workers (14/19) 
+
+[info] ✓ Generating static pages using 11 workers (19/19) in 1783ms
+
+[info]   Finalizing page optimization ...
+
+[info] 
+
+[info] Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /account
+├ ○ /admin
+├ ○ /admin/customers
+├ ○ /admin/inventory
+├ ○ /admin/orders
+├ ƒ /api/distributors
+├ ƒ /api/products
+├ ƒ /api/razorpay
+├ ○ /cart
+├ ○ /checkout
+├ ○ /distributors
+├ ○ /export
+├ ○ /icon.svg
+├ ƒ /product/[id]
+├ ○ /recipes
+├ ƒ /recipes/[id]
+└ ○ /shop
+
+
+[info] 
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/distributors/route
+[info]  • non-static component /api/products/route
+[info]  • non-static component /api/razorpay/route
+[info]  • non-static component /product/[id]/page
+[info]  • non-static component /recipes/[id]/page
+[info] 
+[debug] [2026-05-29T17:45:02.332Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:02.332Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:02.333Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:45:04.983Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:45:04.983Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}
+[debug] [2026-05-29T17:45:10.452Z] Error: EPERM: operation not permitted, symlink 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\node_modules\mongoose' -> 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\.firebase\the-devam-ecom\functions\.next\node_modules\mongoose-3844699b6046a5bd'
+[debug] [2026-05-29T17:45:30.701Z] ----------------------------------------------------------------------
+[debug] [2026-05-29T17:45:30.707Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\jayde\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-05-29T17:45:30.708Z] CLI Version:   15.19.0
+[debug] [2026-05-29T17:45:30.708Z] Platform:      win32
+[debug] [2026-05-29T17:45:30.709Z] Node Version:  v24.14.0
+[debug] [2026-05-29T17:45:30.709Z] Time:          Fri May 29 2026 23:15:30 GMT+0530 (India Standard Time)
+[debug] [2026-05-29T17:45:30.709Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-29T17:45:34.469Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-29T17:45:34.469Z] > authorizing via signed-in user (thedevam2024@gmail.com)
+[debug] [2026-05-29T17:45:34.470Z] [iam] checking project the-devam-ecom for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-05-29T17:45:34.472Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:34.472Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:34.474Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions [none]
+[debug] [2026-05-29T17:45:34.474Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions  x-goog-user-project=the-devam-ecom
+[debug] [2026-05-29T17:45:34.474Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:45:36.901Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions 200
+[debug] [2026-05-29T17:45:36.901Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:45:36.902Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:36.902Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:36.903Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom [none]
+[debug] [2026-05-29T17:45:38.741Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom 200
+[debug] [2026-05-29T17:45:38.741Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom {"projectId":"the-devam-ecom","projectNumber":"399488069417","displayName":"THE-Devam-ECOM","name":"projects/the-devam-ecom","resources":{"hostingSite":"the-devam-ecom"},"state":"ACTIVE","etag":"1_ec61f5ff-6c7d-4c24-8389-5af5e9dd62f9"}
+[debug] [2026-05-29T17:45:42.811Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:42.811Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:42.811Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites pageToken=&pageSize=10
+[debug] [2026-05-29T17:45:45.785Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:45:45.785Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:45:45.786Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:45.786Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:45.786Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 
+[debug] [2026-05-29T17:45:46.857Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:45:46.858Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:45:46.858Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:46.858Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:46.859Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config [none]
+[debug] [2026-05-29T17:45:48.446Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config 200
+[debug] [2026-05-29T17:45:48.447Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config {"projectId":"the-devam-ecom","storageBucket":"the-devam-ecom.firebasestorage.app","apiKey":"AIzaSyAG2dsRoy5xEib_57sPfJ2TSyJ79MqNMes","authDomain":"the-devam-ecom.firebaseapp.com","messagingSenderId":"399488069417","projectNumber":"399488069417","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 16.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-05-29T17:45:58.926Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:58.927Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:45:58.927Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:46:01.313Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:46:01.314Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}
+[info] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\jayde\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\package-lock.json
+
+
+[info] ▲ Next.js 16.2.6 (Turbopack)
+
+[info] - Environments: .env.local
+
+
+[info]   Creating an optimized production build ...
+
+[info] ✓ Compiled successfully in 9.8s
+
+[info]   Running TypeScript ...
+
+[info]   Finished TypeScript in 13.2s ...
+
+[info]   Collecting page data using 11 workers ...
+
+[info]   Generating static pages using 11 workers (0/19) ...
+
+[info]   Generating static pages using 11 workers (4/19) 
+
+[info]   Generating static pages using 11 workers (9/19) 
+
+[info]   Generating static pages using 11 workers (14/19) 
+
+[info] ✓ Generating static pages using 11 workers (19/19) in 2.8s
+
+[info]   Finalizing page optimization ...
+
+[info] 
+
+[info] Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /account
+├ ○ /admin
+├ ○ /admin/customers
+├ ○ /admin/inventory
+├ ○ /admin/orders
+├ ƒ /api/distributors
+├ ƒ /api/products
+├ ƒ /api/razorpay
+├ ○ /cart
+├ ○ /checkout
+├ ○ /distributors
+├ ○ /export
+├ ○ /icon.svg
+├ ƒ /product/[id]
+├ ○ /recipes
+├ ƒ /recipes/[id]
+└ ○ /shop
+
+
+[info] 
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/distributors/route
+[info]  • non-static component /api/products/route
+[info]  • non-static component /api/razorpay/route
+[info]  • non-static component /product/[id]/page
+[info]  • non-static component /recipes/[id]/page
+[info] 
+[debug] [2026-05-29T17:46:47.045Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:46:47.046Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:46:47.046Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:46:49.347Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:46:49.347Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}
+[debug] [2026-05-29T17:46:57.433Z] Error: EPERM: operation not permitted, symlink 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\node_modules\mongoose' -> 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\.firebase\the-devam-ecom\functions\.next\node_modules\mongoose-3844699b6046a5bd'
+[debug] [2026-05-29T17:49:36.670Z] ----------------------------------------------------------------------
+[debug] [2026-05-29T17:49:36.676Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\jayde\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-05-29T17:49:36.676Z] CLI Version:   15.19.0
+[debug] [2026-05-29T17:49:36.677Z] Platform:      win32
+[debug] [2026-05-29T17:49:36.677Z] Node Version:  v24.14.0
+[debug] [2026-05-29T17:49:36.677Z] Time:          Fri May 29 2026 23:19:36 GMT+0530 (India Standard Time)
+[debug] [2026-05-29T17:49:36.678Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-29T17:49:41.496Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-29T17:49:41.497Z] > authorizing via signed-in user (thedevam2024@gmail.com)
+[debug] [2026-05-29T17:49:41.497Z] [iam] checking project the-devam-ecom for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-05-29T17:49:41.499Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:41.499Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:41.501Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions [none]
+[debug] [2026-05-29T17:49:41.502Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions  x-goog-user-project=the-devam-ecom
+[debug] [2026-05-29T17:49:41.502Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:49:44.374Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions 200
+[debug] [2026-05-29T17:49:44.375Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:49:44.376Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:44.376Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:44.376Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom [none]
+[debug] [2026-05-29T17:49:47.054Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom 200
+[debug] [2026-05-29T17:49:47.054Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom {"projectId":"the-devam-ecom","projectNumber":"399488069417","displayName":"THE-Devam-ECOM","name":"projects/the-devam-ecom","resources":{"hostingSite":"the-devam-ecom"},"state":"ACTIVE","etag":"1_ec61f5ff-6c7d-4c24-8389-5af5e9dd62f9"}
+[debug] [2026-05-29T17:49:51.406Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:51.406Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:51.407Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites pageToken=&pageSize=10
+[debug] [2026-05-29T17:49:55.562Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:49:55.562Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:49:55.564Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:55.564Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:55.564Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 
+[debug] [2026-05-29T17:49:58.059Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:49:58.060Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:49:58.060Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:58.060Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:49:58.061Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config [none]
+[debug] [2026-05-29T17:50:00.308Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config 200
+[debug] [2026-05-29T17:50:00.309Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom/webApps/-/config {"projectId":"the-devam-ecom","storageBucket":"the-devam-ecom.firebasestorage.app","apiKey":"AIzaSyAG2dsRoy5xEib_57sPfJ2TSyJ79MqNMes","authDomain":"the-devam-ecom.firebaseapp.com","messagingSenderId":"399488069417","projectNumber":"399488069417","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 16.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-05-29T17:50:11.530Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:50:11.530Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:50:11.531Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:50:13.992Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:50:13.992Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}
+[info] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\jayde\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\package-lock.json
+
+
+[info] ▲ Next.js 16.2.6 (Turbopack)
+
+[info] - Environments: .env.local
+
+
+[info]   Creating an optimized production build ...
+
+[info] ✓ Compiled successfully in 9.0s
+
+[info]   Running TypeScript ...
+
+[info]   Finished TypeScript in 12.8s ...
+
+[info]   Collecting page data using 11 workers ...
+
+[info]   Generating static pages using 11 workers (0/19) ...
+
+[info]   Generating static pages using 11 workers (4/19) 
+
+[info]   Generating static pages using 11 workers (9/19) 
+
+[info]   Generating static pages using 11 workers (14/19) 
+
+[info] ✓ Generating static pages using 11 workers (19/19) in 1903ms
+
+[info]   Finalizing page optimization ...
+
+[info] 
+
+[info] Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /account
+├ ○ /admin
+├ ○ /admin/customers
+├ ○ /admin/inventory
+├ ○ /admin/orders
+├ ƒ /api/distributors
+├ ƒ /api/products
+├ ƒ /api/razorpay
+├ ○ /cart
+├ ○ /checkout
+├ ○ /distributors
+├ ○ /export
+├ ○ /icon.svg
+├ ƒ /product/[id]
+├ ○ /recipes
+├ ƒ /recipes/[id]
+└ ○ /shop
+
+
+[info] 
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/distributors/route
+[info]  • non-static component /api/products/route
+[info]  • non-static component /api/razorpay/route
+[info]  • non-static component /product/[id]/page
+[info]  • non-static component /recipes/[id]/page
+[info] 
+[debug] [2026-05-29T17:51:00.968Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:51:00.968Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:51:00.968Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:51:03.011Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:51:03.012Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","type":"DEFAULT_SITE"}
+[debug] [2026-05-29T17:51:10.326Z] Error: EPERM: operation not permitted, symlink 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\node_modules\mongoose' -> 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\.firebase\the-devam-ecom\functions\.next\node_modules\mongoose-3844699b6046a5bd'
+[debug] [2026-05-29T17:55:31.633Z] ----------------------------------------------------------------------
+[debug] [2026-05-29T17:55:31.654Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\jayde\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-05-29T17:55:31.655Z] CLI Version:   15.19.0
+[debug] [2026-05-29T17:55:31.655Z] Platform:      win32
+[debug] [2026-05-29T17:55:31.655Z] Node Version:  v24.14.0
+[debug] [2026-05-29T17:55:31.656Z] Time:          Fri May 29 2026 23:25:31 GMT+0530 (India Standard Time)
+[debug] [2026-05-29T17:55:31.656Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-29T17:55:35.715Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-29T17:55:35.716Z] > authorizing via signed-in user (thedevam2024@gmail.com)
+[debug] [2026-05-29T17:55:35.716Z] [iam] checking project the-devam-ecom for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-05-29T17:55:35.718Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:55:35.719Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:55:35.720Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions [none]
+[debug] [2026-05-29T17:55:35.721Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions  x-goog-user-project=the-devam-ecom
+[debug] [2026-05-29T17:55:35.721Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:55:38.713Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions 200
+[debug] [2026-05-29T17:55:38.713Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:55:38.714Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:55:38.714Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:55:38.715Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom [none]
+[debug] [2026-05-29T17:55:41.420Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom 200
+[debug] [2026-05-29T17:55:41.421Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom {"projectId":"the-devam-ecom","projectNumber":"399488069417","displayName":"THE-Devam-ECOM","name":"projects/the-devam-ecom","resources":{"hostingSite":"the-devam-ecom"},"state":"ACTIVE","etag":"1_e867867b-e173-41ab-843b-bc549dc224ce"}
+[debug] [2026-05-29T17:55:46.680Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:55:46.680Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:55:46.681Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites pageToken=&pageSize=10
+[debug] [2026-05-29T17:55:50.082Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:55:50.083Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","appId":"1:399488069417:web:32044d03462a00df701138","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:55:50.084Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:55:50.084Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:55:50.084Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config [none]
+[debug] [2026-05-29T17:55:52.180Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config 200
+[debug] [2026-05-29T17:55:52.180Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config {"projectId":"the-devam-ecom","appId":"1:399488069417:web:32044d03462a00df701138","storageBucket":"the-devam-ecom.firebasestorage.app","apiKey":"AIzaSyAG2dsRoy5xEib_57sPfJ2TSyJ79MqNMes","authDomain":"the-devam-ecom.firebaseapp.com","messagingSenderId":"399488069417","measurementId":"G-NKWHTXTTSE","projectNumber":"399488069417","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 16.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-05-29T17:56:03.479Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:56:03.479Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:56:03.479Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:56:05.543Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:56:05.543Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","appId":"1:399488069417:web:32044d03462a00df701138","type":"DEFAULT_SITE"}
+[info] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\jayde\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\package-lock.json
+
+
+[info] ▲ Next.js 16.2.6 (Turbopack)
+
+[info] - Environments: .env.local
+
+
+[info]   Creating an optimized production build ...
+
+[info] ✓ Compiled successfully in 9.4s
+
+[info]   Running TypeScript ...
+
+[info]   Finished TypeScript in 12.9s ...
+
+[info]   Collecting page data using 11 workers ...
+
+[info]   Generating static pages using 11 workers (0/19) ...
+
+[info]   Generating static pages using 11 workers (4/19) 
+
+[info]   Generating static pages using 11 workers (9/19) 
+
+[info]   Generating static pages using 11 workers (14/19) 
+
+[info] ✓ Generating static pages using 11 workers (19/19) in 1944ms
+
+[info]   Finalizing page optimization ...
+
+[info] 
+
+[info] Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /account
+├ ○ /admin
+├ ○ /admin/customers
+├ ○ /admin/inventory
+├ ○ /admin/orders
+├ ƒ /api/distributors
+├ ƒ /api/products
+├ ƒ /api/razorpay
+├ ○ /cart
+├ ○ /checkout
+├ ○ /distributors
+├ ○ /export
+├ ○ /icon.svg
+├ ƒ /product/[id]
+├ ○ /recipes
+├ ƒ /recipes/[id]
+└ ○ /shop
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/distributors/route
+[info]  • non-static component /api/products/route
+[info]  • non-static component /api/razorpay/route
+[info]  • non-static component /product/[id]/page
+[info]  • non-static component /recipes/[id]/page
+[info] 
+[debug] [2026-05-29T17:56:49.834Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:56:49.835Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:56:49.835Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:56:51.469Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:56:51.469Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","appId":"1:399488069417:web:32044d03462a00df701138","type":"DEFAULT_SITE"}
+[debug] [2026-05-29T17:56:57.793Z] Error: EPERM: operation not permitted, symlink 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\node_modules\mongoose' -> 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\.firebase\the-devam-ecom\functions\.next\node_modules\mongoose-3844699b6046a5bd'
+[debug] [2026-05-29T17:57:29.493Z] ----------------------------------------------------------------------
+[debug] [2026-05-29T17:57:29.501Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\jayde\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-05-29T17:57:29.502Z] CLI Version:   15.19.0
+[debug] [2026-05-29T17:57:29.502Z] Platform:      win32
+[debug] [2026-05-29T17:57:29.502Z] Node Version:  v24.14.0
+[debug] [2026-05-29T17:57:29.502Z] Time:          Fri May 29 2026 23:27:29 GMT+0530 (India Standard Time)
+[debug] [2026-05-29T17:57:29.503Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-29T17:57:33.595Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-29T17:57:33.595Z] > authorizing via signed-in user (thedevam2024@gmail.com)
+[debug] [2026-05-29T17:57:33.595Z] [iam] checking project the-devam-ecom for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-05-29T17:57:33.597Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:33.598Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:33.599Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions [none]
+[debug] [2026-05-29T17:57:33.599Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions  x-goog-user-project=the-devam-ecom
+[debug] [2026-05-29T17:57:33.600Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:57:36.145Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions 200
+[debug] [2026-05-29T17:57:36.146Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:57:36.146Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:36.147Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:36.147Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom [none]
+[debug] [2026-05-29T17:57:38.377Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom 200
+[debug] [2026-05-29T17:57:38.377Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom {"projectId":"the-devam-ecom","projectNumber":"399488069417","displayName":"THE-Devam-ECOM","name":"projects/the-devam-ecom","resources":{"hostingSite":"the-devam-ecom"},"state":"ACTIVE","etag":"1_e867867b-e173-41ab-843b-bc549dc224ce"}
+[debug] [2026-05-29T17:57:42.636Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:42.637Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:42.637Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites pageToken=&pageSize=10
+[debug] [2026-05-29T17:57:46.040Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:57:46.040Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","appId":"1:399488069417:web:32044d03462a00df701138","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:57:46.041Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:46.041Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:46.041Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config [none]
+[debug] [2026-05-29T17:57:47.614Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config 200
+[debug] [2026-05-29T17:57:47.614Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config {"projectId":"the-devam-ecom","appId":"1:399488069417:web:32044d03462a00df701138","storageBucket":"the-devam-ecom.firebasestorage.app","apiKey":"AIzaSyAG2dsRoy5xEib_57sPfJ2TSyJ79MqNMes","authDomain":"the-devam-ecom.firebaseapp.com","messagingSenderId":"399488069417","measurementId":"G-NKWHTXTTSE","projectNumber":"399488069417","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 16.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-05-29T17:57:57.371Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:57.371Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:57:57.371Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:58:00.634Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:58:00.634Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","appId":"1:399488069417:web:32044d03462a00df701138","type":"DEFAULT_SITE"}
+[info] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\jayde\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\package-lock.json
+
+
+[info] ▲ Next.js 16.2.6 (Turbopack)
+
+[info] - Environments: .env.local
+
+
+[info]   Creating an optimized production build ...
+
+[info] ✓ Compiled successfully in 8.8s
+
+[info]   Running TypeScript ...
+
+[info]   Finished TypeScript in 14.2s ...
+
+[info]   Collecting page data using 11 workers ...
+
+[info]   Generating static pages using 11 workers (0/19) ...
+
+[info]   Generating static pages using 11 workers (4/19) 
+
+[info]   Generating static pages using 11 workers (9/19) 
+
+[info]   Generating static pages using 11 workers (14/19) 
+
+[info] ✓ Generating static pages using 11 workers (19/19) in 2.3s
+
+[info]   Finalizing page optimization ...
+
+[info] 
+
+[info] Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /about
+├ ○ /account
+├ ○ /admin
+├ ○ /admin/customers
+├ ○ /admin/inventory
+├ ○ /admin/orders
+├ ƒ /api/distributors
+├ ƒ /api/products
+├ ƒ /api/razorpay
+├ ○ /cart
+├ ○ /checkout
+├ ○ /distributors
+├ ○ /export
+├ ○ /icon.svg
+├ ƒ /product/[id]
+├ ○ /recipes
+├ ƒ /recipes/[id]
+└ ○ /shop
+
+
+
+[info] ○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/distributors/route
+[info]  • non-static component /api/products/route
+[info]  • non-static component /api/razorpay/route
+[info]  • non-static component /product/[id]/page
+[info]  • non-static component /recipes/[id]/page
+[info] 
+[debug] [2026-05-29T17:58:56.243Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:58:56.244Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:58:56.244Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:58:58.777Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:58:58.777Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","appId":"1:399488069417:web:32044d03462a00df701138","type":"DEFAULT_SITE"}
+[debug] [2026-05-29T17:59:04.306Z] Error: EPERM: operation not permitted, symlink 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\node_modules\mongoose' -> 'C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\.firebase\the-devam-ecom\functions\.next\node_modules\mongoose-3844699b6046a5bd'
+[debug] [2026-05-29T17:59:29.378Z] ----------------------------------------------------------------------
+[debug] [2026-05-29T17:59:29.383Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\jayde\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2026-05-29T17:59:29.384Z] CLI Version:   15.19.0
+[debug] [2026-05-29T17:59:29.384Z] Platform:      win32
+[debug] [2026-05-29T17:59:29.384Z] Node Version:  v24.14.0
+[debug] [2026-05-29T17:59:29.385Z] Time:          Fri May 29 2026 23:29:29 GMT+0530 (India Standard Time)
+[debug] [2026-05-29T17:59:29.385Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-29T17:59:32.986Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-29T17:59:32.987Z] > authorizing via signed-in user (thedevam2024@gmail.com)
+[debug] [2026-05-29T17:59:32.987Z] [iam] checking project the-devam-ecom for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-05-29T17:59:32.989Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:32.990Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:32.991Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions [none]
+[debug] [2026-05-29T17:59:32.991Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions  x-goog-user-project=the-devam-ecom
+[debug] [2026-05-29T17:59:32.991Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:59:34.549Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions 200
+[debug] [2026-05-29T17:59:34.549Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/the-devam-ecom:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-05-29T17:59:34.550Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:34.550Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:34.551Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom [none]
+[debug] [2026-05-29T17:59:35.128Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom 200
+[debug] [2026-05-29T17:59:35.128Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/the-devam-ecom {"projectId":"the-devam-ecom","projectNumber":"399488069417","displayName":"THE-Devam-ECOM","name":"projects/the-devam-ecom","resources":{"hostingSite":"the-devam-ecom"},"state":"ACTIVE","etag":"1_e867867b-e173-41ab-843b-bc549dc224ce"}
+[debug] [2026-05-29T17:59:39.302Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:39.303Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:39.303Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites pageToken=&pageSize=10
+[debug] [2026-05-29T17:59:40.668Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites 200
+[debug] [2026-05-29T17:59:40.668Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites {"sites":[{"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","appId":"1:399488069417:web:32044d03462a00df701138","type":"DEFAULT_SITE"}]}
+[debug] [2026-05-29T17:59:40.669Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:40.669Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:40.670Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config [none]
+[debug] [2026-05-29T17:59:41.930Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config 200
+[debug] [2026-05-29T17:59:41.930Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:399488069417:web:32044d03462a00df701138/config {"projectId":"the-devam-ecom","appId":"1:399488069417:web:32044d03462a00df701138","storageBucket":"the-devam-ecom.firebasestorage.app","apiKey":"AIzaSyAG2dsRoy5xEib_57sPfJ2TSyJ79MqNMes","authDomain":"the-devam-ecom.firebaseapp.com","messagingSenderId":"399488069417","measurementId":"G-NKWHTXTTSE","projectNumber":"399488069417","version":"2"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 16.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2026-05-29T17:59:51.606Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:51.606Z] Checked if tokens are valid: true, expires at: 1780079308819
+[debug] [2026-05-29T17:59:51.606Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom [none]
+[debug] [2026-05-29T17:59:53.001Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom 200
+[debug] [2026-05-29T17:59:53.001Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/the-devam-ecom/sites/the-devam-ecom {"name":"projects/the-devam-ecom/sites/the-devam-ecom","defaultUrl":"https://the-devam-ecom.web.app","appId":"1:399488069417:web:32044d03462a00df701138","type":"DEFAULT_SITE"}
+[info] ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\jayde\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\jayde\.gemini\antigravity-ide\scratch\devam\package-lock.json
+
+
+[info] ^C

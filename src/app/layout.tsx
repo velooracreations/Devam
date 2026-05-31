@@ -1,0 +1,82 @@
+import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
+import { StoreLayout } from "@/components/layout/StoreLayout";
+import "./globals.css";
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
+  title: {
+    default: "Devam - Premium Atta, Spices & Grains",
+    template: "%s | Devam",
+  },
+  description: "Devam offers premium Chakki Atta, vibrant Spices, and healthy Food Grains. Manufactured and Marketed by Shreeji Gruh Udhyog.",
+  keywords: ["Devam", "Chakki Atta", "Indian Spices", "Masala", "Whole Grains", "Shreeji Gruh Udhyog"],
+  authors: [{ name: "Shreeji Gruh Udhyog" }],
+  openGraph: {
+    title: "Devam - Premium Atta, Spices & Grains",
+    description: "Devam offers premium Chakki Atta, vibrant Spices, and healthy Food Grains. Manufactured and Marketed by Shreeji Gruh Udhyog.",
+    url: "/",
+    siteName: "Devam",
+    images: [
+      {
+        url: "/logo.svg",
+        width: 800,
+        height: 600,
+      },
+    ],
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Devam - Premium Atta, Spices & Grains",
+    description: "Premium Chakki Atta, vibrant Spices, and healthy Food Grains from Devam.",
+    images: ["/logo.svg"],
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="en"
+      className={`${inter.variable} ${playfair.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col font-body bg-[var(--background)] text-[var(--foreground)]">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Devam",
+              "url": "https://the-devam-ecom.web.app",
+              "logo": "https://the-devam-ecom.web.app/logo.svg",
+              "description": "Premium FMCG ecommerce brand offering Chakki Atta, Spices, and Food Grains.",
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "IN"
+              }
+            })
+          }}
+        />
+        <StoreLayout>
+          {children}
+        </StoreLayout>
+      </body>
+    </html>
+  );
+}
