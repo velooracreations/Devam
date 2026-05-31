@@ -260,9 +260,12 @@ export default function AdminOrdersPage() {
 
               {/* ===== ROW 1: Company Header + Payment Badge ===== */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #000', padding: '8px 12px' }}>
-                <div>
-                  <div style={{ fontSize: '20px', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase' }}>DEVAM</div>
-                  <div style={{ fontSize: '9px', color: '#555' }}>Premium Spices &amp; Flours | www.thedevam.com</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img src="/logo.svg" alt="Devam Logo" style={{ height: '40px', objectFit: 'contain' }} />
+                  <div>
+                    <div style={{ fontSize: '20px', fontWeight: '900', letterSpacing: '1px', textTransform: 'uppercase' }}>DEVAM</div>
+                    <div style={{ fontSize: '9px', color: '#555' }}>Premium Spices &amp; Flours | www.thedevam.com</div>
+                  </div>
                 </div>
                 <div style={{ border: '3px solid #000', padding: '6px 16px', fontSize: '18px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px' }}>
                   {selectedOrder.paymentMethod.includes('Cash') ? 'C.O.D' : 'PREPAID'}
@@ -335,6 +338,12 @@ export default function AdminOrdersPage() {
                         <td style={{ padding: '5px 0', textAlign: 'right', fontWeight: '700' }}>₹{item.price * item.quantity}</td>
                       </tr>
                     ))}
+                    <tr style={{ borderBottom: '2px solid #000' }}>
+                      <td style={{ padding: '5px 0', fontWeight: '600' }}>Shipping &amp; Handling</td>
+                      <td style={{ padding: '5px 0', textAlign: 'center' }}>-</td>
+                      <td style={{ padding: '5px 0', textAlign: 'right' }}>-</td>
+                      <td style={{ padding: '5px 0', textAlign: 'right', fontWeight: '700' }}>₹50</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
