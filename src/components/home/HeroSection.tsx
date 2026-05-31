@@ -15,7 +15,7 @@ const storyFrames = [
     description:
       "From the finest Bhalia wheat of Gujarat, our chakki atta is slow-ground the traditional way — retaining its natural sweetness, aroma, and nutrients. The foundation of every perfect rotli.",
     image: "/hero-flour-new.png",
-    cta: { label: "Shop Flour Range", href: "/shop?category=flours" },
+    cta: { label: "હમણાં ઓર્ડર કરો", href: "/shop?category=flours" },
   },
   {
     id: 2,
@@ -25,7 +25,7 @@ const storyFrames = [
     description:
       "Devam atta kneads into the softest dough that rolls out beautifully and puffs up perfectly — every single time. Because your family deserves flour that delivers on tradition.",
     image: "/hero-dough.png",
-    cta: { label: "Shop Sharbati Atta", href: "/product/sharbati-atta-5kg" },
+    cta: { label: "હમણાં ઓર્ડર કરો", href: "/product/sharbati-atta-5kg" },
   },
   {
     id: 3,
@@ -35,7 +35,7 @@ const storyFrames = [
     description:
       "When the rotli puffs up on the tawa and the masala brings out the perfect colour and aroma — that's when you know. That warmth, that taste — it's the Devam promise to your family.",
     image: "/hero-rotli-steam.png",
-    cta: { label: "Discover Our Collection", href: "/shop" },
+    cta: { label: "હમણાં ઓર્ડર કરો", href: "/shop" },
   },
   {
     id: 4,
@@ -45,7 +45,7 @@ const storyFrames = [
     description:
       "Vibrant haldi, fiery mirchi, aromatic jeera, fresh dhana — every spice powder is crafted from handpicked whole spices, ground fresh to bring alive the true flavour of Indian cooking.",
     image: "/hero-masala.png",
-    cta: { label: "Shop Spice Powders", href: "/shop?category=spice-powders" },
+    cta: { label: "હમણાં ઓર્ડર કરો", href: "/shop?category=spice-powders" },
   },
   {
     id: 5,
@@ -55,7 +55,7 @@ const storyFrames = [
     description:
       "The sizzle of jeera and rai in hot ghee. That unmistakable aroma filling the whole house. Our whole spices are sorted and cleaned to give you the purest, most potent tadka every time.",
     image: "/hero-whole-spice.png",
-    cta: { label: "Shop Whole Spices", href: "/shop?category=whole-spices" },
+    cta: { label: "હમણાં ઓર્ડર કરો", href: "/shop?category=whole-spices" },
   },
 ];
 
@@ -222,8 +222,11 @@ export function HeroSection() {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col items-center"
           >
-            <p className="text-xs md:text-sm font-bold uppercase tracking-[0.4em] text-[var(--color-devam-gold)] drop-shadow-md mb-2 md:mb-4 relative z-20 mt-8 md:mt-0">
-              Flour &bull; Spices &bull; Purity
+            <h1 className="text-4xl md:text-5xl lg:text-7xl font-heading font-bold text-[var(--color-devam-gold)] mb-6 drop-shadow-lg tracking-wide text-center uppercase max-w-4xl px-4 mt-8 md:mt-0">
+              Devam Foods
+            </h1>
+            <p className="text-2xl md:text-4xl text-[var(--color-devam-cream)] font-body max-w-3xl text-center leading-relaxed drop-shadow-md px-6 font-semibold">
+              તમારી પસંદ મુજબ તાજા પીસાયેલા મસાલા
             </p>
 
             <div className="relative w-56 h-28 md:w-72 md:h-36 my-6 drop-shadow-2xl pointer-events-none">

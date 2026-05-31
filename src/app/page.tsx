@@ -3,6 +3,7 @@ import { TrustBadges } from "@/components/home/TrustBadges";
 import { Categories } from "@/components/home/Categories";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { WhyDevam } from "@/components/home/WhyDevam";
+import { CustomerReviews } from "@/components/home/CustomerReviews";
 import { ManufacturingProcess } from "@/components/home/ManufacturingProcess";
 import { DistributorCTA } from "@/components/home/DistributorCTA";
 
@@ -14,6 +15,7 @@ export default function Home() {
       <Categories />
       <FeaturedProducts />
       <WhyDevam />
+      <CustomerReviews />
       <ManufacturingProcess />
       <DistributorCTA />
     </div>

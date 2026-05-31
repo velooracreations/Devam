@@ -34,7 +34,7 @@ export function WhyDevam() {
           
           <div className="lg:w-1/2">
             <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6 text-[var(--color-devam-gold)]">
-              The Devam Difference
+              શા માટે Devam?
             </h2>
             <p className="text-lg text-white/80 font-body mb-8 leading-relaxed">
               We believe that the best meals start with the finest ingredients. For generations, we have been committed to bringing the authentic taste of India to your kitchen, without any compromise on quality.
@@ -49,8 +49,8 @@ export function WhyDevam() {
               ))}
             </ul>
             
-            <button className="px-8 py-4 bg-[var(--color-devam-red)] text-white font-semibold uppercase tracking-wider hover:bg-white hover:text-[var(--color-devam-red)] transition-colors rounded-sm shadow-lg">
-              Discover Our Story
+            <button className="px-8 py-4 bg-[var(--color-devam-red)] text-white font-semibold uppercase tracking-wider hover:bg-white hover:text-[var(--color-devam-red)] transition-colors rounded-sm shadow-lg text-xl">
+              અમારા વિશે
             </button>
           </div>
         </div>
