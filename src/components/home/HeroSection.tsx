@@ -223,7 +223,7 @@ export function HeroSection() {
             className="flex flex-col items-center"
           >
             <h1 className="text-4xl md:text-5xl lg:text-7xl font-heading font-bold text-[var(--color-devam-gold)] mb-6 drop-shadow-lg tracking-wide text-center uppercase max-w-4xl px-4 mt-8 md:mt-0">
-              Devam Foods
+              Devam
             </h1>
             <p className="text-2xl md:text-4xl text-[var(--color-devam-cream)] font-body max-w-3xl text-center leading-relaxed drop-shadow-md px-6 font-semibold">
               તમારી પસંદ મુજબ તાજા પીસાયેલા મસાલા
