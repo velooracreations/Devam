@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { prompt, systemInstruction, messages: inputMessages } = body;
+    const { prompt, systemInstruction, messages: inputMessages, tools } = body;
 
     if (!prompt && !inputMessages) {
       return NextResponse.json({ error: 'Prompt or messages array is required' }, { status: 400 });
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       messages.push({ role: "user", content: prompt });
     }
 
-    const payload = {
+    const payload: any = {
       model: "meta/llama-3.3-70b-instruct",
       messages: messages,
       temperature: 0.2,
@@ -37,6 +37,11 @@ export async function POST(request: Request) {
       max_tokens: 1024,
       stream: false
     };
+
+    if (tools && Array.isArray(tools) && tools.length > 0) {
+      payload.tools = tools;
+      payload.tool_choice = "auto";
+    }
 
     const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
       method: 'POST',
@@ -56,12 +61,15 @@ export async function POST(request: Request) {
 
     const data = await response.json();
     
-    // Extract the text content directly to make frontend usage easier
-    const generatedText = data?.choices?.[0]?.message?.content || "";
+    // Extract the text content and tool calls directly to make frontend usage easier
+    const message = data?.choices?.[0]?.message;
+    const generatedText = message?.content || "";
+    const toolCalls = message?.tool_calls || null;
 
     return NextResponse.json({ 
       success: true, 
       text: generatedText,
+      toolCalls: toolCalls,
       raw: data 
     });
 
