@@ -169,16 +169,30 @@ export default function Chatbot() {
     const isHindi = /[\\u0900-\\u097F]/.test(text);
     const isGujarati = /[\\u0A80-\\u0AFF]/.test(text);
     
+    if (isGujarati) {
+      utterance.lang = 'gu-IN';
+    } else if (isHindi) {
+      utterance.lang = 'hi-IN';
+    } else {
+      utterance.lang = 'en-IN'; // Force Indian English accent for Hinglish/English text
+    }
+    
+    const indianVoices = voices.filter(v => v.lang.includes('IN') || v.lang.includes('in'));
     let preferredVoice = null;
     
-    if (isHindi) preferredVoice = voices.find(v => v.lang.includes('hi-IN'));
-    if (isGujarati) preferredVoice = voices.find(v => v.lang.includes('gu-IN')) || voices.find(v => v.lang.includes('hi-IN'));
+    if (isGujarati) {
+      preferredVoice = indianVoices.find(v => v.lang.includes('gu')) || indianVoices.find(v => v.lang.includes('hi'));
+    } else if (isHindi) {
+      preferredVoice = indianVoices.find(v => v.lang.includes('hi')) || indianVoices.find(v => v.lang.includes('en'));
+    } else {
+      // For English/Hinglish, prioritize Indian English female voices
+      preferredVoice = indianVoices.find(v => v.lang.includes('en') && (v.name.includes('Female') || v.name.includes('Zira'))) || 
+                       indianVoices.find(v => v.lang.includes('en')) ||
+                       indianVoices.find(v => v.lang.includes('hi'));
+    }
     
-    // Fallback to Indian English or any Indian voice
-    if (!preferredVoice) {
-      preferredVoice = voices.find(v => v.lang === 'en-IN' && v.name.includes('Female')) || 
-                       voices.find(v => v.lang === 'en-IN') ||
-                       voices.find(v => v.lang.includes('IN'));
+    if (!preferredVoice && indianVoices.length > 0) {
+      preferredVoice = indianVoices[0];
     }
     
     if (preferredVoice) {
