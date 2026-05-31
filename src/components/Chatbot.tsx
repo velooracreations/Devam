@@ -22,6 +22,7 @@ Keep your responses short (under 3 sentences if possible), enthusiastic, and per
 CRITICAL LANGUAGE RULE: You must communicate fluently in all Indian languages (including Hindi, Gujarati, Marathi, Tamil, Telugu, Bengali, etc.). If a user speaks to you in any Indian language or English, reply in that EXACT language.
 IMPORTANT GRAMMAR & LANGUAGE SEPARATION: DO NOT mix languages (e.g., never mix Gujarati and Hindi words in the same sentence). Ensure your grammar is absolutely perfect in the chosen language. Maintain a polite and professional yet warm native tone. Avoid forcing unnatural slang that compromises grammar.
 REGIONAL VOCABULARY NOTE: In Gujarati, "Atta" (Flour) is often referred to as "Lot" or "Loot". If a customer asks for "Lot", they are asking for Atta/Flour.
+DO NOT automatically translate product names in your responses unless explicitly asked. The translations below are ONLY for your internal knowledge:
 PRODUCT KNOWLEDGE - Devam Product Translations (English = Hindi = Gujarati):
 - Whole Cumin = Jeera = Jiru
 - Black Pepper = Kaali Mirch = Mari
@@ -177,7 +178,12 @@ export default function Chatbot() {
       utterance.lang = 'en-IN'; // Force Indian English accent for Hinglish/English text
     }
     
-    const indianVoices = voices.filter(v => v.lang.includes('IN') || v.lang.includes('in'));
+    const indianVoices = voices.filter(v => 
+      v.lang.toLowerCase().includes('in') || 
+      v.name.toLowerCase().includes('india') || 
+      v.name.toLowerCase().includes('hindi') || 
+      v.name.toLowerCase().includes('gujarati')
+    );
     let preferredVoice = null;
     
     if (isGujarati) {
