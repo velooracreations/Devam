@@ -303,9 +303,9 @@ export default function AdminOrdersPage() {
                   <div style={{ fontSize: '9px', fontWeight: '700', color: '#777', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '6px', borderBottom: '1px solid #ddd', paddingBottom: '4px' }}>
                     SHIP FROM (SELLER)
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: '900', marginBottom: '4px' }}>SHRIJEE GRUH UDHYOG</div>
+                  <div style={{ fontSize: '13px', fontWeight: '900', marginBottom: '4px' }}>SHREEJI GRUH UDHYOG</div>
                   <div>Godown Plot No. 5,6, City survey no. 3354,</div>
-                  <div>Block no. 1/12, Market Yard,</div>
+                  <div>Block no. 1/12, Nr. Market Yard,</div>
                   <div>Jhalod, Dahod, Gujarat - 389 170, IN</div>
                   <div style={{ marginTop: '6px', fontWeight: '700' }}>📞 +91 99796 40900</div>
                   <div style={{ fontSize: '10px', color: '#555' }}>GSTIN: 24CSFPP3315Q1ZD</div>
