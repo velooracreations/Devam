@@ -17,6 +17,7 @@ export default function AccountPage() {
   const user = useAuthStore((state) => state.user);
   const isLoading = useAuthStore((state) => state.isLoading);
   const logout = useAuthStore((state) => state.logout);
+  const orders = useOrderStore((state) => state.orders);
   const router = useRouter();
 
   useEffect(() => {
