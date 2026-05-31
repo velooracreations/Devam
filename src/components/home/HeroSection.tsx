@@ -102,8 +102,10 @@ export function HeroSection() {
               alt={storyFrames[currentIndex].subtitle}
               fill
               className="object-cover"
-              priority
-              sizes="100vw"
+              priority={currentIndex === 0}
+              loading={currentIndex === 0 ? "eager" : "lazy"}
+              sizes="(max-width: 768px) 100vw, 100vw"
+              quality={75}
             />
           </motion.div>
         </AnimatePresence>

@@ -10,12 +10,12 @@ export function Footer() {
           {/* Brand Info */}
           <div className="flex flex-col">
             <div className="flex justify-start w-full relative z-10">
-              <Link href="/" className="inline-block -ml-2 -mt-10 -mb-12 md:-mt-12 md:-mb-14">
+              <Link href="/" className="inline-block -ml-2 -mt-4 md:-mt-12 md:-mb-14 overflow-hidden relative w-40 h-16 md:w-48 md:h-20">
                 {/* Standard img tag with aggressive negative margins to crop the 500x500 square SVG's transparent padding */}
                 <img
                   src="/logo.svg"
                   alt="Devam Logo"
-                  className="w-40 md:w-48 h-auto object-contain drop-shadow-lg"
+                  className="absolute inset-0 w-full h-full object-cover scale-[1.8] md:scale-[2.2] object-center drop-shadow-lg"
                 />
               </Link>
             </div>
