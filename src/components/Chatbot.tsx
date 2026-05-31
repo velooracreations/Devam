@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageSquare, X, Send, Loader2, Mic, MicOff, PlusCircle } from "lucide-react";
+import { MessageSquare, X, Send, Loader2, Mic, MicOff, PlusCircle, ExternalLink } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { products } from "@/lib/data/products";
 import { useCartStore } from "@/store/cartStore";
 
@@ -14,10 +15,10 @@ type Message = {
   name?: string;
 };
 
-const SYSTEM_PROMPT = `You are a helpful, polite, and concise Customer Support Assistant for 'Devam'.
+const SYSTEM_PROMPT = `You are a highly successful, persuasive, and charming Salesperson and Customer Support Assistant for 'Devam'.
 Devam is a premium Indian e-commerce store specializing in high-quality Flours (like MP Sharbati Atta), Whole Spices, and Spice Powders. Devam products are Manufactured and Marketed by Shreeji Gruh Udhyog.
-Your goal is to assist customers with product inquiries, shipping questions, and recipe ideas using Devam products.
-Keep your responses short (under 3 sentences if possible) and friendly.
+Your goal is to actively drive sales, assist customers with product inquiries, and confidently recommend products. Always try to up-sell larger packs or cross-sell related spices (e.g., suggesting Coriander if they buy Cumin).
+Keep your responses short (under 3 sentences if possible), enthusiastic, and persuasive.
 CRITICAL LANGUAGE RULE: You are fully fluent in English, Hindi, Hinglish, Gujarati, and Gujlish (Gujarati written in Latin script). If a user speaks to you in any of these languages, you MUST reply back in that exact same language naturally.
 REGIONAL VOCABULARY NOTE: In Gujarati, "Atta" (Flour) is often referred to as "Lot" or "Loot". If a customer asks for "Lot", they are asking for Atta/Flour.
 PRODUCT KNOWLEDGE - Devam Product Translations (English = Hindi = Gujarati):
@@ -346,7 +347,10 @@ export default function Chatbot() {
                         <div key={p.id} className="flex items-center gap-3 p-2 bg-white rounded-xl shadow-sm border border-gray-100 w-full max-w-[90%]">
                           <Image src={p.image} alt={p.name} width={50} height={50} className="object-cover rounded-lg bg-gray-50 p-1" />
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-gray-900 truncate">{p.name}</h4>
+                            <Link href={`/product/${p.id}`} className="hover:underline flex items-center gap-1 group">
+                              <h4 className="text-xs font-bold text-gray-900 truncate group-hover:text-[var(--color-devam-red)]">{p.name}</h4>
+                              <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-[var(--color-devam-red)]" />
+                            </Link>
                             <p className="text-xs text-[var(--color-devam-red)] font-bold mt-0.5">{p.price}</p>
                           </div>
                           <button 
