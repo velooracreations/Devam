@@ -121,7 +121,10 @@ export default function DistributorsPage() {
                 </div>
                 <div className="flex items-center text-[var(--color-devam-brown)]/80">
                   <Phone className="w-5 h-5 mr-3 text-[var(--color-devam-red)] flex-shrink-0" />
-                  <span>+91 99796 40900 / +91 99795 40900</span>
+                  <span className="flex flex-col">
+                    <span>+91 99796 40900</span>
+                    <span>+91 99795 40900</span>
+                  </span>
                 </div>
                 <div className="flex items-center text-[var(--color-devam-brown)]/80">
                   <Mail className="w-5 h-5 mr-3 text-[var(--color-devam-red)] flex-shrink-0" />

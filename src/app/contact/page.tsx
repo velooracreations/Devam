@@ -51,8 +51,9 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 text-lg mb-1">Phone Numbers</h3>
-                  <p className="text-gray-600 font-body">
-                    +91 99796 40900 / +91 99795 40900
+                  <p className="text-gray-600 font-body flex flex-col">
+                    <span>+91 99796 40900</span>
+                    <span>+91 99795 40900</span>
                   </p>
                 </div>
               </div>
