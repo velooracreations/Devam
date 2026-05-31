@@ -114,7 +114,7 @@ export function Footer() {
               <li className="flex items-center">
                 <Phone className="w-5 h-5 text-[var(--color-devam-red)] mr-3 flex-shrink-0" />
                 <a href="tel:+919979640900" className="text-white/80 hover:text-white transition-colors font-body text-sm">
-                  +91 99796 40900
+                  +91 99796 40900 / +91 99795 40900
                 </a>
               </li>
               <li className="flex items-center">
