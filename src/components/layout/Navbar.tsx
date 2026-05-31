@@ -53,13 +53,12 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex-shrink-0 flex items-center h-12 md:h-16 w-32 md:w-48 justify-start overflow-hidden">
+          <Link href="/" className="flex-shrink-0 flex items-center h-12 md:h-16 w-32 md:w-48 relative">
             <Image
               src="/logo.svg"
               alt="Devam Logo"
-              width={240}
-              height={240}
-              className="w-full h-full object-contain scale-[1.5] md:scale-[2.0] origin-left"
+              fill
+              className="object-contain object-left"
               priority
             />
           </Link>

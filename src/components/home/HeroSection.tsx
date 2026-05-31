@@ -226,7 +226,7 @@ export function HeroSection() {
               Flour &bull; Spices &bull; Purity
             </p>
 
-            <div className="relative w-48 h-48 md:w-80 md:h-80 my-2 md:-mt-16 md:-mb-20 drop-shadow-2xl pointer-events-none">
+            <div className="relative w-56 h-28 md:w-72 md:h-36 my-6 drop-shadow-2xl pointer-events-none">
               <Image 
                 src="/logo.svg" 
                 alt="Devam Logo" 
