@@ -3,21 +3,21 @@ import { Star } from "lucide-react";
 const reviews = [
   {
     id: 1,
-    name: "Ramesh Patel",
+    name: "Abhimanyou Tiwari",
     location: "Ahmedabad",
     rating: 5,
     text: "The quality of Sharbati Atta is exactly like what we used to get from the village chakki. Rotlis stay soft all day long. Very happy with Devam!",
   },
   {
     id: 2,
-    name: "Sonal Shah",
+    name: "Akhil Jain",
     location: "Surat",
     rating: 5,
     text: "I ordered their Turmeric and Chilli powder. The color and aroma are so pure and authentic. It really elevated my cooking.",
   },
   {
     id: 3,
-    name: "Vikram Desai",
+    name: "Devanshi Varia",
     location: "Vadodara",
     rating: 5,
     text: "Excellent packaging and fast delivery. The spices are very fresh. You can tell they don't mix anything. Highly recommended.",
