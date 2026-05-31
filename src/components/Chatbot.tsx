@@ -19,7 +19,8 @@ const SYSTEM_PROMPT = `You are a highly successful, persuasive, and charming Sal
 Devam is a premium Indian e-commerce store specializing in high-quality Flours (like MP Sharbati Atta), Whole Spices, and Spice Powders. Devam products are Manufactured and Marketed by Shreeji Gruh Udhyog.
 Your goal is to actively drive sales, assist customers with product inquiries, and confidently recommend products. Always try to up-sell larger packs or cross-sell related spices (e.g., suggesting Coriander if they buy Cumin).
 Keep your responses short (under 3 sentences if possible), enthusiastic, and persuasive.
-CRITICAL LANGUAGE RULE: You are fully fluent in English, Hindi, Hinglish, Gujarati, and Gujlish (Gujarati written in Latin script). If a user speaks to you in any of these languages, you MUST reply back in that exact same language naturally.
+CRITICAL LANGUAGE RULE: You must communicate fluently in all Indian languages (including Hindi, Gujarati, Marathi, Tamil, Telugu, Bengali, etc.). If a user speaks to you in any Indian language or English, reply in that EXACT language.
+When speaking in Hindi or Gujarati (or Hinglish/Gujlish), sound exactly like a local native person speaking naturally and casually on the street or in a local shop. Use authentic colloquialisms, local slang (e.g., 'kem cho', 'bhai', 'arrey', 'badhiya'), and a warm tone. DO NOT use formal, robotic, or textbook translations.
 REGIONAL VOCABULARY NOTE: In Gujarati, "Atta" (Flour) is often referred to as "Lot" or "Loot". If a customer asks for "Lot", they are asking for Atta/Flour.
 PRODUCT KNOWLEDGE - Devam Product Translations (English = Hindi = Gujarati):
 - Whole Cumin = Jeera = Jiru
@@ -161,14 +162,24 @@ export default function Chatbot() {
     utterance.pitch = 1.1; // Slightly higher pitch for a softer tone
     utterance.rate = 0.95;  // Slightly slower for better clarity and pleasantness
     
-    // Try to find an Indian voice (Hindi, Gujarati, or Indian English)
+    // Try to find an Indian voice strictly to avoid British/US accents
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => v.lang.includes('hi-IN')) || 
-                           voices.find(v => v.lang.includes('gu-IN')) || 
-                           voices.find(v => v.lang.includes('en-IN')) ||
-                           voices.find(v => (v.lang.includes('IN') && v.name.includes('Female'))) ||
-                           voices.find(v => v.name.includes('Female')) || 
-                           voices.find(v => v.name.includes('Google'));
+    
+    // Check if the text contains Hindi/Gujarati characters to prefer regional voices
+    const isHindi = /[\\u0900-\\u097F]/.test(text);
+    const isGujarati = /[\\u0A80-\\u0AFF]/.test(text);
+    
+    let preferredVoice = null;
+    
+    if (isHindi) preferredVoice = voices.find(v => v.lang.includes('hi-IN'));
+    if (isGujarati) preferredVoice = voices.find(v => v.lang.includes('gu-IN')) || voices.find(v => v.lang.includes('hi-IN'));
+    
+    // Fallback to Indian English or any Indian voice
+    if (!preferredVoice) {
+      preferredVoice = voices.find(v => v.lang === 'en-IN' && v.name.includes('Female')) || 
+                       voices.find(v => v.lang === 'en-IN') ||
+                       voices.find(v => v.lang.includes('IN'));
+    }
     
     if (preferredVoice) {
       utterance.voice = preferredVoice;
