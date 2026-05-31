@@ -38,9 +38,9 @@ export default function ContactPage() {
                   <h3 className="font-bold text-gray-900 text-lg mb-1">Our Headquarters</h3>
                   <p className="text-gray-600 font-body leading-relaxed">
                     SHREEJI GRUH UDHYOG<br />
-                    Godown Plot No. 5,6, City survey no. 3354,<br />
-                    Block no. 1/12, Nr. Market Yard,<br />
-                    Jhalod, Dahod, Gujarat - 389 170, IN
+                    Godown Plot No. 5-6, City Survey No. 3354,<br />
+                    Block 1/12, Nr. Market Yard, Jhalod,<br />
+                    Dahod, Gujarat-389170, India
                   </p>
                 </div>
               </div>

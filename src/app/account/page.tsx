@@ -209,8 +209,8 @@ export default function AccountPage() {
                       <span className="font-bold text-gray-900">{user.displayName}</span>
                       <span className="font-bold text-gray-900">{user.phoneNumber}</span>
                     </div>
-                    <p className="text-gray-600">Devam Foods HQ, Godown Plot No 5-6, City Survey no-3354,</p>
-                    <p className="text-gray-600 mb-1">Block 1/12 In Market Yard, Jhalod</p>
+                    <p className="text-gray-600">Devam Foods HQ, Godown Plot No. 5-6, City Survey No. 3354,</p>
+                    <p className="text-gray-600">Block 1/12, Nr. Market Yard, Jhalod, Dahod, Gujarat-389170, India</p>
                     <p className="font-bold text-gray-900">Dahod, Gujarat - 389170</p>
                   </div>
                 </div>

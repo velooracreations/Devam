@@ -307,9 +307,9 @@ export default function AdminOrdersPage() {
                     SHIP FROM (SELLER)
                   </div>
                   <div style={{ fontSize: '13px', fontWeight: '900', marginBottom: '4px' }}>SHREEJI GRUH UDHYOG</div>
-                  <div>Godown Plot No. 5,6, City survey no. 3354,</div>
-                  <div>Block no. 1/12, Nr. Market Yard,</div>
-                  <div>Jhalod, Dahod, Gujarat - 389 170, IN</div>
+                  <div>Godown Plot No. 5-6, City Survey No. 3354,</div>
+                  <div>Block 1/12, Nr. Market Yard, Jhalod,</div>
+                  <div>Dahod, Gujarat-389170, India</div>
                   <div style={{ marginTop: '6px', fontWeight: '700' }}>📞 +91 99796 40900<br/>&nbsp;&nbsp;&nbsp;&nbsp;+91 99795 40900</div>
                   <div style={{ marginTop: '2px', fontWeight: '700' }}>📧 info@thedevam.com</div>
                   <div style={{ fontSize: '10px', color: '#555', marginTop: '4px' }}>GSTIN: 24CSFPP3315Q1ZD</div>
