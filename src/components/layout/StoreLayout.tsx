@@ -6,10 +6,19 @@ import { Footer } from "@/components/layout/Footer";
 import Chatbot from "@/components/Chatbot";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 export function StoreLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   
+  useEffect(() => {
+    const unsubscribe = useAuthStore.getState().initialize();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   // If we are in the admin section, DO NOT render the storefront Navbar and Footer
   if (pathname?.startsWith("/admin")) {
     return (
