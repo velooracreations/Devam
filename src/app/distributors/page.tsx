@@ -115,7 +115,7 @@ export default function DistributorsPage() {
                   <Building2 className="w-5 h-5 mr-3 mt-1 text-[var(--color-devam-red)] flex-shrink-0" />
                   <span className="leading-relaxed">
                     GODOWN PLOT NO 5-6, City Survey no-3354,<br />
-                    BLOCK 1/12 IN MARKET YARD, JHALOD,<br />
+                    BLOCK 1/12, NR. MARKET YARD, JHALOD,<br />
                     DAHOD, Gujarat-389170, India
                   </span>
                 </div>
