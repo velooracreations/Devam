@@ -220,11 +220,11 @@ export function HeroSection() {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col items-center"
           >
-            <p className="text-xs font-bold uppercase tracking-[0.4em] text-[var(--color-devam-gold)] drop-shadow-md mb-2 md:mb-4 relative z-20">
+            <p className="text-xs md:text-sm font-bold uppercase tracking-[0.4em] text-[var(--color-devam-gold)] drop-shadow-md mb-2 md:mb-4 relative z-20 mt-8 md:mt-0">
               Flour &bull; Spices &bull; Purity
             </p>
 
-            <div className="relative w-64 h-64 md:w-80 md:h-80 -mt-10 -mb-12 md:-mt-16 md:-mb-20 drop-shadow-2xl pointer-events-none">
+            <div className="relative w-48 h-48 md:w-80 md:h-80 my-2 md:-mt-16 md:-mb-20 drop-shadow-2xl pointer-events-none">
               <Image 
                 src="/logo.svg" 
                 alt="Devam Logo" 
@@ -234,21 +234,21 @@ export function HeroSection() {
               />
             </div>
 
-            <p className="font-body text-sm md:text-base mb-8 text-[var(--color-devam-brown)] font-medium max-w-xl mx-auto leading-relaxed relative z-20">
+            <p className="font-body text-sm md:text-base mb-8 text-[var(--color-devam-brown)] font-medium max-w-xl mx-auto leading-relaxed relative z-20 px-4">
               Premium Chakki Atta &amp; Authentic Indian Spices - Rooted in
               Gujarat, Crafted for Every Indian Kitchen.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 w-full px-8 sm:px-0 sm:w-auto">
               <Link
                 href="/shop?category=flours"
-                className="inline-flex items-center justify-center px-10 py-4 bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider rounded-sm hover:bg-white transition-all shadow-[0_0_30px_rgba(230,184,0,0.3)] hover:scale-105"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider rounded-sm hover:bg-white transition-all shadow-[0_0_30px_rgba(230,184,0,0.3)] hover:scale-105"
               >
                 Shop Flour
               </Link>
               <Link
                 href="/shop?category=spice-powders"
-                className="inline-flex items-center justify-center px-10 py-4 border-2 border-[var(--color-devam-brown)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider rounded-sm hover:bg-[var(--color-devam-brown)] hover:text-[var(--color-devam-cream)] transition-all"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 border-2 border-[var(--color-devam-brown)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider rounded-sm hover:bg-[var(--color-devam-brown)] hover:text-[var(--color-devam-cream)] transition-all"
               >
                 Shop Spices
               </Link>

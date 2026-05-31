@@ -105,14 +105,14 @@ export default function Chatbot() {
     utterance.pitch = 1.1; // Slightly higher pitch for a softer tone
     utterance.rate = 0.95;  // Slightly slower for better clarity and pleasantness
     
-    // Try to find a female Indian voice (or any female voice as fallback)
+    // Try to find an Indian voice (Hindi, Gujarati, or Indian English)
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => 
-      (v.lang.includes('IN') && (v.name.includes('Female') || v.name.includes('Google'))) || 
-      v.name.includes('Female') || 
-      v.name.includes('Zira') || 
-      v.name.includes('Samantha')
-    );
+    const preferredVoice = voices.find(v => v.lang.includes('hi-IN')) || 
+                           voices.find(v => v.lang.includes('gu-IN')) || 
+                           voices.find(v => v.lang.includes('en-IN')) ||
+                           voices.find(v => (v.lang.includes('IN') && v.name.includes('Female'))) ||
+                           voices.find(v => v.name.includes('Female')) || 
+                           voices.find(v => v.name.includes('Google'));
     
     if (preferredVoice) {
       utterance.voice = preferredVoice;
