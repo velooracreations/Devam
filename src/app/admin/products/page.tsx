@@ -83,7 +83,8 @@ export default function AdminProductsPage() {
 
     if (editMode === 'new-product') {
       const id = editForm.name?.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + finalWeight.toLowerCase().replace(/\s+/g, '');
-      addProduct({
+      
+      const newProd = {
         id: id || Date.now().toString(),
         name: editForm.name || "New Product",
         category: editForm.category || selectedCategory || "Flours",
@@ -97,7 +98,32 @@ export default function AdminProductsPage() {
         description: editForm.description,
         ingredients: editForm.ingredients,
         productDetails: editForm.productDetails
-      });
+      };
+      
+      addProduct(newProd);
+
+      // Trigger actual ERP API backend creation for Barcode generation
+      const pCode = (editForm as any).productCode;
+      if (pCode) {
+        let catCode = "01";
+        const cat = newProd.category;
+        if (cat === "Spice Powders" || cat === "Spices") catCode = "02";
+        else if (cat === "Whole Spices") catCode = "03";
+        else if (cat === "Grains") catCode = "04";
+
+        fetch('/api/erp/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newProd.name,
+            category: catCode,
+            productCode: pCode,
+            price: newProd.price || 0,
+            weight: newProd.weight
+          })
+        }).catch(err => console.error("ERP API sync failed", err));
+      }
+
       setEditForm({});
       setEditMode(null);
       return;
@@ -393,8 +419,8 @@ export default function AdminProductsPage() {
             <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
               {(editMode === 'product' || editMode === 'new-product') && (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-1">
                       <label className="block text-sm font-bold text-gray-700 mb-1">Product Name</label>
                       <input 
                         type="text" 
@@ -414,6 +440,17 @@ export default function AdminProductsPage() {
                           <option key={c} value={c}>{c}</option>
                         ))}
                       </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-1">Item Code (3-digit)</label>
+                      <input 
+                        type="text" 
+                        maxLength={3}
+                        placeholder="e.g. 011"
+                        value={(editForm as any).productCode || ""}
+                        onChange={(e) => setEditForm({...editForm, productCode: e.target.value.replace(/\D/g, '')})}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent"
+                      />
                     </div>
                   </div>
 

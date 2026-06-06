@@ -154,6 +154,8 @@ export default function CheckoutPage() {
         handler: function (response: any) {
           // Valid payment!
           const newOrderId = getNextOrderId();
+          const customerName = addresses.find(a => a.id === selectedAddress)?.name || "Guest";
+          
           addOrder({
             id: newOrderId,
             date: new Date().toISOString(),
@@ -161,9 +163,17 @@ export default function CheckoutPage() {
             paymentMethod: "Razorpay (UPI/Card)",
             items: items,
             status: 'Order Placed',
-            customerName: addresses.find(a => a.id === selectedAddress)?.name || "Guest",
+            customerName,
             gstNumber: gstNumber || undefined
           });
+          
+          // Sync with ERP
+          fetch('/api/erp/order-sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: newOrderId, items, customerName })
+          }).catch(err => console.error("ERP Sync failed", err));
+
           clearCart();
           setLastOrderId(newOrderId);
           setOrderPlaced(true);

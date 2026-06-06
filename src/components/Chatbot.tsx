@@ -94,7 +94,7 @@ export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: "system", content: SYSTEM_PROMPT },
-    { role: "assistant", content: "Namaste! Welcome to Devam. How can I help you today? (Aap Hindi, Hinglish, Gujarati ya Gujlish mein bhi baat kar sakte hain!)" }
+    { role: "assistant", content: "Namaste! Welcome to Devam. How can I help you today?" }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);

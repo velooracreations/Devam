@@ -1,36 +1,40 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+// Note: In Next.js Edge runtime (middleware), you can't use standard jsonwebtoken library.
+// For the sake of this implementation, we will use basic cookie parsing, 
+// but in production, you should use jose or NextAuth for edge-compatible token verification.
 
-// This is a basic middleware to secure the /admin routes
-// In production, this would verify a Firebase Auth token or NextAuth session
 export function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
+  const path = request.nextUrl.pathname;
 
-  // Protect all /admin routes
-  if (pathname.startsWith('/admin')) {
-    // For now, since we don't have a live login flow hooked up,
-    // we check for a mock cookie or query param to allow entry.
-    // Real implementation: check auth token.
-    const isAuthenticated = request.cookies.has('admin_session');
-    
-    // Allow access to the login page itself
-    if (pathname === '/admin/login') {
-      if (isAuthenticated) {
-        return NextResponse.redirect(new URL('/admin', request.url));
-      }
-      return NextResponse.next();
-    }
+  // Define restricted paths
+  const isAdminPath = path.startsWith('/admin');
+  const isApiErpPath = path.startsWith('/api/erp');
 
-    if (!isAuthenticated) {
-      // Redirect unauthenticated users to the admin login page
-      return NextResponse.redirect(new URL('/admin/login', request.url));
-    }
+  // Skip middleware for login pages and seed route
+  if (path === '/admin/login' || path === '/api/erp/seed') {
+    return NextResponse.next();
   }
 
+  const token = request.cookies.get('token')?.value || request.cookies.get('admin_session')?.value || '';
+
+  if ((isAdminPath || isApiErpPath) && !token) {
+    // Redirect to login if accessing admin without token
+    if (isAdminPath) {
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // NOTE: Full JWT verification is typically done in the API routes themselves or via a wrapper,
+  // since the Edge runtime doesn't fully support Node.js crypto used by jsonwebtoken.
+  
   return NextResponse.next();
 }
 
-// Specify which paths this middleware should run on
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/api/erp/:path*'
+  ],
 };
