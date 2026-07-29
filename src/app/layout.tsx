@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { StoreLayout } from "@/components/layout/StoreLayout";
+import { AuthContextProvider } from "@/context/AuthContext";
 import "./globals.css";
 
 const inter = Inter({
@@ -45,6 +46,8 @@ export const metadata: Metadata = {
   },
 };
 
+import Script from "next/script";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,6 +59,7 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-body bg-[var(--background)] text-[var(--foreground)]">
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -73,9 +77,11 @@ export default function RootLayout({
             })
           }}
         />
-        <StoreLayout>
-          {children}
-        </StoreLayout>
+        <AuthContextProvider>
+          <StoreLayout>
+            {children}
+          </StoreLayout>
+        </AuthContextProvider>
       </body>
     </html>
   );

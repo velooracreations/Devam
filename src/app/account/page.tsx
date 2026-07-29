@@ -6,15 +6,38 @@ import Link from "next/link";
 import { User, Package, MapPin, LogOut, CreditCard, Gift, Heart, Star, Bell, ChevronRight, Edit2, Plus, Settings, Camera, Loader2 } from "lucide-react";
 import { useOrderStore } from "@/store/orderStore";
 import { useAuthStore } from "@/store/authStore";
+import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { toast } from "sonner";
 
-type Tab = "profile" | "addresses" | "pan" | "orders" | "gift-cards" | "upi" | "cards" | "coupons" | "wishlist";
+type Tab = "profile" | "addresses" | "orders" | "gift-cards" | "upi" | "cards" | "coupons" | "wishlist";
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Address State
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    name: "",
+    phone: "",
+    pin: "",
+    houseNo: "",
+    buildingName: "",
+    street: "",
+    area: "",
+    landmark: "",
+    cityDistrict: "",
+    state: "",
+    type: "HOME",
+    otherType: ""
+  });
+
   const user = useAuthStore((state) => state.user);
+  const { userData, loading: isUserDataLoading } = useAuth();
   const isLoading = useAuthStore((state) => state.isLoading);
   const logout = useAuthStore((state) => state.logout);
   const orders = useOrderStore((state) => state.orders);
@@ -41,7 +64,84 @@ export default function AccountPage() {
     }
   };
 
-  if (isLoading || !user) {
+  const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const pin = e.target.value.replace(/[^0-9]/g, '');
+    setAddressForm({ ...addressForm, pin });
+    
+    if (pin.length === 6) {
+      try {
+        const apiKey = "579b464db66ec23bdd00000175d0d80528c44d856d103d5ba6157c00";
+        const url = `https://api.data.gov.in/resource/6176ee09-3d56-4a3b-8115-21841576b2f6?api-key=${apiKey}&format=json&filters[pincode]=${pin}`;
+        
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data && data.records && data.records.length > 0) {
+          const record = data.records[0];
+          setAddressForm(prev => ({
+            ...prev,
+            area: record.officename ? record.officename.replace(/ (B\.O|S\.O|H\.O)$/i, '') : prev.area,
+            cityDistrict: record.districtname || record.taluk || prev.cityDistrict,
+            state: record.statename || prev.state
+          }));
+        } else {
+          toast.error("Invalid PIN Code or not found.");
+        }
+      } catch (err) {
+        console.error("Error fetching pincode details:", err);
+      }
+    }
+  };
+
+  const resetAddressForm = () => {
+    setAddressForm({
+      name: "", phone: "", pin: "", houseNo: "", buildingName: "", street: "", area: "", landmark: "", cityDistrict: "", state: "", type: "HOME", otherType: ""
+    });
+  };
+
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    
+    // Check for duplicates
+    const isDuplicate = userData?.addresses?.some((addr: any) => 
+      addr.pin === addressForm.pin &&
+      (addr.houseNo || "").toLowerCase().trim() === addressForm.houseNo.toLowerCase().trim() &&
+      (addr.street || "").toLowerCase().trim() === addressForm.street.toLowerCase().trim()
+    );
+
+    if (isDuplicate) {
+      toast.error("This address already exists in your account.");
+      return;
+    }
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const finalType = addressForm.type === "OTHER" && addressForm.otherType.trim() !== "" 
+        ? addressForm.otherType.trim().toUpperCase() 
+        : (addressForm.type === "OTHER" ? "OTHER" : addressForm.type);
+        
+      const newAddress = { 
+        ...addressForm, 
+        type: finalType,
+        id: Date.now().toString() 
+      };
+      delete (newAddress as any).otherType;
+      
+      await updateDoc(userRef, {
+        addresses: arrayUnion(newAddress)
+      });
+      
+      toast.success("Address saved successfully!");
+      resetAddressForm();
+      setIsAddingAddress(false);
+    } catch (error) {
+      console.error("Error saving address:", error);
+      toast.error("Failed to save address. Please try again.");
+    }
+  };
+
+  if (isLoading || isUserDataLoading || !user) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-[var(--color-devam-red)]" />
@@ -108,7 +208,7 @@ export default function AccountPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500 font-medium">Hello,</p>
-                <p className="font-bold text-[var(--color-devam-brown)]">{user.displayName || user.email?.split('@')[0]}</p>
+                <p className="font-bold text-[var(--color-devam-brown)]">{userData?.name || user.displayName || user.email?.split('@')[0]}</p>
               </div>
             </div>
 
@@ -130,7 +230,6 @@ export default function AccountPage() {
               <SidebarGroup title="ACCOUNT SETTINGS" icon={User}>
                 <SidebarItem tab="profile" label="Profile Information" />
                 <SidebarItem tab="addresses" label="Manage Addresses" />
-                <SidebarItem tab="pan" label="PAN Card Information" />
               </SidebarGroup>
 
               <SidebarGroup title="PAYMENTS" icon={CreditCard}>
@@ -144,9 +243,6 @@ export default function AccountPage() {
                 </button>
                 <SidebarItem tab="upi" label="Saved UPI" />
                 <SidebarItem tab="cards" label="Saved Cards" />
-                <button onClick={() => logout()} className="w-full text-left px-6 pl-[3.25rem] py-3 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium">
-                    Logout
-                </button>
               </SidebarGroup>
 
               <SidebarGroup title="MY STUFF" icon={Settings}>
@@ -167,8 +263,8 @@ export default function AccountPage() {
                   <button className="text-sm font-medium text-[var(--color-devam-red)]">Edit</button>
                 </div>
                 <div className="flex gap-4 mb-10">
-                  <input type="text" value={user.displayName?.split(" ")[0] || ""} readOnly className="bg-gray-50 border border-gray-200 rounded px-4 py-3 w-64 focus:outline-none text-gray-700" />
-                  <input type="text" value={user.displayName?.split(" ")[1] || ""} readOnly className="bg-gray-50 border border-gray-200 rounded px-4 py-3 w-64 focus:outline-none text-gray-700" />
+                  <input type="text" value={(userData?.name || user.displayName || "").split(" ")[0] || ""} readOnly className="bg-gray-50 border border-gray-200 rounded px-4 py-3 w-64 focus:outline-none text-gray-700" />
+                  <input type="text" value={(userData?.name || user.displayName || "").split(" ")[1] || ""} readOnly className="bg-gray-50 border border-gray-200 rounded px-4 py-3 w-64 focus:outline-none text-gray-700" />
                 </div>
                 
                 <div className="flex gap-4 mb-8">
@@ -194,26 +290,138 @@ export default function AccountPage() {
             {activeTab === "addresses" && (
               <div className="animate-in fade-in">
                 <h2 className="text-lg font-bold text-gray-900 mb-6">Manage Addresses</h2>
-                <button className="w-full border border-gray-300 rounded p-4 text-[var(--color-devam-red)] font-bold flex items-center mb-6 hover:bg-gray-50 transition-colors">
-                  <Plus className="w-5 h-5 mr-2" /> ADD A NEW ADDRESS
-                </button>
                 
-                <div className="border border-gray-200 rounded relative">
-                  <div className="absolute top-4 right-4 flex gap-4">
-                    <button className="text-[var(--color-devam-brown)] font-medium text-sm">Edit</button>
-                    <button className="text-[var(--color-devam-brown)] font-medium text-sm">Delete</button>
+                {!isAddingAddress && (
+                  <button onClick={() => {
+                    resetAddressForm();
+                    setIsAddingAddress(true);
+                  }} className="w-full border border-gray-300 rounded p-4 text-[var(--color-devam-red)] font-bold flex items-center mb-6 hover:bg-gray-50 transition-colors">
+                    <Plus className="w-5 h-5 mr-2" /> ADD A NEW ADDRESS
+                  </button>
+                )}
+
+                {isAddingAddress && (
+                  <div className="border border-[var(--color-devam-brown)] rounded bg-orange-50/20 p-6 mb-8">
+                    <h3 className="font-bold text-gray-900 mb-4">Add a new address</h3>
+                    <form onSubmit={handleSaveAddress} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">PIN Code</label>
+                        <input required type="text" maxLength={6} value={addressForm.pin} onChange={handlePincodeChange} className="w-full max-w-[200px] border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" placeholder="6 digits [0-9] PIN code" />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Name</label>
+                          <input required type="text" value={addressForm.name} onChange={e => setAddressForm({...addressForm, name: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Phone Number</label>
+                          <input required type="text" maxLength={10} pattern="[0-9]{10}" value={addressForm.phone} onChange={e => setAddressForm({...addressForm, phone: e.target.value.replace(/[^0-9]/g, '')})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" placeholder="10-digit mobile number" />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">House no</label>
+                          <input required type="text" value={addressForm.houseNo} onChange={e => setAddressForm({...addressForm, houseNo: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Flat/House/Building Name</label>
+                          <input type="text" value={addressForm.buildingName} onChange={e => setAddressForm({...addressForm, buildingName: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Road/Street</label>
+                          <input required type="text" value={addressForm.street} onChange={e => setAddressForm({...addressForm, street: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Area/Sector/Locality</label>
+                          <input required type="text" value={addressForm.area} onChange={e => setAddressForm({...addressForm, area: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Landmark (Optional)</label>
+                        <input type="text" value={addressForm.landmark} onChange={e => setAddressForm({...addressForm, landmark: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">City/District</label>
+                          <input required type="text" value={addressForm.cityDistrict} onChange={e => setAddressForm({...addressForm, cityDistrict: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">State</label>
+                          <input required type="text" value={addressForm.state} onChange={e => setAddressForm({...addressForm, state: e.target.value})} className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-medium text-gray-700 mb-2">Address Type</p>
+                        <div className="flex gap-4 mb-3">
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="radio" name="type" checked={addressForm.type === "HOME"} onChange={() => setAddressForm({...addressForm, type: "HOME"})} className="text-[var(--color-devam-brown)] focus:ring-[var(--color-devam-brown)]" /> Home
+                          </label>
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="radio" name="type" checked={addressForm.type === "WORK"} onChange={() => setAddressForm({...addressForm, type: "WORK"})} className="text-[var(--color-devam-brown)] focus:ring-[var(--color-devam-brown)]" /> Work
+                          </label>
+                          <label className="flex items-center gap-2 text-sm cursor-pointer">
+                            <input type="radio" name="type" checked={addressForm.type === "OTHER"} onChange={() => setAddressForm({...addressForm, type: "OTHER"})} className="text-[var(--color-devam-brown)] focus:ring-[var(--color-devam-brown)]" /> Other
+                          </label>
+                        </div>
+                        {addressForm.type === "OTHER" && (
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Grandma's House" 
+                            required 
+                            value={addressForm.otherType} 
+                            onChange={e => setAddressForm({...addressForm, otherType: e.target.value})} 
+                            className="w-full max-w-[250px] border border-gray-300 rounded px-3 py-2 text-sm focus:border-[var(--color-devam-brown)] focus:outline-none" 
+                          />
+                        )}
+                      </div>
+
+                      <div className="flex gap-4 pt-4">
+                        <button type="submit" className="bg-[#fb641b] text-white font-bold px-8 py-3 rounded shadow-sm hover:bg-[#f35200] transition-colors">SAVE</button>
+                        <button type="button" onClick={() => {
+                          resetAddressForm();
+                          setIsAddingAddress(false);
+                        }} className="text-[var(--color-devam-brown)] font-bold px-8 py-3 hover:bg-gray-100 transition-colors rounded">CANCEL</button>
+                      </div>
+                    </form>
                   </div>
-                  <div className="p-6">
-                    <div className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded inline-block mb-4 uppercase tracking-wider">HOME</div>
-                    <div className="flex items-center gap-4 mb-2">
-                      <span className="font-bold text-gray-900">{user.displayName}</span>
-                      <span className="font-bold text-gray-900">{user.phoneNumber}</span>
-                    </div>
-                    <p className="text-gray-600">Devam Foods HQ, Godown Plot No. 5-6, City Survey No. 3354,</p>
-                    <p className="text-gray-600">Block 1/12, Nr. Market Yard, Jhalod, Dahod, Gujarat-389170, India</p>
-                    <p className="font-bold text-gray-900">Dahod, Gujarat - 389170</p>
+                )}
+                
+                {userData?.addresses && userData.addresses.length > 0 ? (
+                  <div className="space-y-4">
+                    {userData.addresses.map((addr: any) => (
+                      <div key={addr.id} className="border border-gray-200 rounded relative">
+                        <div className="absolute top-4 right-4 flex gap-4">
+                          <button className="text-[var(--color-devam-brown)] font-medium text-sm">Edit</button>
+                          <button className="text-[var(--color-devam-brown)] font-medium text-sm">Delete</button>
+                        </div>
+                        <div className="p-6">
+                          <div className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded inline-block mb-4 uppercase tracking-wider">{addr.type}</div>
+                          <div className="flex items-center gap-4 mb-2">
+                            <span className="font-bold text-gray-900">{addr.name}</span>
+                            <span className="font-bold text-gray-900">{addr.phone}</span>
+                          </div>
+                          <p className="text-gray-600 text-sm">
+                            {addr.houseNo}{addr.buildingName ? `, ${addr.buildingName}` : ""}, {addr.street}, {addr.area}{addr.landmark ? `, Landmark: ${addr.landmark}` : ""}
+                          </p>
+                          <p className="font-bold text-gray-900 mt-1">{addr.cityDistrict}, {addr.state} - {addr.pin}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                ) : !isAddingAddress && (
+                  <div className="text-center text-gray-500 py-10 border border-gray-200 rounded">
+                    <MapPin className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                    <p>You haven't added any addresses yet.</p>
+                  </div>
+                )}
               </div>
             )}
 

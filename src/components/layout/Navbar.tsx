@@ -6,7 +6,7 @@ import Image from "next/image";
 import { Menu, X, ShoppingCart, Search, User, ChevronDown, Bell, Gift, HelpCircle, Package, Heart, Wallet, LogOut, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
-import { useAuthStore } from "@/store/authStore";
+import { useAuth } from "@/context/AuthContext";
 import { usePathname } from "next/navigation";
 
 const navLinks = [
@@ -26,8 +26,7 @@ export function Navbar() {
   const [cartCount, setCartCount] = useState(0);
   const storeCartCount = useCartStore((state) => state.getCartCount());
   
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
+  const { user, userData, logout } = useAuth();
 
   useEffect(() => {
     setCartCount(storeCartCount);
@@ -84,7 +83,7 @@ export function Navbar() {
               <div className="relative group">
                 <button className="flex items-center gap-1 transition-colors text-[var(--color-devam-brown)] hover:text-[var(--color-devam-red)] font-medium">
                   <User className="w-5 h-5" />
-                  <span className="max-w-[100px] truncate">{user.displayName || user.email?.split('@')[0]}</span>
+                  <span className="whitespace-nowrap">{userData?.name || user.displayName || user.email?.split('@')[0]}</span>
                   <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
                 </button>
                 

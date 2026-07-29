@@ -9,6 +9,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useOrderStore } from "@/store/orderStore";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useAuthStore } from "@/store/authStore";
+import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
 
 export default function CheckoutPage() {
@@ -16,7 +17,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<1 | 2>(1); // 1: Address, 2: Payment
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [lastOrderId, setLastOrderId] = useState("");
-  const [selectedAddress, setSelectedAddress] = useState<number | null>(1);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>("upi");
   const [gstNumber, setGstNumber] = useState<string>("");
 
@@ -27,6 +28,7 @@ export default function CheckoutPage() {
   
   const user = useAuthStore((state) => state.user);
   const isLoadingAuth = useAuthStore((state) => state.isLoading);
+  const shippingRules = useSettingsStore((state) => state.shipping);
   
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -38,29 +40,16 @@ export default function CheckoutPage() {
     }
   }, [items, orderPlaced, router]);
 
-  const addresses = [
-    {
-      id: 1,
-      type: "Home",
-      name: "Guest User",
-      street: "123 Example Street",
-      city: "Mumbai",
-      state: "Maharashtra",
-      pin: "400001",
-    },
-    {
-      id: 2,
-      type: "Work",
-      name: "Guest User (Office)",
-      phone: "+91 98765 43210",
-      street: "456 Business Park",
-      city: "Delhi",
-      state: "Delhi",
-      pin: "110001"
-    }
-  ];
+  const { userData, loading: isUserDataLoading } = useAuth();
+  const addresses: any[] = userData?.addresses || [];
 
-  if (isLoadingAuth) {
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddress) {
+      setSelectedAddress(addresses[0].id);
+    }
+  }, [addresses, selectedAddress]);
+
+  if (isLoadingAuth || isUserDataLoading) {
     return (
       <div className="min-h-screen bg-[#f1f3f6] flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-[var(--color-devam-red)]" />
@@ -96,7 +85,6 @@ export default function CheckoutPage() {
     return null; // Prevent flicker before redirect
   }
 
-  const shippingRules = useSettingsStore((state) => state.shipping);
   const currentAddress = addresses.find(a => a.id === selectedAddress);
   
   // Calculate Total Weight in Kg
@@ -130,10 +118,11 @@ export default function CheckoutPage() {
 
   const handleRazorpayPayment = async () => {
     try {
-      const res = await fetch("/api/razorpay", {
+      // 1. Create Order on Backend
+      const res = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: finalAmount }),
+        body: JSON.stringify({ amount: finalAmount * 100 }), // Amount in paise
       });
       
       const order = await res.json();
@@ -143,17 +132,32 @@ export default function CheckoutPage() {
         return;
       }
 
+      // 2. Open Razorpay Checkout Modal
       const options = {
-        key: "rzp_test_YourTestKeyHere", // IMPORTANT: Replace with process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID in production
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
         amount: order.amount,
         currency: order.currency,
         name: "Devam",
         description: "Premium Spices and Flours",
-        image: "/logo.svg", // Optional logo
+        image: "/logo.svg",
         order_id: order.id,
-        handler: function (response: any) {
-          // Valid payment!
-          const newOrderId = getNextOrderId();
+        handler: async function (response: any) {
+          try {
+            // 3. Verify Signature on Backend
+            const verifyRes = await fetch("/api/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const verifyData = await verifyRes.json();
+            
+            if (verifyData.success) {
+              // Valid payment!
+              const newOrderId = getNextOrderId();
           const customerName = addresses.find(a => a.id === selectedAddress)?.name || "Guest";
           
           addOrder({
@@ -174,14 +178,21 @@ export default function CheckoutPage() {
             body: JSON.stringify({ orderId: newOrderId, items, customerName })
           }).catch(err => console.error("ERP Sync failed", err));
 
-          clearCart();
-          setLastOrderId(newOrderId);
-          setOrderPlaced(true);
+              clearCart();
+              // Redirect to new success page
+              router.push(`/success?order_id=${newOrderId}`);
+            } else {
+              alert("Payment verification failed! " + verifyData.error);
+            }
+          } catch (err) {
+            console.error("Verification error", err);
+            alert("Error verifying payment.");
+          }
         },
         prefill: {
           name: addresses.find(a => a.id === selectedAddress)?.name || "Customer",
-          email: "customer@devamfoods.com",
-          contact: "9999999999",
+          email: user?.email || "",
+          contact: addresses.find(a => a.id === selectedAddress)?.phone || "",
         },
         theme: {
           color: "#fb641b",
@@ -198,28 +209,6 @@ export default function CheckoutPage() {
       alert("Something went wrong loading the payment gateway.");
     }
   };
-
-  if (orderPlaced) {
-    return (
-      <div className="bg-[#f1f3f6] min-h-screen pt-32 pb-20 font-sans flex items-center justify-center">
-        <div className="bg-white p-10 rounded-lg shadow-sm text-center max-w-md animate-in zoom-in-95 duration-500 border border-green-100">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Order Placed!</h2>
-          <p className="text-gray-500 mb-8">Thank you for shopping with Devam. Your order ID is <strong>{lastOrderId}</strong> and will arrive by tomorrow.</p>
-          <div className="flex flex-col gap-3">
-            <Link href="/account?tab=orders" className="bg-[var(--color-devam-brown)] text-white font-bold px-6 py-3 rounded hover:bg-[var(--color-devam-red)] transition-colors">
-              View Order Details
-            </Link>
-            <Link href="/" className="text-[var(--color-devam-brown)] font-bold px-6 py-3 rounded hover:bg-gray-50 transition-colors border border-[var(--color-devam-brown)]">
-              Continue Shopping
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -249,7 +238,16 @@ export default function CheckoutPage() {
             
             {step === 1 && (
               <div className="p-6">
-                <div className="space-y-4">
+                {addresses.length === 0 ? (
+                  <div className="text-center text-gray-500 py-10 border border-gray-200 rounded">
+                    <MapPin className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                    <p className="mb-6">You haven't added any addresses yet.</p>
+                    <Link href="/account?tab=addresses" className="bg-[var(--color-devam-red)] text-white font-bold px-6 py-3 rounded-lg uppercase tracking-wide text-sm hover:bg-[#d62828] transition-colors inline-block">
+                      Add a New Address
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
                   {addresses.map((addr) => (
                     <label key={addr.id} className={`flex gap-4 p-4 border rounded cursor-pointer transition-colors ${selectedAddress === addr.id ? 'border-[var(--color-devam-brown)] bg-orange-50/30' : 'border-gray-200 hover:border-gray-300'}`}>
                       <input 
@@ -264,8 +262,9 @@ export default function CheckoutPage() {
                           <span className="font-bold text-gray-900">{addr.name}</span>
                           <span className="bg-gray-200 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{addr.type}</span>
                         </div>
-                        <p className="text-gray-600 text-sm">{addr.street}, {addr.city}, {addr.state} - <span className="font-bold">{addr.pin}</span></p>
-                        
+                        <p className="text-gray-600 text-sm">
+                          {addr.houseNo}{addr.buildingName ? `, ${addr.buildingName}` : ""}, {addr.street}, {addr.area}{addr.landmark ? `, Landmark: ${addr.landmark}` : ""}, {addr.cityDistrict}, {addr.state} - <span className="font-bold">{addr.pin}</span>
+                        </p>
                         {selectedAddress === addr.id && (
                           <div className="mt-4 animate-in fade-in">
                             <div className="mb-4 bg-white border border-gray-200 rounded p-4 shadow-sm">
@@ -291,6 +290,7 @@ export default function CheckoutPage() {
                     </label>
                   ))}
                 </div>
+                )}
               </div>
             )}
             

@@ -4,11 +4,12 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from "firebase/auth";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
-import { ArrowRight, Mail, Lock, User, Loader2 } from "lucide-react";
+import { ArrowRight, Mail, Lock, User, Loader2, Phone } from "lucide-react";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,6 +21,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [mobile, setMobile] = useState("");
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,22 +38,27 @@ export default function LoginPage() {
         toast.success("Welcome back to Devam!");
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        // We could also update the profile with the name here if needed
+        
+        // Update Firebase profile
+        await updateProfile(userCredential.user, { displayName: name });
+        
+        // Save extra data to Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          email: email,
+          name: name,
+          mobile: mobile,
+          role: "customer",
+          createdAt: new Date().toISOString()
+        });
+        
         setUser(userCredential.user);
         toast.success("Account created successfully!");
       }
       router.push(redirectUrl);
     } catch (error: any) {
-      // DEMO FALLBACK
-      console.warn("Using demo fallback because Firebase auth failed:", error);
-      setUser({
-        uid: "demo-user-123",
-        email: email || "demo@example.com",
-        displayName: name || "Demo User",
-        photoURL: null,
-      } as any);
-      toast.success("Demo Login Successful!");
-      router.push(redirectUrl);
+      console.error("Auth Error:", error);
+      toast.error(error.message || "Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -71,15 +78,8 @@ export default function LoginPage() {
       router.push(redirectUrl);
     } catch (error: any) {
       if (error.code !== "auth/popup-closed-by-user") {
-        console.warn("Google Auth Error, using demo fallback:", error);
-        setUser({
-          uid: "demo-google-123",
-          email: "demo.google@example.com",
-          displayName: "Demo Google User",
-          photoURL: null,
-        } as any);
-        toast.success("Demo Google Login Successful!");
-        router.push(redirectUrl);
+        console.error("Google Auth Error:", error);
+        toast.error(error.message || "Failed to sign in with Google.");
       }
     } finally {
       setLoading(false);
@@ -135,23 +135,42 @@ export default function LoginPage() {
 
           <form onSubmit={handleEmailAuth} className="space-y-4">
             {!isLogin && (
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+              <>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Full Name</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      required={!isLogin}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-[var(--color-devam-red)] focus:border-[var(--color-devam-red)] bg-gray-50 transition-colors"
+                      placeholder="Jaydev Patidar"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      disabled={loading}
+                    />
                   </div>
-                  <input
-                    type="text"
-                    required={!isLogin}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-[var(--color-devam-red)] focus:border-[var(--color-devam-red)] bg-gray-50 transition-colors"
-                    placeholder="Jaydev Patidar"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    disabled={loading}
-                  />
                 </div>
-              </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Mobile Number</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="tel"
+                      required={!isLogin}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-[var(--color-devam-red)] focus:border-[var(--color-devam-red)] bg-gray-50 transition-colors"
+                      placeholder="+91 98765 43210"
+                      value={mobile}
+                      onChange={(e) => setMobile(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div>
