@@ -23,9 +23,9 @@ export function Footer() {
             </p>
 
             {/* FSSAI License Block */}
-            <div className="mt-4 flex items-center bg-white/5 p-3 rounded-xl border border-white/10 w-full max-w-sm relative z-10">
-              <div className="mr-4 flex items-center justify-center w-28 h-10">
-                <img src="/fssai.svg" alt="FSSAI" className="h-full w-full object-contain" />
+            <div className="mt-4 flex items-center bg-white/5 p-3.5 rounded-xl border border-white/10 w-full max-w-sm relative z-10">
+              <div className="mr-4 flex items-center justify-center w-36 h-14 flex-shrink-0">
+                <img src="/fssai.svg" alt="FSSAI" className="h-full w-full object-contain brightness-0 invert" />
               </div>
               <div>
                 <p className="text-white/60 text-[10px] font-semibold uppercase tracking-wider mb-0.5">Lic. No.</p>
