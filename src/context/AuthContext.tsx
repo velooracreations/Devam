@@ -46,7 +46,7 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
                 role: "customer",
                 createdAt: new Date().toISOString()
               };
-              await setDoc(userDocRef, newUserData);
+              await setDoc(userDocRef, newUserData, { merge: true });
               setUserData(newUserData);
             }
             setLoading(false);
