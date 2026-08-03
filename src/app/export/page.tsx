@@ -1,9 +1,57 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { Globe, Plane, PackageCheck, FileSignature } from "lucide-react";
 
 export default function ExportPage() {
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    companyName: "",
+    email: "",
+    destinationCountry: "",
+    requirements: ""
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/distributors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.fullName,
+          lastName: "(Export Quote)",
+          businessName: formData.companyName,
+          email: formData.email,
+          phone: "Export Inquiry",
+          city: formData.destinationCountry,
+          state: "International",
+          productsOfInterest: "Export Products",
+          message: formData.requirements
+        })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to submit export inquiry");
+      
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen pt-20">
       {/* Hero Section */}
@@ -77,38 +125,99 @@ export default function ExportPage() {
             <h2 className="text-3xl font-heading font-bold text-[var(--color-devam-brown)] mb-2">Request an Export Quote</h2>
             <p className="text-gray-600 mb-8">Fill out the form below and our international sales team will contact you within 24 hours.</p>
 
-            <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); alert("Inquiry Sent Successfully! We will contact you soon."); }}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Full Name</label>
-                  <input required type="text" className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" placeholder="John Doe" />
+            {submitted ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <PackageCheck className="w-8 h-8" />
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Company Name</label>
-                  <input required type="text" className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" placeholder="Global Spices LLC" />
-                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Export Inquiry Received!</h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  Thank you for contacting Devam. Our international B2B export team will review your requirements and respond within 24 hours.
+                </p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
-                  <input required type="email" className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" placeholder="john@company.com" />
+            ) : (
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                {error && (
+                  <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm font-medium">
+                    {error}
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Full Name *</label>
+                    <input 
+                      required 
+                      type="text" 
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" 
+                      placeholder="John Doe" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Company Name *</label>
+                    <input 
+                      required 
+                      type="text" 
+                      name="companyName"
+                      value={formData.companyName}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" 
+                      placeholder="Global Spices LLC" 
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Destination Country</label>
-                  <input required type="text" className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" placeholder="United States" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Email Address *</label>
+                    <input 
+                      required 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" 
+                      placeholder="john@company.com" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Destination Country *</label>
+                    <input 
+                      required 
+                      type="text" 
+                      name="destinationCountry"
+                      value={formData.destinationCountry}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" 
+                      placeholder="United States" 
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Product Requirements & Quantities</label>
-                <textarea required rows={4} className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" placeholder="e.g. 5 Metric Tons of Ghavu Lot, 2 Metric Tons of Dhana Jiru. Looking for FOB pricing..."></textarea>
-              </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Product Requirements & Quantities *</label>
+                  <textarea 
+                    required 
+                    rows={4} 
+                    name="requirements"
+                    value={formData.requirements}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]" 
+                    placeholder="e.g. 5 Metric Tons of Ghavu Lot, 2 Metric Tons of Dhana Jiru. Looking for FOB pricing..."
+                  ></textarea>
+                </div>
 
-              <button type="submit" className="w-full bg-[var(--color-devam-brown)] text-white font-bold text-lg py-4 rounded-lg hover:bg-[var(--color-devam-red)] transition-colors">
-                Submit Inquiry
-              </button>
-            </form>
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full bg-[var(--color-devam-brown)] text-white font-bold text-lg py-4 rounded-lg hover:bg-[var(--color-devam-red)] transition-colors disabled:opacity-50"
+                >
+                  {loading ? "Submitting Quote Request..." : "Submit Inquiry"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>
