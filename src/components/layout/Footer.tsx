@@ -34,16 +34,16 @@ export function Footer() {
             </div>
 
             {/* Social & Marketplace Links */}
-            <div className="flex flex-wrap items-center gap-3 mt-6 relative z-10">
+            <div className="flex flex-wrap items-center gap-3.5 mt-6 relative z-10">
               {/* Facebook */}
               <a 
                 href="https://www.facebook.com/people/Devam-Atta-Masala-hab/61585254875136" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="p-2 bg-white hover:bg-gray-100 transition-all rounded-xl flex items-center justify-center w-10 h-10 shadow-md group"
+                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-1"
                 title="Facebook"
               >
-                <img src="/facebook.svg" alt="Facebook" className="w-6 h-6 object-contain" />
+                <img src="/facebook.svg" alt="Facebook" className="w-8 h-8 object-contain" />
               </a>
 
               {/* Instagram */}
@@ -51,10 +51,10 @@ export function Footer() {
                 href="https://www.instagram.com/devam_atta_masala_hub" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="p-2 bg-white hover:bg-gray-100 transition-all rounded-xl flex items-center justify-center w-10 h-10 shadow-md group"
+                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-1"
                 title="Instagram"
               >
-                <img src="/instagram.svg" alt="Instagram" className="w-6 h-6 object-contain" />
+                <img src="/instagram.svg" alt="Instagram" className="w-8 h-8 object-contain" />
               </a>
 
               {/* YouTube */}
@@ -62,10 +62,10 @@ export function Footer() {
                 href="https://www.youtube.com/@devamchakkiattamasala" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="p-2 bg-white hover:bg-gray-100 transition-all rounded-xl flex items-center justify-center w-10 h-10 shadow-md group"
+                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-1"
                 title="YouTube"
               >
-                <img src="/youtube.svg" alt="YouTube" className="w-6 h-6 object-contain" />
+                <img src="/youtube.svg" alt="YouTube" className="w-8 h-8 object-contain" />
               </a>
 
               {/* IndiaMart */}
@@ -73,19 +73,19 @@ export function Footer() {
                 href="https://www.indiamart.com/company/271804823/" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="px-3 py-2 bg-white hover:bg-gray-100 transition-all rounded-xl flex items-center justify-center h-10 shadow-md group"
+                className="hover:scale-105 transition-transform opacity-90 hover:opacity-100 p-1"
                 title="IndiaMart Store"
               >
-                <img src="/indiamart.svg" alt="IndiaMart" className="h-6 w-auto object-contain" />
+                <img src="/indiamart.svg" alt="IndiaMart" className="h-7 w-auto object-contain" />
               </a>
 
               {/* JioMart */}
               <div 
-                className="px-3 py-2 bg-white/10 rounded-xl flex items-center justify-center h-10 border border-white/20 relative group cursor-not-allowed"
+                className="flex items-center gap-1.5 opacity-75 hover:opacity-90 transition-opacity p-1 cursor-not-allowed"
                 title="JioMart (Coming Soon)"
               >
-                <img src="/jiomart.svg" alt="JioMart" className="h-6 w-auto object-contain brightness-0 invert opacity-70" />
-                <span className="ml-1.5 text-[9px] bg-[var(--color-devam-gold)] text-gray-900 font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Soon</span>
+                <img src="/jiomart.png" alt="JioMart" className="h-7 w-auto object-contain" />
+                <span className="text-[9px] bg-[var(--color-devam-gold)] text-gray-900 font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Soon</span>
               </div>
             </div>
           </div>
