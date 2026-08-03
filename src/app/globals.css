@@ -15,14 +15,27 @@
   --foreground: #3E2723;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+}
+
+/* GPU Hardware Acceleration for Smooth Scrolling */
+.fixed, .sticky {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Accessibility Focus States */
