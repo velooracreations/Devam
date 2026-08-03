@@ -18,6 +18,7 @@ export interface Product {
   productDetails?: string;
   certifications?: string[];
   inStock?: boolean;
+  productCode?: string;
 }
 
 export const initialProducts: Product[] = [
