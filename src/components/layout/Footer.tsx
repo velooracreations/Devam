@@ -23,13 +23,13 @@ export function Footer() {
             </p>
 
             {/* FSSAI License Block */}
-            <div className="mt-4 flex items-center bg-white/5 p-3.5 rounded-xl border border-white/10 w-full max-w-sm relative z-10">
-              <div className="mr-4 flex items-center justify-center w-36 h-14 flex-shrink-0">
-                <img src="/fssai.svg" alt="FSSAI" className="h-full w-full object-contain brightness-0 invert" />
+            <div className="mt-4 flex items-center justify-between bg-white/5 px-4 py-3 rounded-xl border border-white/10 w-full max-w-sm relative z-10">
+              <div className="flex items-center justify-start w-28 h-12 flex-shrink-0">
+                <img src="/fssai.svg" alt="FSSAI" className="h-full w-full object-contain object-left brightness-0 invert" />
               </div>
-              <div>
-                <p className="text-white/60 text-[10px] font-semibold uppercase tracking-wider mb-0.5">Lic. No.</p>
-                <p className="text-[var(--color-devam-gold)] font-mono font-bold text-sm tracking-wider">10725008000026</p>
+              <div className="text-right flex flex-col justify-center">
+                <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest block leading-tight">Lic. No.</span>
+                <span className="text-[var(--color-devam-gold)] font-mono font-extrabold text-xs sm:text-sm tracking-wider block mt-0.5 whitespace-nowrap">10725008000026</span>
               </div>
             </div>
 
