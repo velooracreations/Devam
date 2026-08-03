@@ -94,7 +94,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/returns" className="text-white/80 hover:text-white hover:pl-2 transition-all font-body text-sm">
+                <Link href="/return-policy" className="text-white/80 hover:text-white hover:pl-2 transition-all font-body text-sm">
                   Returns & Refunds
                 </Link>
               </li>
@@ -135,8 +135,11 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Devam (Shreeji Gruh Udhyog). All rights reserved.
           </div>
           <div className="flex space-x-6 flex-1 justify-center">
-            <Link href="/privacy" className="text-white/60 hover:text-[var(--color-devam-gold)] text-sm font-body transition-colors">
-              Privacy Policy
+            <Link href="/data-policy" className="text-white/60 hover:text-[var(--color-devam-gold)] text-sm font-body transition-colors">
+              Data Policy
+            </Link>
+            <Link href="/payment-policy" className="text-white/60 hover:text-[var(--color-devam-gold)] text-sm font-body transition-colors">
+              Payment Policy
             </Link>
             <Link href="/terms" className="text-white/60 hover:text-[var(--color-devam-gold)] text-sm font-body transition-colors">
               Terms of Service
