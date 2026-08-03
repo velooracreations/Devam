@@ -24,8 +24,8 @@ export function Footer() {
 
             {/* FSSAI License Block */}
             <div className="mt-4 flex items-center bg-white/5 p-3 rounded-xl border border-white/10 w-full max-w-sm relative z-10">
-              <div className="mr-4 flex items-center justify-center w-20 h-14">
-                <img src="/fssai-logo.png" alt="FSSAI" className="h-full w-full object-contain brightness-0 invert opacity-90" />
+              <div className="mr-4 flex items-center justify-center w-24 h-12 bg-white rounded-lg p-1.5 shadow-sm">
+                <img src="/fssai.svg" alt="FSSAI" className="h-full w-full object-contain" />
               </div>
               <div>
                 <p className="text-white/60 text-[10px] font-semibold uppercase tracking-wider mb-0.5">Lic. No.</p>
@@ -40,10 +40,10 @@ export function Footer() {
                 href="https://www.facebook.com/people/Devam-Atta-Masala-hab/61585254875136" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="p-2 bg-white/10 hover:bg-white/20 transition-all rounded-lg flex items-center justify-center w-9 h-9 border border-white/10 group"
+                className="p-2 bg-white hover:bg-gray-100 transition-all rounded-xl flex items-center justify-center w-10 h-10 shadow-md group"
                 title="Facebook"
               >
-                <img src="/facebook.svg" alt="Facebook" className="w-5 h-5 object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all" />
+                <img src="/facebook.svg" alt="Facebook" className="w-6 h-6 object-contain" />
               </a>
 
               {/* Instagram */}
@@ -51,10 +51,10 @@ export function Footer() {
                 href="https://www.instagram.com/devam_atta_masala_hub" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="p-2 bg-white/10 hover:bg-white/20 transition-all rounded-lg flex items-center justify-center w-9 h-9 border border-white/10 group"
+                className="p-2 bg-white hover:bg-gray-100 transition-all rounded-xl flex items-center justify-center w-10 h-10 shadow-md group"
                 title="Instagram"
               >
-                <img src="/instagram.svg" alt="Instagram" className="w-5 h-5 object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all" />
+                <img src="/instagram.svg" alt="Instagram" className="w-6 h-6 object-contain" />
               </a>
 
               {/* YouTube */}
@@ -62,10 +62,10 @@ export function Footer() {
                 href="https://www.youtube.com/@devamchakkiattamasala" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="p-2 bg-white/10 hover:bg-white/20 transition-all rounded-lg flex items-center justify-center w-9 h-9 border border-white/10 group"
+                className="p-2 bg-white hover:bg-gray-100 transition-all rounded-xl flex items-center justify-center w-10 h-10 shadow-md group"
                 title="YouTube"
               >
-                <img src="/youtube.svg" alt="YouTube" className="w-5 h-5 object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all" />
+                <img src="/youtube.svg" alt="YouTube" className="w-6 h-6 object-contain" />
               </a>
 
               {/* IndiaMart */}
@@ -73,19 +73,19 @@ export function Footer() {
                 href="https://www.indiamart.com/company/271804823/" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 transition-all rounded-lg flex items-center justify-center h-9 border border-white/10 group"
+                className="px-3 py-2 bg-white hover:bg-gray-100 transition-all rounded-xl flex items-center justify-center h-10 shadow-md group"
                 title="IndiaMart Store"
               >
-                <img src="/indiamart.svg" alt="IndiaMart" className="h-5 w-auto object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all" />
+                <img src="/indiamart.svg" alt="IndiaMart" className="h-6 w-auto object-contain" />
               </a>
 
               {/* JioMart */}
               <div 
-                className="px-2.5 py-1.5 bg-white/5 opacity-60 rounded-lg flex items-center justify-center h-9 border border-white/10 relative group cursor-not-allowed"
+                className="px-3 py-2 bg-white/10 rounded-xl flex items-center justify-center h-10 border border-white/20 relative group cursor-not-allowed"
                 title="JioMart (Coming Soon)"
               >
-                <img src="/jiomart.svg" alt="JioMart" className="h-5 w-auto object-contain brightness-0 invert" />
-                <span className="ml-1.5 text-[9px] bg-[var(--color-devam-gold)]/30 text-[var(--color-devam-gold)] font-bold px-1 rounded uppercase tracking-wider">Soon</span>
+                <img src="/jiomart.svg" alt="JioMart" className="h-6 w-auto object-contain brightness-0 invert opacity-70" />
+                <span className="ml-1.5 text-[9px] bg-[var(--color-devam-gold)] text-gray-900 font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Soon</span>
               </div>
             </div>
           </div>
