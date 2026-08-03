@@ -3,11 +3,11 @@ import Link from "next/link";
 export function WhatsAppButton() {
   return (
     <Link
-      href="https://wa.me/919979640900"
+      href="https://wa.me/919979640900?text=Hello%20Devam%20Team%2C%20I%20am%20interested%20in%20Bulk%20Order%20%2F%20Distributor%20Dealership."
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-3 rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:scale-110 hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] hover:bg-[#128C7E] transition-all duration-300 flex items-center justify-center group"
-      aria-label="Chat on WhatsApp"
+      className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-3 rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:scale-105 hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] hover:bg-[#128C7E] transition-all duration-300 flex items-center justify-center group"
+      aria-label="Bulk & Distributor Inquiry on WhatsApp"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -20,10 +20,10 @@ export function WhatsAppButton() {
       </svg>
       {/* Tooltip & Badge */}
       <span className="hidden sm:inline-block ml-2 text-xs font-bold uppercase tracking-wide">
-        Order & Trade Inquiry
+        Bulk & Distributor Inquiry
       </span>
       <span className="absolute right-full mr-4 bg-white text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-100">
-        Order Online or Chat for Trade Dealership!
+        Click to chat about Bulk Orders & Trade Dealerships!
       </span>
     </Link>
   );
