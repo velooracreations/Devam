@@ -6,7 +6,7 @@ export function WhatsAppButton() {
       href="https://wa.me/919979640900"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 left-6 z-50 bg-[#25D366] text-white p-3 rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:scale-110 hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] hover:bg-[#128C7E] transition-all duration-300 flex items-center justify-center group"
+      className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-3 rounded-full shadow-[0_4px_14px_0_rgba(37,211,102,0.39)] hover:scale-110 hover:shadow-[0_6px_20px_rgba(37,211,102,0.23)] hover:bg-[#128C7E] transition-all duration-300 flex items-center justify-center group"
       aria-label="Chat on WhatsApp"
     >
       <svg
@@ -22,7 +22,7 @@ export function WhatsAppButton() {
       <span className="hidden sm:inline-block ml-2 text-xs font-bold uppercase tracking-wide">
         Order & Trade Inquiry
       </span>
-      <span className="absolute left-full ml-4 bg-white text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-100">
+      <span className="absolute right-full mr-4 bg-white text-gray-800 text-xs font-semibold px-3 py-1.5 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-100">
         Order Online or Chat for Trade Dealership!
       </span>
     </Link>

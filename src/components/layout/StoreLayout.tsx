@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import Chatbot from "@/components/Chatbot";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
@@ -37,7 +36,6 @@ export function StoreLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
-      <Chatbot />
       <WhatsAppButton />
       <Toaster position="bottom-right" richColors />
     </>
