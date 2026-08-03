@@ -39,16 +39,16 @@ export default function FAQPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="inline-flex items-center text-gray-500 hover:text-[var(--color-devam-red)] mb-8 transition-colors">
+    <div className="min-h-screen bg-gray-50 py-12 md:py-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="inline-flex items-center text-gray-500 hover:text-[var(--color-devam-red)] mb-6 transition-colors font-medium">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
         </Link>
         
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-heading font-bold text-gray-900 mb-4">Frequently Asked Questions</h1>
-          <p className="text-lg text-gray-600">Have questions? We're here to help.</p>
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-gray-900 mb-4">Frequently Asked Questions</h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">Have questions? We're here to help.</p>
         </div>
 
         <div className="space-y-4">
@@ -70,8 +70,8 @@ export default function FAQPage() {
               </button>
               
               {openIndex === index && (
-                <div className="px-6 pb-4">
-                  <p className="text-gray-600 leading-relaxed border-t border-gray-50 pt-4">
+                <div className="px-6 pb-6">
+                  <p className="text-gray-600 text-lg leading-relaxed border-t border-gray-50 pt-4">
                     {faq.answer}
                   </p>
                 </div>

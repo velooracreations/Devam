@@ -4,17 +4,17 @@ import { ArrowLeft } from 'lucide-react';
 
 export default function PaymentPolicyPage() {
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="inline-flex items-center text-gray-500 hover:text-[var(--color-devam-red)] mb-8 transition-colors">
+    <div className="min-h-screen bg-gray-50 py-12 md:py-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="inline-flex items-center text-gray-500 hover:text-[var(--color-devam-red)] mb-6 transition-colors font-medium">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
         </Link>
         
-        <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12">
-          <h1 className="text-3xl font-heading font-bold text-gray-900 mb-8">Payment Policy</h1>
+        <div className="bg-white rounded-2xl shadow-sm p-8 md:p-14">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-gray-900 mb-10 text-center">Payment Policy</h1>
           
-          <div className="prose prose-red max-w-none text-gray-600 space-y-6">
+          <div className="prose prose-lg prose-red max-w-none text-gray-600 space-y-6">
             <p>
               At Devam, we strive to make your shopping experience as seamless and secure as possible. 
               Our Payment Policy outlines the accepted payment methods and how we handle transactions on our platform.
