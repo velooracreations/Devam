@@ -15,7 +15,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://thedevam.com"),
   title: {
     default: "Devam - Premium Atta, Spices & Grains",
     template: "%s | Devam",
@@ -67,8 +67,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "Devam",
-              "url": "https://the-devam-ecom.web.app",
-              "logo": "https://the-devam-ecom.web.app/logo.svg",
+              "url": "https://thedevam.com",
+              "logo": "https://thedevam.com/logo.svg",
               "description": "Premium FMCG ecommerce brand offering Chakki Atta, Spices, and Food Grains.",
               "address": {
                 "@type": "PostalAddress",
