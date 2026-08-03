@@ -25,7 +25,7 @@ export function Footer() {
             {/* FSSAI License Block */}
             <div className="mt-4 flex items-center bg-white/5 p-3 rounded-xl border border-white/10 w-full max-w-sm relative z-10">
               <div className="mr-4 flex items-center justify-center w-28 h-10">
-                <img src="/fssai.svg" alt="FSSAI" className="h-full w-full object-contain brightness-0 invert" />
+                <img src="/fssai.svg" alt="FSSAI" className="h-full w-full object-contain" />
               </div>
               <div>
                 <p className="text-white/60 text-[10px] font-semibold uppercase tracking-wider mb-0.5">Lic. No.</p>
@@ -34,13 +34,13 @@ export function Footer() {
             </div>
 
             {/* Social & Marketplace Links */}
-            <div className="flex flex-wrap items-center gap-3.5 mt-6 relative z-10">
+            <div className="flex flex-nowrap items-center gap-2 sm:gap-3 mt-6 relative z-10 overflow-x-auto pb-1">
               {/* Facebook */}
               <a 
                 href="https://www.facebook.com/people/Devam-Atta-Masala-hab/61585254875136" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-1"
+                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-0.5 flex-shrink-0"
                 title="Facebook"
               >
                 <img src="/facebook.svg" alt="Facebook" className="w-8 h-8 object-contain" />
@@ -51,7 +51,7 @@ export function Footer() {
                 href="https://www.instagram.com/devam_atta_masala_hub" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-1"
+                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-0.5 flex-shrink-0"
                 title="Instagram"
               >
                 <img src="/instagram.svg" alt="Instagram" className="w-8 h-8 object-contain" />
@@ -62,7 +62,7 @@ export function Footer() {
                 href="https://www.youtube.com/@devamchakkiattamasala" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-1"
+                className="hover:scale-110 transition-transform opacity-90 hover:opacity-100 p-0.5 flex-shrink-0"
                 title="YouTube"
               >
                 <img src="/youtube.svg" alt="YouTube" className="w-8 h-8 object-contain" />
@@ -73,19 +73,19 @@ export function Footer() {
                 href="https://www.indiamart.com/company/271804823/" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="hover:scale-105 transition-transform opacity-90 hover:opacity-100 p-1"
+                className="hover:scale-105 transition-transform opacity-90 hover:opacity-100 p-0.5 flex-shrink-0"
                 title="IndiaMart Store"
               >
-                <img src="/indiamart.svg" alt="IndiaMart" className="h-7 w-auto object-contain" />
+                <img src="/indiamart.svg" alt="IndiaMart" className="h-8 w-auto object-contain" />
               </a>
 
               {/* JioMart */}
               <div 
-                className="flex items-center gap-1.5 opacity-75 hover:opacity-90 transition-opacity p-1 cursor-not-allowed"
+                className="flex items-center gap-1 opacity-75 hover:opacity-90 transition-opacity p-0.5 flex-shrink-0 cursor-not-allowed"
                 title="JioMart (Coming Soon)"
               >
-                <img src="/jiomart.png" alt="JioMart" className="h-7 w-auto object-contain" />
-                <span className="text-[9px] bg-[var(--color-devam-gold)] text-gray-900 font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Soon</span>
+                <img src="/jiomart.png" alt="JioMart" className="h-8 w-auto object-contain" />
+                <span className="text-[8px] bg-[var(--color-devam-gold)] text-gray-900 font-bold px-1 py-0.5 rounded uppercase tracking-wider">Soon</span>
               </div>
             </div>
           </div>
