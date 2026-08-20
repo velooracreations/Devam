@@ -105,7 +105,7 @@ export function HeroSection() {
               priority={currentIndex === 0}
               loading={currentIndex === 0 ? "eager" : "lazy"}
               sizes="(max-width: 768px) 100vw, 100vw"
-              quality={75}
+              quality={65}
             />
           </motion.div>
         </AnimatePresence>
@@ -206,10 +206,12 @@ export function HeroSection() {
       <section className="relative min-h-[50vh] w-full flex flex-col items-center justify-center text-[var(--color-devam-brown)] text-center px-4 py-16 overflow-hidden bg-[var(--color-devam-cream)]">
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2000&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=70&w=1200&auto=format&fit=crop"
             alt="Golden wheat field on a sunny day"
             fill
             className="object-cover opacity-100"
+            sizes="100vw"
+            quality={65}
           />
         </div>
         <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/70 via-black/30 to-[var(--color-devam-cream)] pointer-events-none" />

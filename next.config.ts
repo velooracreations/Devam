@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  compress: true,
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60 * 60 * 24, // 24 hours cache
     remotePatterns: [
       {
         protocol: 'https',
@@ -12,6 +15,9 @@ const nextConfig: NextConfig = {
         hostname: 'placehold.co',
       },
     ],
+  },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion', 'sonner'],
   },
 };
 

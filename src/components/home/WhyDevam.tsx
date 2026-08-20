@@ -18,9 +18,11 @@ export function WhyDevam() {
           <div className="lg:w-1/2 relative">
             <div className="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=1000&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=70&w=800&auto=format&fit=crop"
                 alt="Assorted Indian spices and grains"
                 fill
+                sizes="(max-width: 768px) 100vw, 50vw"
+                quality={70}
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-devam-brown)]/80 to-transparent" />
