@@ -11,7 +11,7 @@ export default function AboutPage() {
             src="/about_hero.png"
             alt="Devam Foods Facility"
             fill
-            className="object-cover brightness-50"
+            className="object-cover brightness-75"
             priority
           />
         </div>

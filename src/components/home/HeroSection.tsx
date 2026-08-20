@@ -110,8 +110,8 @@ export function HeroSection() {
           </motion.div>
         </AnimatePresence>
 
-        {/* Gradient overlay - Darkened for better contrast */}
-        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/90 via-black/60 to-black/70" />
+        {/* Gradient overlay - Balanced for vivid images and text contrast */}
+        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/75 via-black/35 to-black/20 pointer-events-none" />
 
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col items-center justify-center pointer-events-none">
@@ -209,10 +209,10 @@ export function HeroSection() {
             src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=80&w=2000&auto=format&fit=crop"
             alt="Golden wheat field on a sunny day"
             fill
-            className="object-cover opacity-80"
+            className="object-cover opacity-100"
           />
         </div>
-        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/80 via-white/50 to-[var(--color-devam-cream)]" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/70 via-black/30 to-[var(--color-devam-cream)] pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl mx-auto flex flex-col items-center">
           <motion.div

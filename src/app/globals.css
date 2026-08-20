@@ -32,12 +32,6 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
 
-/* GPU Hardware Acceleration for Smooth Scrolling */
-.fixed, .sticky {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
 /* Accessibility Focus States */
 a:focus-visible, 
 button:focus-visible, 

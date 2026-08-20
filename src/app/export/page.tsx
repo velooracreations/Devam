@@ -61,7 +61,7 @@ export default function ExportPage() {
             src="/export_hero.png"
             alt="Devam Foods Export Packaging"
             fill
-            className="object-cover brightness-50"
+            className="object-cover brightness-75"
             priority
           />
         </div>
