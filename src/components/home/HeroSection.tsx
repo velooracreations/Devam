@@ -226,7 +226,7 @@ export function HeroSection() {
               Devam
             </h1>
             <p className="text-2xl md:text-4xl text-[var(--color-devam-cream)] font-body max-w-3xl text-center leading-relaxed drop-shadow-md px-6 font-semibold">
-              તમારી પસંદ મુજબ તાજા પીસાયેલા મસાલા
+              Freshly Ground Spices &amp; Flours As Per Your Preference
             </p>
 
             <div className="relative w-56 h-28 md:w-72 md:h-36 my-6 drop-shadow-2xl pointer-events-none">
