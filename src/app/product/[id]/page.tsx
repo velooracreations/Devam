@@ -120,6 +120,37 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="bg-gray-50 min-h-screen pt-8 pb-24">
+      {/* Google Rich Snippets Product Schema */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org/",
+            "@type": "Product",
+            "name": product.name,
+            "image": [`https://thedevam.com${product.image}`],
+            "description": product.description,
+            "sku": product.id,
+            "brand": {
+              "@type": "Brand",
+              "name": "Devam"
+            },
+            "offers": {
+              "@type": "Offer",
+              "url": `https://thedevam.com/product/${product.id}`,
+              "priceCurrency": "INR",
+              "price": product.price,
+              "availability": product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+              "itemCondition": "https://schema.org/NewCondition"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": averageRating,
+              "reviewCount": reviews.length
+            }
+          })
+        }}
+      />
       {/* Functional Breadcrumbs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 text-sm text-gray-500 flex items-center flex-wrap gap-2">
         <Link href="/" className="hover:text-[var(--color-devam-red)] transition-colors">Home</Link> 
