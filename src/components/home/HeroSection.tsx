@@ -88,27 +88,31 @@ export function HeroSection() {
     >
       {/* ─── Slideshow Section ─── */}
       <section className="relative h-screen min-h-[650px] w-full flex items-start pt-24 md:pt-32 overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentIndex}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="absolute inset-0 z-0"
-          >
-            <Image
-              src={storyFrames[currentIndex].image}
-              alt={storyFrames[currentIndex].subtitle}
-              fill
-              className="object-cover"
-              priority={currentIndex === 0}
-              loading={currentIndex === 0 ? "eager" : "lazy"}
-              sizes="(max-width: 768px) 100vw, 100vw"
-              quality={65}
-            />
-          </motion.div>
-        </AnimatePresence>
+          {/* ─── Pre-loaded Hero Background Images for Instant Flash-Free Transitions ─── */}
+        <div className="absolute inset-0 z-0">
+          {storyFrames.map((frame, idx) => (
+            <motion.div
+              key={frame.id}
+              initial={false}
+              animate={{
+                opacity: currentIndex === idx ? 1 : 0,
+                scale: currentIndex === idx ? 1 : 1.05,
+              }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="absolute inset-0"
+            >
+              <Image
+                src={frame.image}
+                alt={frame.subtitle}
+                fill
+                className="object-cover"
+                priority={idx === 0}
+                sizes="100vw"
+                quality={80}
+              />
+            </motion.div>
+          ))}
+        </div>
 
         {/* Gradient overlay - Balanced for vivid images and text contrast */}
         <div className="absolute inset-0 z-[1] bg-gradient-to-t from-black/75 via-black/35 to-black/20 pointer-events-none" />

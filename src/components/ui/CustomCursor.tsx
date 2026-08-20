@@ -16,28 +16,34 @@ export function CustomCursor() {
       return;
     }
 
-    const onMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-      if (!isVisible) setIsVisible(true);
+    let animationFrameId: number;
 
-      // Check if hovering over interactive element
-      const target = e.target as HTMLElement | null;
-      if (target) {
-        const isInteractive = target.closest(
-          "a, button, input, select, textarea, [role='button'], .group, .interactive-card, .hover-trigger"
-        );
-        setIsHovered(!!isInteractive);
-      }
+    const onMouseMove = (e: MouseEvent) => {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(() => {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+        if (!isVisible) setIsVisible(true);
+
+        // Check if hovering over interactive element
+        const target = e.target as HTMLElement | null;
+        if (target) {
+          const isInteractive = target.closest(
+            "a, button, input, select, textarea, [role='button'], .group, .interactive-card, .hover-trigger"
+          );
+          setIsHovered(!!isInteractive);
+        }
+      });
     };
 
     const onMouseLeave = () => setIsVisible(false);
     const onMouseEnter = () => setIsVisible(true);
 
-    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
     document.addEventListener("mouseleave", onMouseLeave);
     document.addEventListener("mouseenter", onMouseEnter);
 
     return () => {
+      cancelAnimationFrame(animationFrameId);
       window.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseleave", onMouseLeave);
       document.removeEventListener("mouseenter", onMouseEnter);
