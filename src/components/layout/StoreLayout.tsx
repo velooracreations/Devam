@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import { FloatingLoginPrompt } from "@/components/FloatingLoginPrompt";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
@@ -37,6 +38,7 @@ export function StoreLayout({ children }: { children: React.ReactNode }) {
       </main>
       <Footer />
       <WhatsAppButton />
+      <FloatingLoginPrompt />
       <Toaster position="bottom-right" richColors />
     </>
   );
