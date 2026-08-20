@@ -7,6 +7,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { FloatingLoginPrompt } from "@/components/FloatingLoginPrompt";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
 import { CustomCursor } from "@/components/ui/CustomCursor";
+import { LaunchCountdownBar } from "@/components/LaunchCountdownBar";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
@@ -34,10 +35,11 @@ export function StoreLayout({ children }: { children: React.ReactNode }) {
   // Otherwise, render the normal storefront layout
   return (
     <>
+      <LaunchCountdownBar targetDate="2026-08-31T00:00:00" />
       <ScrollProgressBar />
       <CustomCursor />
       <Navbar />
-      <main className="flex-grow pt-24">
+      <main className="flex-grow pt-20">
         {children}
       </main>
       <Footer />
