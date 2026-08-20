@@ -158,25 +158,50 @@ export default function CheckoutPage() {
             if (verifyData.success) {
               // Valid payment!
               const newOrderId = getNextOrderId();
-          const customerName = addresses.find(a => a.id === selectedAddress)?.name || "Guest";
-          
-          addOrder({
-            id: newOrderId,
-            date: new Date().toISOString(),
-            totalAmount: finalAmount,
-            paymentMethod: "Razorpay (UPI/Card)",
-            items: items,
-            status: 'Order Placed',
-            customerName,
-            gstNumber: gstNumber || undefined
-          });
-          
-          // Sync with ERP
-          fetch('/api/erp/order-sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId: newOrderId, items, customerName })
-          }).catch(err => console.error("ERP Sync failed", err));
+              const selectedAddrObj = addresses.find(a => a.id === selectedAddress);
+              const customerName = selectedAddrObj?.name || user?.displayName || "Valued Customer";
+              const customerEmail = user?.email || selectedAddrObj?.email || "";
+              const customerPhone = selectedAddrObj?.phone || "";
+              const fullAddressStr = selectedAddrObj
+                ? `${selectedAddrObj.street || ''}, ${selectedAddrObj.city || ''}, ${selectedAddrObj.state || ''} - ${selectedAddrObj.pincode || ''}`
+                : "";
+
+              addOrder({
+                id: newOrderId,
+                date: new Date().toISOString(),
+                totalAmount: finalAmount,
+                paymentMethod: "Razorpay (Online)",
+                items: items,
+                status: 'Order Placed',
+                customerName,
+                customerEmail,
+                customerPhone,
+                shippingAddress: fullAddressStr,
+                gstNumber: gstNumber || undefined
+              });
+              
+              // Automated Email & WhatsApp Order Confirmation Dispatch
+              fetch('/api/notifications/order-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: newOrderId,
+                  customerName,
+                  customerEmail,
+                  customerPhone,
+                  totalAmount: finalAmount,
+                  items,
+                  status: 'Order Placed',
+                  shippingAddress: fullAddressStr
+                })
+              }).catch(err => console.error("Order notification dispatch failed", err));
+
+              // Sync with ERP
+              fetch('/api/erp/order-sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: newOrderId, items, customerName })
+              }).catch(err => console.error("ERP Sync failed", err));
 
               clearCart();
               // Redirect to new success page

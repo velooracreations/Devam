@@ -10,6 +10,11 @@ export interface Order {
   items: CartItem[];
   status: 'Order Placed' | 'Confirmed' | 'Shipped' | 'Delivered';
   customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  shippingAddress?: string;
+  trackingNumber?: string;
+  courierPartner?: string;
   gstNumber?: string;
 }
 
