@@ -82,10 +82,19 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, lead: newLead }, { status: 201 });
-
+    return NextResponse.json({ success: true, lead: newLead });
   } catch (error: any) {
-    console.error("Distributor API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Error creating distributor lead:", error);
+    return NextResponse.json({ error: error.message || "Failed to submit lead" }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    await dbConnect();
+    const leads = await DistributorLead.find({}).sort({ createdAt: -1 });
+    return NextResponse.json({ success: true, leads });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || "Failed to fetch leads" }, { status: 500 });
   }
 }
