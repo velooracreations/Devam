@@ -1,11 +1,57 @@
-import { MapPin, Phone, Mail, Clock } from "lucide-react";
+"use client";
 
-export const metadata = {
-  title: "Contact Us | Devam Foods",
-  description: "Get in touch with Devam Foods for inquiries, bulk orders, or distributor opportunities.",
-};
+import { useState } from "react";
+import { MapPin, Phone, Mail, Clock, CheckCircle } from "lucide-react";
 
 export default function ContactPage() {
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    message: ""
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/distributors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          businessName: "Direct Contact Form",
+          email: formData.email,
+          phone: formData.phone || "N/A",
+          city: "Contact Us",
+          state: "Website Inquiry",
+          productsOfInterest: "General Inquiry",
+          message: formData.message
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to send message");
+
+      setSubmitted(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to send message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen pt-12 pb-24">
       {/* Page Header */}
@@ -15,7 +61,7 @@ export default function ContactPage() {
             Contact Us
           </h1>
           <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto font-body">
-            We'd love to hear from you. Whether you have a question about our products, need help with an order, or want to partner with us.
+            We&apos;d love to hear from you. Whether you have a question about our products, need help with an order, or want to partner with us.
           </p>
         </div>
       </div>
@@ -90,37 +136,99 @@ export default function ContactPage() {
             <h2 className="text-2xl font-heading font-bold text-gray-900 mb-6">
               Send us a Message
             </h2>
-            <form className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
-                  <input type="text" id="firstName" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow" required />
-                </div>
-                <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
-                  <input type="text" id="lastName" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow" required />
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
-                <input type="email" id="email" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow" required />
-              </div>
-              
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                <input type="tel" id="phone" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow" />
-              </div>
 
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Your Message *</label>
-                <textarea id="message" rows={5} className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow resize-none" required></textarea>
+            {submitted ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Message Sent Successfully!</h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  Thank you for reaching out to Devam Foods. Our support team has received your message and will reply within 24 hours.
+                </p>
               </div>
-              
-              <button type="submit" className="w-full py-4 bg-[var(--color-devam-red)] text-white font-bold rounded-lg hover:bg-red-800 transition-colors shadow-md">
-                Send Message
-              </button>
-            </form>
+            ) : (
+              <form className="space-y-6" onSubmit={handleSubmit}>
+                {error && (
+                  <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm font-medium">
+                    {error}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
+                    <input 
+                      type="text" 
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow" 
+                      required 
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
+                    <input 
+                      type="text" 
+                      id="lastName" 
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow" 
+                      required 
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                  <input 
+                    type="email" 
+                    id="email" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow" 
+                    required 
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow" 
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">Your Message *</label>
+                  <textarea 
+                    id="message" 
+                    name="message"
+                    rows={5} 
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-devam-red)] focus:border-transparent outline-none transition-shadow resize-none" 
+                    required
+                  ></textarea>
+                </div>
+                
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full py-4 bg-[var(--color-devam-red)] text-white font-bold rounded-lg hover:bg-red-800 transition-colors shadow-md disabled:opacity-50"
+                >
+                  {loading ? "Sending Message..." : "Send Message"}
+                </button>
+              </form>
+            )}
           </div>
 
         </div>
