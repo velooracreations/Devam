@@ -15,7 +15,7 @@ const storyFrames = [
     description:
       "From the finest Bhalia wheat of Gujarat, our chakki atta is slow-ground the traditional way — retaining its natural sweetness, aroma, and nutrients. The foundation of every perfect rotli.",
     image: "/hero-flour-new.png",
-    cta: { label: "હમણાં ઓર્ડર કરો", href: "/shop?category=flours" },
+    cta: { label: "Order Now", href: "/shop?category=flours" },
   },
   {
     id: 2,
@@ -25,7 +25,7 @@ const storyFrames = [
     description:
       "Devam atta kneads into the softest dough that rolls out beautifully and puffs up perfectly — every single time. Because your family deserves flour that delivers on tradition.",
     image: "/hero-dough.png",
-    cta: { label: "હમણાં ઓર્ડર કરો", href: "/product/sharbati-atta-5kg" },
+    cta: { label: "Order Now", href: "/product/sharbati-atta-5kg" },
   },
   {
     id: 3,
@@ -35,7 +35,7 @@ const storyFrames = [
     description:
       "When the rotli puffs up on the tawa and the masala brings out the perfect colour and aroma — that's when you know. That warmth, that taste — it's the Devam promise to your family.",
     image: "/hero-rotli-steam.png",
-    cta: { label: "હમણાં ઓર્ડર કરો", href: "/shop" },
+    cta: { label: "Order Now", href: "/shop" },
   },
   {
     id: 4,
@@ -45,7 +45,7 @@ const storyFrames = [
     description:
       "Vibrant haldi, fiery mirchi, aromatic jeera, fresh dhana — every spice powder is crafted from handpicked whole spices, ground fresh to bring alive the true flavour of Indian cooking.",
     image: "/hero-masala.png",
-    cta: { label: "હમણાં ઓર્ડર કરો", href: "/shop?category=spice-powders" },
+    cta: { label: "Order Now", href: "/shop?category=spice-powders" },
   },
   {
     id: 5,
@@ -55,7 +55,7 @@ const storyFrames = [
     description:
       "The sizzle of jeera and rai in hot ghee. That unmistakable aroma filling the whole house. Our whole spices are sorted and cleaned to give you the purest, most potent tadka every time.",
     image: "/hero-whole-spice.png",
-    cta: { label: "હમણાં ઓર્ડર કરો", href: "/shop?category=whole-spices" },
+    cta: { label: "Order Now", href: "/shop?category=whole-spices" },
   },
 ];
 
