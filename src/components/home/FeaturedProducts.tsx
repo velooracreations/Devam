@@ -6,6 +6,7 @@ import { ShoppingCart } from "lucide-react";
 import { useProductStore } from "@/store/productStore";
 import { useCartStore } from "@/store/cartStore";
 import { toast } from "sonner";
+import { TiltCard } from "@/components/ui/TiltCard";
 
 export function FeaturedProducts() {
   const allProducts = useProductStore((state) => state.products);
@@ -48,7 +49,7 @@ export function FeaturedProducts() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {uniqueProducts.map((product) => (
-            <div key={product.id} className="group flex flex-col bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+            <TiltCard key={product.id} className="group flex flex-col bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
               <div className="relative h-64 bg-[var(--color-devam-cream)] p-6 overflow-hidden">
                 {product.isNew && (
                   <span className="absolute top-4 left-4 z-10 bg-[var(--color-devam-red)] text-white text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full">
@@ -96,7 +97,7 @@ export function FeaturedProducts() {
                   </div>
                 </div>
               </div>
-            </div>
+            </TiltCard>
           ))}
         </div>
         
