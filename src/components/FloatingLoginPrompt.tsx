@@ -8,29 +8,31 @@ import { X, ArrowRight, Gift, Flame } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export function FloatingLoginPrompt() {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (loading || user) return;
+    if (loading) return;
 
     const isDismissed = sessionStorage.getItem("devam_login_prompt_dismissed");
     if (isDismissed) return;
 
-    // Trigger floating welcome card after 3 seconds
+    // Trigger floating notification after 1 second
     const timer = setTimeout(() => {
       setIsVisible(true);
-    }, 3000);
+    }, 1000);
 
     return () => clearTimeout(timer);
-  }, [user, loading]);
+  }, [loading]);
 
   const handleDismiss = () => {
     setIsVisible(false);
     sessionStorage.setItem("devam_login_prompt_dismissed", "true");
   };
 
-  if (!isVisible || user) return null;
+  if (!isVisible) return null;
+
+  const displayName = userData?.name || user?.displayName || user?.email?.split('@')[0] || "Friend";
 
   return (
     <AnimatePresence>
@@ -57,7 +59,7 @@ export function FloatingLoginPrompt() {
         <div className="flex items-center space-x-2 mb-3">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[var(--color-devam-red)] text-white text-[10px] font-black uppercase tracking-wider rounded-full shadow-sm">
             <Flame className="w-3 h-3 text-yellow-300 animate-bounce" />
-            First Order Special
+            {user ? "Exclusive Member Offer" : "First Order Special"}
           </span>
           <span className="text-[11px] font-bold text-[var(--color-devam-brown)]/70 italic">
             Pure &amp; Fresh
@@ -78,10 +80,12 @@ export function FloatingLoginPrompt() {
 
           <div className="flex-1 pr-3">
             <h4 className="font-heading font-extrabold text-[var(--color-devam-brown)] text-base leading-tight">
-              Enjoy ₹50 OFF Your First Order! 🌾
+              {user ? `Welcome back, ${displayName}! 👋` : "Enjoy ₹50 OFF Your First Order! 🌾"}
             </h4>
             <p className="text-xs text-[var(--color-devam-brown)]/80 font-body mt-1 leading-relaxed font-medium">
-              Sign in to unlock exclusive savings on 100% Stone-Ground Atta &amp; Fresh Masalas.
+              {user
+                ? "Use code DEVAM50 at checkout to save ₹50 on your fresh Chakki Atta & Spices order today!"
+                : "Sign in to unlock exclusive savings on 100% Stone-Ground Atta & Fresh Masalas."}
             </p>
           </div>
         </div>
@@ -101,11 +105,11 @@ export function FloatingLoginPrompt() {
         {/* Action Buttons */}
         <div className="mt-4 flex items-center gap-2">
           <Link
-            href="/login"
+            href={user ? "/shop" : "/login"}
             onClick={() => setIsVisible(false)}
             className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-[var(--color-devam-red)] to-red-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:shadow-[0_4px_15px_rgba(237,31,41,0.4)] transition-all transform active:scale-95 group"
           >
-            Claim Offer &amp; Sign In
+            {user ? "Shop & Apply Offer" : "Claim Offer & Sign In"}
             <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
           </Link>
           
