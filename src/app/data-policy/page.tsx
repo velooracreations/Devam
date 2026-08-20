@@ -55,7 +55,7 @@ export default function DataPolicyPage() {
             <div className="mt-12 p-6 bg-gray-50 rounded-xl border border-gray-100">
               <p className="text-sm text-gray-500 mb-0">
                 Last Updated: August 2026<br />
-                For any privacy-related questions, please contact us at support@devam.com
+                For any privacy-related questions, please contact us at info@thedevam.com
               </p>
             </div>
           </div>
