@@ -23,43 +23,47 @@ export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
     }
   }
 
-  // 3. Save to Firebase Firestore for cross-device live entry in Admin ID
-  try {
-    if (db) {
-      // A. Save to global orders collection
-      const orderRef = doc(db, "orders", newOrder.id);
-      await setDoc(orderRef, {
-        ...newOrder,
-        createdAt: new Date().toISOString()
-      }, { merge: true });
-      console.log(`[OrderSync] Order #${newOrder.id} saved to Firestore orders collection.`);
-
-      // B. Save to user profile if user is logged in
-      if (userId) {
-        const userRef = doc(db, "users", userId);
-        await setDoc(userRef, {
-          orders: arrayUnion({
-            ...newOrder,
-            createdAt: new Date().toISOString()
-          })
+  // 3. Save to Firebase Firestore for cross-device live entry in Admin ID (with 3s timeout guard)
+  const saveFirestoreTask = async () => {
+    try {
+      if (db) {
+        // A. Save to global orders collection
+        const orderRef = doc(db, "orders", newOrder.id);
+        await setDoc(orderRef, {
+          ...newOrder,
+          createdAt: new Date().toISOString()
         }, { merge: true });
-        console.log(`[OrderSync] Order #${newOrder.id} linked to user profile ${userId}.`);
-      }
-    }
-  } catch (err) {
-    console.warn("[OrderSync] Firestore save error:", err);
-  }
+        console.log(`[OrderSync] Order #${newOrder.id} saved to Firestore orders collection.`);
 
-  // 4. Trigger Email & WhatsApp Notification API
-  try {
-    await fetch("/api/notifications/order-status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newOrder)
-    });
-  } catch (err) {
-    console.warn("[OrderSync] Notification API error:", err);
-  }
+        // B. Save to user profile if user is logged in
+        if (userId) {
+          const userRef = doc(db, "users", userId);
+          await setDoc(userRef, {
+            orders: arrayUnion({
+              ...newOrder,
+              createdAt: new Date().toISOString()
+            })
+          }, { merge: true });
+          console.log(`[OrderSync] Order #${newOrder.id} linked to user profile ${userId}.`);
+        }
+      }
+    } catch (err) {
+      console.warn("[OrderSync] Firestore save error:", err);
+    }
+  };
+
+  // Run Firestore save with a 3.5-second timeout safety guard so UI placement never hangs
+  await Promise.race([
+    saveFirestoreTask(),
+    new Promise((resolve) => setTimeout(resolve, 3500))
+  ]);
+
+  // 4. Trigger Email & WhatsApp Notification API (non-blocking in background)
+  fetch("/api/notifications/order-status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(newOrder)
+  }).catch((err) => console.warn("[OrderSync] Notification API error:", err));
 }
 
 /**

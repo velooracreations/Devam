@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/store/cartStore";
 import { useOrderStore, Order } from "@/store/orderStore";
@@ -82,8 +83,40 @@ export default function CheckoutPage() {
     setIsHydrated(true);
   }, []);
 
-  // Auto-select saved address if available
+  // Save address draft to localStorage on state changes
   useEffect(() => {
+    if (isHydrated) {
+      if (addressForm.name || addressForm.phone || addressForm.pin || addressForm.houseNo || addressForm.street) {
+        try {
+          localStorage.setItem("devam_checkout_address", JSON.stringify(addressForm));
+          localStorage.setItem("devam_checkout_selected_id", selectedAddressId);
+          localStorage.setItem("devam_checkout_step", String(step));
+        } catch (_) {}
+      }
+    }
+  }, [addressForm, selectedAddressId, step, isHydrated]);
+
+  // Restore draft address from localStorage or auto-select saved address from Firestore
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    try {
+      const savedDraft = localStorage.getItem("devam_checkout_address");
+      const savedStep = localStorage.getItem("devam_checkout_step");
+      const savedSelectedId = localStorage.getItem("devam_checkout_selected_id");
+
+      if (savedDraft) {
+        const parsed = JSON.parse(savedDraft);
+        if (parsed && typeof parsed === "object" && (parsed.name || parsed.phone || parsed.houseNo)) {
+          setAddressForm((prev) => ({ ...prev, ...parsed }));
+          if (savedSelectedId) setSelectedAddressId(savedSelectedId);
+          if (savedStep === "2") setStep(2);
+          return;
+        }
+      }
+    } catch (_) {}
+
+    // Fallback: Auto-select saved address if available
     if (userData?.addresses && userData.addresses.length > 0) {
       const defaultAddr = userData.addresses.find((a: any) => a.isDefault) || userData.addresses[0];
       if (defaultAddr && selectedAddressId === "new") {
@@ -96,7 +129,7 @@ export default function CheckoutPage() {
         phone: prev.phone || userData?.mobile || ""
       }));
     }
-  }, [userData, user]);
+  }, [isHydrated, userData, user]);
 
   const handleSelectSavedAddress = (addr: any) => {
     setSelectedAddressId(addr.id);
@@ -290,72 +323,95 @@ export default function CheckoutPage() {
         shippingAddress: fullAddressString
       };
 
+      // Helper to cleanup draft state and finish order
+      const finalizeOrderSuccess = async (placedData: Order) => {
+        await saveOrderAndNotify(placedData, user?.uid);
+        clearCart();
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem("devam_checkout_address");
+          localStorage.removeItem("devam_checkout_selected_id");
+          localStorage.removeItem("devam_checkout_step");
+        }
+        setPlacedOrder(placedData);
+        setIsSubmitting(false);
+      };
+
       // Online Payment via Razorpay SDK
       if (paymentMethod === "razorpay") {
         try {
-          const res = await fetch("/api/razorpay", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ amount: finalAmount, orderId })
-          });
+          let razorpayData: any = null;
 
-          const razorpayData = await res.json();
-          if (!res.ok || !razorpayData.id) {
-            throw new Error(razorpayData.error || "Failed to initialize online payment");
+          // Try /api/razorpay endpoint first
+          try {
+            const res = await fetch("/api/razorpay", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ amount: finalAmount, orderId })
+            });
+            if (res.ok) razorpayData = await res.json();
+          } catch (_) {}
+
+          // Fallback to /api/create-order endpoint
+          if (!razorpayData || !razorpayData.id) {
+            const res2 = await fetch("/api/create-order", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ amount: finalAmount * 100, receipt: `rcpt_${orderId}` })
+            });
+            if (res2.ok) razorpayData = await res2.json();
           }
-
-          const options = {
-            key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TcNI9ejHlDnlqC",
-            amount: razorpayData.amount,
-            currency: "INR",
-            name: "Devam Atta & Spices",
-            description: `Order #${orderId}`,
-            image: "/logo.svg",
-            order_id: razorpayData.id,
-            handler: async function (response: any) {
-              await saveOrderAndNotify(orderData, user?.uid);
-              clearCart();
-              toast.success("🎉 Payment successful! Order placed.");
-              setPlacedOrder(orderData);
-            },
-            prefill: {
-              name: customerName,
-              email: user?.email || "",
-              contact: customerPhone
-            },
-            theme: {
-              color: "#991b1b"
-            }
-          };
 
           const RazorpaySDK = (window as any).Razorpay;
-          if (RazorpaySDK) {
+
+          if (razorpayData?.id && RazorpaySDK) {
+            const options = {
+              key: razorpayData.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TcNI9ejHlDnlqC",
+              amount: razorpayData.amount,
+              currency: "INR",
+              name: "Devam Atta & Spices",
+              description: `Order #${orderId}`,
+              image: "/logo.svg",
+              order_id: razorpayData.id,
+              handler: async function (response: any) {
+                toast.success("🎉 Payment successful! Placing order...");
+                await finalizeOrderSuccess(orderData);
+              },
+              modal: {
+                ondismiss: function () {
+                  setIsSubmitting(false);
+                  toast.info("Payment window closed. You can retry or choose Cash on Delivery.");
+                }
+              },
+              prefill: {
+                name: customerName,
+                email: user?.email || "",
+                contact: customerPhone
+              },
+              theme: {
+                color: "#991b1b"
+              }
+            };
+
             const rzp = new RazorpaySDK(options);
             rzp.open();
+            return;
           } else {
-            // If Razorpay SDK fails to load, fallback gracefully to COD placement
-            await saveOrderAndNotify(orderData, user?.uid);
-            clearCart();
-            setPlacedOrder(orderData);
+            // Direct order placement fallback if Razorpay gateway unavailable
+            toast.info("Processing order fallback...");
+            await finalizeOrderSuccess(orderData);
           }
         } catch (razorpayErr: any) {
-          console.warn("Razorpay fallback triggered:", razorpayErr);
-          await saveOrderAndNotify(orderData, user?.uid);
-          clearCart();
-          toast.success("Order placed successfully!");
-          setPlacedOrder(orderData);
+          console.warn("Razorpay error, falling back to direct placement:", razorpayErr);
+          await finalizeOrderSuccess(orderData);
         }
       } else {
         // Cash on Delivery Placement
-        await saveOrderAndNotify(orderData, user?.uid);
-        clearCart();
+        await finalizeOrderSuccess(orderData);
         toast.success("🎉 Order placed with Cash on Delivery!");
-        setPlacedOrder(orderData);
       }
     } catch (err: any) {
       console.error("Checkout submission error:", err);
       toast.error("Order processing failed. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -433,8 +489,10 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f5] py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <div className="min-h-screen bg-[#faf8f5] py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
         
         {/* Top Header & Breadcrumb */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 pb-4">
@@ -905,5 +963,6 @@ export default function CheckoutPage() {
 
       </div>
     </div>
+    </>
   );
 }
