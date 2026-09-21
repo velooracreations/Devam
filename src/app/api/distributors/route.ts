@@ -1,73 +1,37 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import DistributorLead from '@/lib/models/DistributorLead';
-import nodemailer from 'nodemailer';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
+import { sendQueryEmail } from '@/lib/notifications';
 
 export async function POST(req: Request) {
   try {
     const data = await req.json();
     const { firstName, lastName, businessName, email, phone, city, state, productsOfInterest, message } = data;
 
-    // Validate required fields
     if (!firstName || !lastName || !businessName || !email || !phone || !city || !state) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // 1. Connect and save to MongoDB
-    await dbConnect();
-    const newLead = await DistributorLead.create({
-      firstName,
-      lastName,
-      businessName,
+    const now = new Date().toISOString();
+    const docData = {
+      firstName, lastName, businessName, email, phone, city, state,
+      productsOfInterest: productsOfInterest || "All Products",
+      message: message || "",
+      createdAt: now,
+    };
+
+    const docRef = await addDoc(collection(db, 'distributorLeads'), docData);
+
+    // Send instant Email Intimation to info@thedevam.com and thedevam2024@gmail.com
+    sendQueryEmail({
+      name: `${firstName} ${lastName}`,
       email,
       phone,
-      city,
-      state,
-      productsOfInterest: productsOfInterest || "All Products",
-      message
-    });
+      subject: `Inquiry / Distributor Lead from ${city}, ${state}`,
+      message: `Business Name: ${businessName}\nCity/State: ${city}, ${state}\nProducts: ${productsOfInterest}\nMessage: ${message || 'N/A'}`
+    }).catch((err) => console.error("Query email intimation failed", err));
 
-    // 2. Send Email via Nodemailer (if SMTP vars are present)
-    const SMTP_HOST = process.env.SMTP_HOST;
-    const SMTP_PORT = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587;
-    const SMTP_USER = process.env.SMTP_USER;
-    const SMTP_PASS = process.env.SMTP_PASS;
-
-    if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
-      const transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port: SMTP_PORT,
-        secure: SMTP_PORT === 465,
-        auth: {
-          user: SMTP_USER,
-          pass: SMTP_PASS,
-        },
-      });
-
-      const mailOptions = {
-        from: `"Devam Foods B2B" <${SMTP_USER}>`,
-        to: process.env.NOTIFICATION_EMAIL || "info@thedevam.com",
-        subject: `New Distributor Lead: ${businessName}`,
-        text: `New Distributor Application Received:
-        Name: ${firstName} ${lastName}
-        Business: ${businessName}
-        Email: ${email}
-        Phone: ${phone}
-        Location: ${city}, ${state}
-        Products: ${productsOfInterest}
-        Message: ${message || "N/A"}
-        `
-      };
-
-      try {
-        await transporter.sendMail(mailOptions);
-      } catch (emailError) {
-        console.error("Email sending failed:", emailError);
-        // Continue even if email fails
-      }
-    }
-
-    // 3. Send to CRM/Google Sheets Webhook (if present)
+    // Send to CRM/Google Sheets Webhook (if present)
     const WEBHOOK_URL = process.env.CRM_WEBHOOK_URL;
     if (WEBHOOK_URL) {
       try {
@@ -78,11 +42,10 @@ export async function POST(req: Request) {
         });
       } catch (webhookError) {
         console.error("Webhook failed:", webhookError);
-        // Continue even if webhook fails
       }
     }
 
-    return NextResponse.json({ success: true, lead: newLead });
+    return NextResponse.json({ success: true, lead: { id: docRef.id, ...docData } });
   } catch (error: any) {
     console.error("Error creating distributor lead:", error);
     return NextResponse.json({ error: error.message || "Failed to submit lead" }, { status: 500 });
@@ -91,8 +54,9 @@ export async function POST(req: Request) {
 
 export async function GET() {
   try {
-    await dbConnect();
-    const leads = await DistributorLead.find({}).sort({ createdAt: -1 });
+    const snapshot = await getDocs(collection(db, 'distributorLeads'));
+    const leads = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+    leads.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
     return NextResponse.json({ success: true, leads });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to fetch leads" }, { status: 500 });

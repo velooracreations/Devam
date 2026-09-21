@@ -1,33 +1,9 @@
-import mongoose from "mongoose";
+import { db } from './firebase';
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/devam";
-
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
+/**
+ * Get Firestore instance for server-side API routes & models.
+ * Uses client SDK instance initialized in firebase.ts.
+ */
+export default function dbConnect() {
+  return db;
 }
-
-let cached = (global as any).mongoose;
-
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
-}
-
-async function dbConnect() {
-  if (cached.conn) {
-    return cached.conn;
-  }
-
-  if (!cached.promise) {
-    const opts = {
-      bufferCommands: false,
-    };
-
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      return mongoose;
-    });
-  }
-  cached.conn = await cached.promise;
-  return cached.conn;
-}
-
-export default dbConnect;

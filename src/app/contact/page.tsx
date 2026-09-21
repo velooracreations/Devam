@@ -144,7 +144,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Message Sent Successfully!</h3>
                 <p className="text-gray-600 max-w-md mx-auto">
-                  Thank you for reaching out to Devam Foods. Our support team has received your message and will reply within 24 hours.
+                  Thank you for reaching out to Devam Atta & Masala Hub. Our support team has received your message and will reply within 24 hours.
                 </p>
               </div>
             ) : (

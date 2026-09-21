@@ -1,0 +1,4 @@
+@echo off
+set FUNCTIONS_DISCOVERY_TIMEOUT=120000
+echo Set FUNCTIONS_DISCOVERY_TIMEOUT to 120000ms
+firebase deploy

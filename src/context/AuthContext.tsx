@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, onSnapshot } from "firebase/firestore";
+import { useCartStore } from "@/store/cartStore";
 
 interface AuthContextType {
   user: User | null;
@@ -26,7 +27,12 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     let unsubscribeSnapshot: () => void;
+    const safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 1500);
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      clearTimeout(safetyTimer);
       setUser(currentUser);
       
       if (currentUser) {
@@ -36,7 +42,23 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
           
           unsubscribeSnapshot = onSnapshot(userDocRef, async (userDoc) => {
             if (userDoc.exists()) {
-              setUserData(userDoc.data());
+              const data = userDoc.data();
+              setUserData(data);
+
+              // Cross-Device Real-Time Cloud Cart Sync
+              if (Array.isArray(data?.cart)) {
+                const localItems = useCartStore.getState().items;
+                const isDifferent = JSON.stringify(data.cart) !== JSON.stringify(localItems);
+                if (isDifferent) {
+                  if (localItems.length > 0 && data.cart.length === 0) {
+                    useCartStore.getState().setCart(localItems, false);
+                  } else {
+                    useCartStore.getState().setCart(data.cart, true);
+                  }
+                }
+              } else if (useCartStore.getState().items.length > 0) {
+                useCartStore.getState().setCart(useCartStore.getState().items, false);
+              }
             } else {
               // If doc doesn't exist (e.g. Google Sign-In), create one
               const newUserData = {
@@ -44,11 +66,15 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
                 email: currentUser.email,
                 name: currentUser.displayName || "User",
                 role: "customer",
+                cart: useCartStore.getState().items || [],
                 createdAt: new Date().toISOString()
               };
               await setDoc(userDocRef, newUserData, { merge: true });
               setUserData(newUserData);
             }
+            setLoading(false);
+          }, (err) => {
+            console.error("Firestore user snapshot error:", err);
             setLoading(false);
           });
         } catch (error) {
@@ -60,9 +86,14 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
         if (unsubscribeSnapshot) unsubscribeSnapshot();
         setLoading(false);
       }
+    }, (authError) => {
+      clearTimeout(safetyTimer);
+      console.error("Firebase onAuthStateChanged error:", authError);
+      setLoading(false);
     });
 
     return () => {
+      clearTimeout(safetyTimer);
       unsubscribe();
       if (unsubscribeSnapshot) unsubscribeSnapshot();
     };

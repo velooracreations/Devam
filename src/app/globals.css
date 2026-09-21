@@ -6,13 +6,15 @@
   --color-devam-cream: #FFF8E1;
   --color-devam-brown: #3E2723;
   --color-devam-green: #0A883A;
-  --font-heading: var(--font-playfair);
-  --font-body: var(--font-inter);
+  --font-heading: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
 }
 
 :root {
   --background: #FFF8E1;
   --foreground: #3E2723;
+  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-playfair: 'Playfair Display', Georgia, serif;
 }
 
 html {

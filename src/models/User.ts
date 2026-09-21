@@ -1,16 +1,11 @@
-import mongoose from "mongoose";
+// User model - Users are managed via Firebase Auth + Firestore 'users' collection
+// The AuthContext.tsx handles user creation in Firestore on sign-in
+// This file provides types for reference
 
-const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { 
-    type: String, 
-    enum: ["SUPER_ADMIN", "INVENTORY_MANAGER", "SALES_MANAGER", "CUSTOMER"], 
-    default: "CUSTOMER" 
-  }
-}, {
-  timestamps: true,
-});
-
-export default mongoose.models.User || mongoose.model("User", UserSchema);
+export interface IUser {
+  uid: string;
+  name: string;
+  email: string;
+  role: 'SUPER_ADMIN' | 'INVENTORY_MANAGER' | 'SALES_MANAGER' | 'CUSTOMER' | 'customer';
+  createdAt: string;
+}

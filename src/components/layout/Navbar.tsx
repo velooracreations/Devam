@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Menu, X, ShoppingCart, Search, User, ChevronDown, Bell, Gift, HelpCircle, Package, Heart, Wallet, LogOut, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/store/cartStore";
+import { useProductStore } from "@/store/productStore";
 import { useAuth } from "@/context/AuthContext";
 import { usePathname } from "next/navigation";
 
@@ -27,6 +28,13 @@ export function Navbar() {
   const storeCartCount = useCartStore((state) => state.getCartCount());
   
   const { user, userData, logout } = useAuth();
+
+  useEffect(() => {
+    // Only fetch products if store is empty to avoid duplicate network requests on page navigation
+    if (useProductStore.getState().products.length === 0) {
+      useProductStore.getState().fetchProducts();
+    }
+  }, []);
 
   useEffect(() => {
     setCartCount(storeCartCount);
@@ -51,16 +59,16 @@ export function Navbar() {
   return (
     <nav
       className={cn(
-        "fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b border-transparent",
+        "fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b",
         isScrolled
-          ? "bg-white/80 backdrop-blur-md shadow-sm py-2 border-gray-100"
-          : "bg-transparent py-3"
+          ? "bg-white/95 backdrop-blur-md shadow-xs py-1 border-gray-100"
+          : "bg-[#FAF7F2] py-1 border-amber-900/10"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex-shrink-0 flex items-center h-12 md:h-16 w-32 md:w-48 relative">
+          {/* Logo - Sized to define the compact header height with minimal padding */}
+          <Link href="/" className="flex-shrink-0 flex items-center h-11 sm:h-12 md:h-14 w-32 sm:w-36 md:w-44 relative transition-transform hover:scale-[1.02]">
             <Image
               src="/logo.svg"
               alt="Devam Logo"

@@ -1,41 +1,34 @@
-import mongoose from "mongoose";
+import { db } from '@/lib/firebase';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
-const InventoryLedgerSchema = new mongoose.Schema({
-  product: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Product',
-    required: true 
+const COLLECTION = 'inventoryLedger';
+
+export interface IInventoryLedger {
+  id?: string;
+  product: string;
+  barcode: string;
+  transactionType: string;
+  quantity: number;
+  openingStock: number;
+  closingStock: number;
+  remarks: string;
+  createdAt: string;
+}
+
+const InventoryLedger = {
+  async create(data: Partial<IInventoryLedger>) {
+    const now = new Date().toISOString();
+    const docData = { ...data, createdAt: now };
+    const docRef = await addDoc(collection(db, COLLECTION), docData);
+    return { id: docRef.id, ...docData } as IInventoryLedger;
   },
-  barcode: { 
-    type: String, 
-    required: true 
-  },
-  transactionType: { 
-    type: String, 
-    enum: ["STOCK_IN", "STOCK_OUT", "SALES_ORDER", "PURCHASE_ORDER", "STOCK_ADJUSTMENT", "STOCK_RETURN"], 
-    required: true 
-  },
-  quantity: { 
-    type: Number, 
-    required: true 
-  }, // Positive for In, Negative for Out
-  openingStock: { 
-    type: Number, 
-    required: true 
-  },
-  closingStock: { 
-    type: Number, 
-    required: true 
-  },
-  remarks: { 
-    type: String 
-  },
-  user: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User'
+
+  async find() {
+    const snapshot = await getDocs(collection(db, COLLECTION));
+    const items = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as IInventoryLedger));
+    items.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    return items;
   }
-}, {
-  timestamps: true, // Automatically manages Date and Time
-});
+};
 
-export default mongoose.models.InventoryLedger || mongoose.model("InventoryLedger", InventoryLedgerSchema);
+export default InventoryLedger;

@@ -8,7 +8,7 @@ import { useOrderStore } from "@/store/orderStore";
 import { useAuthStore } from "@/store/authStore";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, updateDoc, setDoc, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 
@@ -99,12 +99,26 @@ export default function AccountPage() {
     });
   };
 
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!user || !userData?.addresses) return;
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const updatedAddresses = userData.addresses.filter((a: any) => a.id !== addressId);
+      await setDoc(userRef, { addresses: updatedAddresses }, { merge: true });
+      toast.success("Address deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting address:", error);
+      toast.error("Failed to delete address.");
+    }
+  };
+
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
     
     // Check for duplicates
-    const isDuplicate = userData?.addresses?.some((addr: any) => 
+    const existingAddresses = userData?.addresses || [];
+    const isDuplicate = existingAddresses.some((addr: any) => 
       addr.pin === addressForm.pin &&
       (addr.houseNo || "").toLowerCase().trim() === addressForm.houseNo.toLowerCase().trim() &&
       (addr.street || "").toLowerCase().trim() === addressForm.street.toLowerCase().trim()
@@ -128,9 +142,8 @@ export default function AccountPage() {
       };
       delete (newAddress as any).otherType;
       
-      await updateDoc(userRef, {
-        addresses: arrayUnion(newAddress)
-      });
+      const updatedAddresses = [...existingAddresses, newAddress];
+      await setDoc(userRef, { addresses: updatedAddresses }, { merge: true });
       
       toast.success("Address saved successfully!");
       resetAddressForm();
@@ -399,8 +412,12 @@ export default function AccountPage() {
                     {userData.addresses.map((addr: any) => (
                       <div key={addr.id} className="border border-gray-200 rounded relative">
                         <div className="absolute top-4 right-4 flex gap-4">
-                          <button className="text-[var(--color-devam-brown)] font-medium text-sm">Edit</button>
-                          <button className="text-[var(--color-devam-brown)] font-medium text-sm">Delete</button>
+                          <button 
+                            onClick={() => handleDeleteAddress(addr.id)} 
+                            className="text-[var(--color-devam-red)] font-medium text-sm hover:underline"
+                          >
+                            Delete
+                          </button>
                         </div>
                         <div className="p-6">
                           <div className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded inline-block mb-4 uppercase tracking-wider">{addr.type}</div>

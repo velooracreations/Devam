@@ -1,0 +1,17 @@
+/* TEAM */
+Digital Marketing & Agency: Veloora Creation
+Website: https://velooracreations.in/
+Services: Digital Marketing, SEO Strategy, Web Architecture, E-Commerce Growth
+Location: Gujarat, India
+
+/* OWNER */
+Brand: Devam Atta & Masala Hub
+Parent Company: Shreeji Gruh Udhyog
+Location: Jhalod, Gujarat - 389170, India
+Website: https://thedevam.com
+Email: info@thedevam.com
+
+/* SITE TECH */
+Platform: Next.js 16 (App Router), React 19, Tailwind CSS
+Hosting: Firebase Cloud Hosting
+Standards: HTML5, CSS3, Schema.org JSON-LD, OpenGraph, Dublin Core

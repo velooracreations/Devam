@@ -12,6 +12,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Don't render the sidebar if we are on the login page
+  React.useEffect(() => {
+    if (pathname !== "/admin/login") {
+      const hasSession = document.cookie.includes("admin_session=true");
+      if (!hasSession) {
+        router.push("/admin/login");
+      }
+    }
+  }, [pathname, router]);
+
   if (pathname === "/admin/login") {
     return <>{children}</>;
   }
@@ -46,7 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       }`}>
         <div className="border-b border-gray-800 flex items-center justify-between lg:justify-center p-4">
-          <Image src="/logo.svg" alt="Devam Foods" width={160} height={80} className="object-contain" priority />
+          <Image src="/logo.svg" alt="Devam Atta & Masala Hub" width={160} height={80} className="object-contain" priority />
           <button 
             className="lg:hidden p-2 text-gray-400 hover:bg-gray-800 rounded-lg -mt-16 z-50"
             onClick={() => setIsMobileMenuOpen(false)}

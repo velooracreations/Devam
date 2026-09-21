@@ -1,34 +1,62 @@
-import { NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
-import Product from "@/models/Product";
+import { NextResponse } from 'next/server';
+import { getServerProducts, saveServerProducts } from '@/lib/serverProducts';
+import { Product } from '@/store/productStore';
 
-export async function GET(request: Request) {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export async function GET() {
   try {
-    await dbConnect();
-    
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category");
-    
-    let query = {};
-    if (category && category !== "All") {
-      query = { category };
-    }
-
-    const products = await Product.find(query).sort({ createdAt: -1 });
-    
-    return NextResponse.json({ success: true, data: products });
+    const products = getServerProducts();
+    return NextResponse.json({ success: true, products });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    await dbConnect();
     const body = await request.json();
-    const product = await Product.create(body);
-    return NextResponse.json({ success: true, data: product }, { status: 201 });
+    if (body.action === 'sync') {
+      const { products } = body;
+      if (Array.isArray(products)) {
+        saveServerProducts(products);
+        return NextResponse.json({ success: true, products });
+      }
+    } else if (body.action === 'add') {
+      const { product } = body;
+      const current = getServerProducts();
+      const updated = [product, ...current.filter((p: Product) => p.id !== product.id)];
+      saveServerProducts(updated);
+      return NextResponse.json({ success: true, products: updated });
+    }
+    const products = getServerProducts();
+    return NextResponse.json({ success: true, products });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const name = searchParams.get('name');
+    const clearAll = searchParams.get('clearAll');
+
+    let current = getServerProducts();
+
+    if (clearAll === 'true') {
+      current = [];
+    } else if (id) {
+      current = current.filter((p: Product) => p.id !== id);
+    } else if (name) {
+      current = current.filter((p: Product) => p.name !== name);
+    }
+
+    saveServerProducts(current);
+    return NextResponse.json({ success: true, products: current });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

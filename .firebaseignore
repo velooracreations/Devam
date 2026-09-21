@@ -1,0 +1,11 @@
+firebase.json
+**/.*
+**/.*/**
+node_modules/**
+**/node_modules/**
+.next/cache/**
+.next/diagnostics/**
+.git/**
+scratch_data/**
+README.md
+*.log

@@ -1,13 +1,10 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
 import Product from '@/models/Product';
 import { generateBarcode, getNextSku } from '@/lib/erp/barcodeUtils';
 
 export async function POST(req: Request) {
   try {
-    await connectDB();
     const body = await req.json();
-
     const { name, category, productCode, price, ...otherFields } = body;
 
     if (!name || !category || !productCode) {
@@ -15,17 +12,15 @@ export async function POST(req: Request) {
     }
 
     // Determine the next SKU
-    const highestProduct = await Product.findOne().sort({ sku: -1 }).select('sku');
-    const currentMaxSku = highestProduct ? highestProduct.sku : null;
+    const products = await Product.find({});
+    const skus = products.map((p: any) => p.sku).filter(Boolean).sort();
+    const currentMaxSku = skus.length > 0 ? skus[skus.length - 1] : null;
     const newSku = getNextSku(currentMaxSku);
 
-    // Get current year (2 digits)
     const year = new Date().getFullYear().toString().slice(-2);
-
-    // Generate Barcode
     const newBarcode = generateBarcode(year, newSku, category, productCode);
 
-    const product = new Product({
+    const product = await Product.create({
       name,
       category,
       sku: newSku,
@@ -35,8 +30,6 @@ export async function POST(req: Request) {
       ...otherFields
     });
 
-    await product.save();
-
     return NextResponse.json({ success: true, product }, { status: 201 });
   } catch (error: any) {
     console.error("Error creating product:", error);
@@ -44,10 +37,9 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    await connectDB();
-    const products = await Product.find({}).sort({ createdAt: -1 });
+    const products = await Product.find({});
     return NextResponse.json({ success: true, products }, { status: 200 });
   } catch (error: any) {
     console.error("Error fetching products:", error);

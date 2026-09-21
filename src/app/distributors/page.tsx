@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Building2, Mail, Phone, MapPin, CheckCircle } from "lucide-react";
 
 export default function DistributorsPage() {
@@ -103,6 +104,38 @@ export default function DistributorsPage() {
                   <p className="mt-1 text-[var(--color-devam-brown)]/80 text-sm">
                     We provide point-of-sale materials, brand awareness campaigns, and dedicated relationship managers.
                   </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Retail-Ready Shelf Appeal Showcase */}
+            <div className="mb-12 bg-gradient-to-br from-[#FFFDF9] via-[#FAF4E8] to-[#F1E4CE] p-6 rounded-2xl border border-amber-200/80 shadow-md flex items-center gap-5 sm:gap-6 relative overflow-hidden">
+              {/* Warm Ambient Glow */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_50%,rgba(245,197,24,0.25)_0%,transparent_60%)] pointer-events-none" />
+
+              <div className="relative w-28 h-36 sm:w-32 sm:h-44 flex-shrink-0 z-10">
+                {/* Contact Shadow */}
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-24 h-3 bg-amber-950/30 blur-sm rounded-full pointer-events-none" />
+                <Image
+                  src="/devam-atta-5kg-pouch.png"
+                  alt="Devam Chakki Fresh Atta 5kg Retail Pouch"
+                  fill
+                  className="object-contain drop-shadow-[0_12px_20px_rgba(74,46,27,0.3)]"
+                />
+              </div>
+              <div className="z-10">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--color-devam-red)] bg-red-50/90 border border-red-200/60 px-2.5 py-0.5 rounded-full inline-block mb-1">
+                  Retail & Supermarket Ready
+                </span>
+                <h4 className="font-heading font-bold text-base sm:text-lg text-[var(--color-devam-brown)] mb-1">
+                  High-Impact Consumer Packaging
+                </h4>
+                <p className="text-gray-700 text-xs sm:text-sm leading-relaxed mb-2.5">
+                  Multi-layer moisture-proof pouches with registered barcodes, FSSAI seals, and high-visibility branding designed for supermarket shelves.
+                </p>
+                <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">
+                  <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded">5 Kg Family Pack</span>
+                  <span className="bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded">1 Kg Coming Soon</span>
                 </div>
               </div>
             </div>

@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Core Website Pages -->
+  <url>
+    <loc>https://thedevam.com/</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/devam-atta-5kg-studio.jpg</image:loc>
+      <image:title>Devam Chakki Fresh Atta 5kg Premium Pack</image:title>
+      <image:caption>Pure stone ground Sharbati wheat flour by Shreeji Gruh Udhyog</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://thedevam.com/whatsapp-preview.jpg</image:loc>
+      <image:title>Devam Atta, Spices &amp; Food Grains Collection</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/shop</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/about</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/distributors</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/export</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/contact</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/faq</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/shipping</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/return-policy</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/terms</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/data-policy</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/payment-policy</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+  <!-- Product Landing & Detail Pages -->
+  <url>
+    <loc>https://thedevam.com/product/chakki-fresh-atta-5kg</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/devam-atta-5kg-studio.jpg</image:loc>
+      <image:title>Devam Chakki Fresh Atta 5kg</image:title>
+      <image:caption>100% Whole Wheat Sharbati Cold Chakki Ground Atta</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://thedevam.com/devam-atta-5kg-pouch.png</image:loc>
+      <image:title>Devam Chakki Fresh Atta 5kg Stand-up Pouch</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/product/chakki-fresh-atta-1kg</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/devam-atta-5kg-studio.jpg</image:loc>
+      <image:title>Devam Chakki Fresh Atta 1kg Compact Pack</image:title>
+      <image:caption>Everyday Fresh Chakki Ground Atta</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/product/jowar-1kg</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/prod-jowar.png</image:loc>
+      <image:title>Devam Jowar Flour 1kg</image:title>
+      <image:caption>100% Natural White Jowar Flour, Naturally Gluten-Free</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/product/makkai-1kg</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/prod-makkai.png</image:loc>
+      <image:title>Devam Makkai Flour 1kg</image:title>
+      <image:caption>100% Pure Golden Makkai Maize Corn Flour</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/product/bajri-1kg</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/prod-bajri.png</image:loc>
+      <image:title>Devam Bajri Flour 1kg</image:title>
+      <image:caption>Traditional Pearl Millet Bajri Flour for Authentic Rotla</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/product/ragi-1kg</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/prod-ragi.png</image:loc>
+      <image:title>Devam Ragi Flour 1kg</image:title>
+      <image:caption>100% Pure High-Calcium Finger Millet Ragi Flour</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Recipe Guides with Dedicated Image Sitemaps -->
+  <url>
+    <loc>https://thedevam.com/recipes/1</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_thepla.png</image:loc>
+      <image:title>Authentic Gujarati Thepla Recipe with Devam Atta</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes/2</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_dal_fry.png</image:loc>
+      <image:title>Classic Dal Fry Recipe with Devam Spices</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes/3</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_phulka.png</image:loc>
+      <image:title>Perfect Soft Phulkas Recipe with Devam Chakki Atta</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes/4</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_kadhi.png</image:loc>
+      <image:title>Authentic Gujarati Kadhi Recipe with Devam Besan</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes/5</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_bajra_rotla.png</image:loc>
+      <image:title>Traditional Bajra na Rotla Recipe with Devam Bajari</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes/6</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_makki_roti.png</image:loc>
+      <image:title>Classic Makki ki Roti Recipe with Devam Makai</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes/7</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_khichdi.png</image:loc>
+      <image:title>Nourishing Masala Khichdi Recipe with Devam Spices</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes/8</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_besan_ladoo.png</image:loc>
+      <image:title>Rich Besan Ladoo Festive Recipe</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://thedevam.com/recipes/9</loc>
+    <lastmod>2026-09-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://thedevam.com/recipe_atta_sheera.png</image:loc>
+      <image:title>Atta Sheera Kada Prasad Recipe</image:title>
+    </image:image>
+  </url>
+
+</urlset>

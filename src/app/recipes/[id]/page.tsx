@@ -5,6 +5,12 @@ import { Clock, ChefHat, ShoppingCart, CheckCircle2, ArrowLeft } from "lucide-re
 import { recipes } from "@/lib/data/recipes";
 import { products } from "@/lib/data/products";
 
+export function generateStaticParams() {
+  return recipes.map((r) => ({
+    id: r.id,
+  }));
+}
+
 export default async function RecipeDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const recipe = recipes.find(r => r.id === id);

@@ -59,7 +59,7 @@ export default function ExportPage() {
         <div className="absolute inset-0 z-0">
           <Image
             src="/export_hero.png"
-            alt="Devam Foods Export Packaging"
+            alt="Devam Atta & Masala Hub Export Packaging"
             fill
             className="object-cover brightness-75"
             priority
@@ -111,6 +111,54 @@ export default function ExportPage() {
               </div>
               <h3 className="font-bold text-xl text-[var(--color-devam-brown)] mb-3">Timely Logistics</h3>
               <p className="text-gray-600 text-sm">Strong partnerships with global freight forwarders for efficient sea and air freight logistics.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Retail & Consumer Export Packs */}
+      <section className="py-16 bg-[#FAF7F2] border-y border-amber-900/5 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center bg-gradient-to-br from-[#FFFDF9] via-[#FAF4E8] to-[#F1E4CE] rounded-3xl p-8 lg:p-12 shadow-xl border border-amber-200/80 relative overflow-hidden">
+            {/* Ambient Warm Golden Halo */}
+            <div className="absolute top-0 left-0 w-96 h-96 bg-[radial-gradient(circle,rgba(245,197,24,0.3)_0%,transparent_70%)] pointer-events-none" />
+
+            <div className="lg:col-span-4 flex justify-center relative">
+              <div className="relative w-48 h-64 sm:w-56 sm:h-80 flex items-center justify-center">
+                {/* Contact shadow */}
+                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-40 sm:w-48 h-4 bg-amber-950/35 blur-md rounded-full pointer-events-none" />
+                <Image
+                  src="/devam-atta-5kg-pouch.png"
+                  alt="Devam Chakki Fresh Atta Export Grade Consumer Pouch"
+                  fill
+                  className="object-contain drop-shadow-[0_18px_30px_rgba(74,46,27,0.35)]"
+                />
+              </div>
+            </div>
+            <div className="lg:col-span-8">
+              <span className="text-xs font-bold text-[var(--color-devam-red)] uppercase tracking-wider bg-red-50 px-3 py-1 rounded-full inline-block mb-3">
+                Export Grade Packaging
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-heading font-bold text-[var(--color-devam-brown)] mb-3">
+                Retail-Ready Consumer Packs & Bulk Sacks for International Markets
+              </h3>
+              <p className="text-gray-600 font-body text-sm sm:text-base leading-relaxed mb-6">
+                In addition to 25kg & 50kg industrial sacks, we supply export-grade 5kg consumer pouches engineered with barrier lamination to prevent moisture ingress, oxidation, and transit wear during sea and air freight.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100">
+                  <h5 className="font-bold text-gray-900 text-sm mb-1">5 Kg Family Pack</h5>
+                  <p className="text-xs text-gray-500">Active retail export format with English & bilingual labeling</p>
+                </div>
+                <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100">
+                  <h5 className="font-bold text-gray-900 text-sm mb-1">1 Kg Compact Pack</h5>
+                  <p className="text-xs text-gray-500">Launching soon for international supermarkets</p>
+                </div>
+                <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-100">
+                  <h5 className="font-bold text-gray-900 text-sm mb-1">Custom Private Label</h5>
+                  <p className="text-xs text-gray-500">FOB & CIF options with destination country compliance</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

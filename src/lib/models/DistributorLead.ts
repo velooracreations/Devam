@@ -1,6 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, getDocs } from 'firebase/firestore';
 
-export interface IDistributorLead extends Document {
+const COLLECTION = 'distributorLeads';
+
+export interface IDistributorLead {
+  id?: string;
   firstName: string;
   lastName: string;
   businessName: string;
@@ -10,20 +14,23 @@ export interface IDistributorLead extends Document {
   state: string;
   productsOfInterest: string;
   message?: string;
-  createdAt: Date;
+  createdAt: string;
 }
 
-const DistributorLeadSchema: Schema = new Schema({
-  firstName: { type: String, required: true },
-  lastName: { type: String, required: true },
-  businessName: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
-  city: { type: String, required: true },
-  state: { type: String, required: true },
-  productsOfInterest: { type: String, required: true },
-  message: { type: String },
-  createdAt: { type: Date, default: Date.now },
-});
+const DistributorLead = {
+  async create(data: Partial<IDistributorLead>) {
+    const now = new Date().toISOString();
+    const docData = { ...data, createdAt: now };
+    const docRef = await addDoc(collection(db, COLLECTION), docData);
+    return { id: docRef.id, ...docData } as IDistributorLead;
+  },
 
-export default mongoose.models.DistributorLead || mongoose.model<IDistributorLead>('DistributorLead', DistributorLeadSchema);
+  async find() {
+    const snapshot = await getDocs(collection(db, COLLECTION));
+    const leads = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as IDistributorLead));
+    leads.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    return leads;
+  }
+};
+
+export default DistributorLead;

@@ -4,10 +4,21 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/.*/**",
+      "node_modules/**",
+      "**/node_modules/**",
+      ".next/cache/**",
+      ".next/diagnostics/**",
+      ".git/**",
+      "scratch_data/**",
+      "*.log",
+      "README.md"
     ],
     "frameworksBackend": {
-      "region": "us-central1"
+      "region": "us-central1",
+      "memory": "2GiB",
+      "maxInstances": 10,
+      "timeoutSeconds": 300
     }
   }
 }

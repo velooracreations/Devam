@@ -24,6 +24,7 @@ interface OrderState {
   addOrder: (order: Order) => void;
   getNextOrderId: () => string;
   updateOrderStatus: (id: string, status: Order['status']) => void;
+  clearAllOrders: () => void;
 }
 
 export const useOrderStore = create<OrderState>()(
@@ -41,7 +42,8 @@ export const useOrderStore = create<OrderState>()(
         orders: state.orders.map(order => 
           order.id === id ? { ...order, status } : order
         )
-      }))
+      })),
+      clearAllOrders: () => set({ orders: [], nextOrderId: 10001 })
     }),
     {
       name: 'devam-order-storage',

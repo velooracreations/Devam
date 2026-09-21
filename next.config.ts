@@ -1,23 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  compress: true,
   images: {
+    unoptimized: true,
     formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 60 * 60 * 24, // 24 hours cache
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-      },
-    ],
   },
+  serverExternalPackages: ['firebase-admin', 'firebase-functions'],
   experimental: {
-    optimizePackageImports: ['lucide-react', 'framer-motion', 'sonner'],
+    optimizePackageImports: [
+      'lucide-react',
+      'framer-motion',
+      'sonner',
+      'zustand',
+      'clsx',
+      'tailwind-merge'
+    ],
   },
 };
 

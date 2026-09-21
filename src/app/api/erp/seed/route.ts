@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
 import Product from '@/models/Product';
 import { generateBarcode } from '@/lib/erp/barcodeUtils';
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    await connectDB();
-    
-    // Clear existing products to ensure clean seed
+    // Clear existing products
     await Product.deleteMany({});
-    
-    const year = new Date().getFullYear().toString().slice(-2); // "26"
+
+    const year = new Date().getFullYear().toString().slice(-2);
 
     const seedData = [
       { name: "Coriander Powder", category: "02", productCode: "011", sku: "001", mrp: 200, sellingPrice: 180, weight: "500g", image: "/cat_spice_powder.png" },
@@ -26,7 +23,7 @@ export async function GET(req: Request) {
         name: item.name,
         category: item.category,
         sku: item.sku,
-        barcode: barcode,
+        barcode,
         mrp: item.mrp,
         sellingPrice: item.sellingPrice,
         weight: item.weight,

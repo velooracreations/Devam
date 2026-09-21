@@ -48,57 +48,78 @@ export function FeaturedProducts() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {uniqueProducts.map((product) => (
-            <TiltCard key={product.id} className="group flex flex-col bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
-              <div className="relative h-64 bg-[var(--color-devam-cream)] p-6 overflow-hidden">
-                {product.isNew && (
-                  <span className="absolute top-4 left-4 z-10 bg-[var(--color-devam-red)] text-white text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full">
-                    New Arrival
-                  </span>
-                )}
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  className="object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
-                />
-                
-                {/* Quick Add Button Overlay */}
-                <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                  <button 
-                    onClick={() => handleQuickAdd(product)}
-                    className="w-full bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider py-3 rounded shadow-lg flex items-center justify-center hover:bg-[var(--color-devam-brown)] hover:text-[var(--color-devam-gold)] transition-colors"
-                  >
-                    <ShoppingCart className="w-4 h-4 mr-2" /> Quick Add
-                  </button>
-                </div>
-              </div>
+          {uniqueProducts.map((product) => {
+            const isChakkiAtta = product.name.toLowerCase().includes("chakki") || product.id.includes("chakki");
 
-              <div className="p-6 flex flex-col flex-grow">
-                <p className="text-xs text-[var(--color-devam-brown)] font-semibold uppercase tracking-wider mb-2">
-                  {product.category}
-                </p>
-                <Link href={`/product/${product.id}`} className="block mb-2 flex-grow">
-                  <h3 className="text-xl font-heading font-bold text-[var(--color-devam-brown)] group-hover:text-[var(--color-devam-red)] transition-colors line-clamp-2">
-                    {product.name}
-                  </h3>
-                </Link>
-
-                <div className="flex flex-col mt-auto">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-[var(--color-devam-red)]">
-                      ₹{product.price}
+            return (
+              <TiltCard key={product.id} className="group flex flex-col bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
+                <div className="relative aspect-[4/3] sm:aspect-square md:h-72 bg-gradient-to-br from-[#FFFDF9] via-[#FAF4E8] to-[#F2E6D2] p-4 sm:p-5 overflow-hidden flex items-center justify-center border-b border-amber-100/60">
+                  {product.isNew && (
+                    <span className="absolute top-4 left-4 z-10 bg-[var(--color-devam-red)] text-white text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full shadow-sm">
+                      New Arrival
                     </span>
-                    {product.originalPrice > product.price && (
-                      <span className="text-sm text-gray-400 line-through">
-                        ₹{product.originalPrice}
-                      </span>
+                  )}
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-contain p-3 sm:p-4 mix-blend-multiply group-hover:scale-105 transition-transform duration-500 drop-shadow-md"
+                  />
+                  
+                  {/* Quick Add Button Overlay */}
+                  <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 z-10">
+                    {isChakkiAtta ? (
+                      <Link 
+                        href="/shop?category=flours"
+                        className="w-full bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider py-3 rounded shadow-lg flex items-center justify-center hover:bg-[var(--color-devam-brown)] hover:text-[var(--color-devam-gold)] transition-colors text-sm"
+                      >
+                        View Rates in Shop →
+                      </Link>
+                    ) : (
+                      <button 
+                        onClick={() => handleQuickAdd(product)}
+                        className="w-full bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider py-3 rounded shadow-lg flex items-center justify-center hover:bg-[var(--color-devam-brown)] hover:text-[var(--color-devam-gold)] transition-colors text-sm cursor-pointer"
+                      >
+                        <ShoppingCart className="w-4 h-4 mr-2" /> Quick Add
+                      </button>
                     )}
                   </div>
                 </div>
-              </div>
-            </TiltCard>
-          ))}
+
+                <div className="p-6 flex flex-col flex-grow">
+                  <p className="text-xs text-[var(--color-devam-brown)] font-semibold uppercase tracking-wider mb-2">
+                    {product.category}
+                  </p>
+                  <Link href={isChakkiAtta ? "/shop?category=flours" : `/product/${product.id}`} className="block mb-2 flex-grow">
+                    <h3 className="text-xl font-heading font-bold text-[var(--color-devam-brown)] group-hover:text-[var(--color-devam-red)] transition-colors line-clamp-2">
+                      {product.name}
+                    </h3>
+                  </Link>
+
+                  <div className="flex flex-col mt-auto pt-2">
+                    {isChakkiAtta ? (
+                      <Link href="/shop?category=flours" className="inline-flex items-center justify-between text-sm font-bold text-[var(--color-devam-red)] hover:underline group/link">
+                        <span>Rate Available in Shop</span>
+                        <span className="text-xs font-semibold text-gray-500 group-hover/link:translate-x-0.5 transition-transform">View →</span>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold text-[var(--color-devam-red)]">
+                          ₹{product.price}
+                        </span>
+                        {product.originalPrice > product.price && (
+                          <span className="text-sm text-gray-400 line-through">
+                            ₹{product.originalPrice}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </TiltCard>
+            );
+          })}
         </div>
         
         <div className="mt-16 text-center">

@@ -1,0 +1,99 @@
+# ==============================================================================
+# Devam Atta & Masala Hub (Shreeji Gruh Udhyog)
+# Website: https://thedevam.com
+# Digital Marketing, SEO Strategy & Web Architecture by Veloora Creation
+# Agency Website: https://velooracreations.in/
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /shop
+Allow: /product/*
+Allow: /recipes/*
+Allow: /about
+Allow: /distributors
+Allow: /export
+Allow: /contact
+Allow: /faq
+Allow: /shipping
+Allow: /return-policy
+Allow: /terms
+Allow: /data-policy
+Allow: /payment-policy
+
+# Disallow Private, Authentication, Checkout & Internal Endpoints
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /checkout
+Disallow: /checkout/*
+Disallow: /account
+Disallow: /account/*
+Disallow: /login
+Disallow: /cart
+Disallow: /success
+
+# Googlebot & Bingbot Specific Allowances
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /account/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /account/
+
+# Image Crawlers - Maximise Visual Search Indexation
+User-agent: Googlebot-Image
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /
+
+User-agent: msnbot-media
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.webp$
+Allow: /*.svg$
+Allow: /
+
+# AI Crawlers & LLM Knowledge Engines
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /account/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /account/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /account/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /account/
+
+# Sitemap & Host Specification
+Host: https://thedevam.com
+Sitemap: https://thedevam.com/sitemap.xml
