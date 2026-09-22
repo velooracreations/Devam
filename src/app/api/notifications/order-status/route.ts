@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // ── Admin configuration ───────────────────────────────────────────────────────
 const ADMIN_WHATSAPP = process.env.ADMIN_WHATSAPP_NUMBER || '919979640900';
-const ADMIN_EMAILS   = ['info@thedevam.com', 'thedevam2024@gmail.com'];
+const ADMIN_EMAILS   = ['thedevam2024@gmail.com', 'info@thedevam.com'];
 
 export async function POST(req: Request) {
   try {
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
 
         const plainText = adminMsg.replace(/\*/g, '');
         await transporter.sendMail({
-          from:    '"Devam Order Alert" <info@thedevam.com>',
+          from:    process.env.SMTP_FROM || '"Devam Order Alert" <thedevam2024@gmail.com>',
           to:      [...ADMIN_EMAILS, customerEmail].filter(Boolean).join(', '),
           subject: `🚨 New Order #${orderId} — ₹${totalAmount} | ${customerName || 'Guest'}`,
           text:    plainText,

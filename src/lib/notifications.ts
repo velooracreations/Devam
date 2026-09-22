@@ -20,8 +20,8 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export const ADMIN_NOTIFICATION_EMAILS = [
-  "info@thedevam.com",
-  "thedevam2024@gmail.com"
+  "thedevam2024@gmail.com",
+  "info@thedevam.com"
 ];
 
 export async function sendOrderEmail(payload: NotificationPayload): Promise<{ success: boolean; message: string }> {
@@ -47,7 +47,7 @@ export async function sendOrderEmail(payload: NotificationPayload): Promise<{ su
       const orderItemsText = (payload.items || []).map((i: any) => `- ${i.name} (${i.weight || ''}) x${i.quantity} @ ₹${i.price}`).join('\n');
 
       const mailOptions = {
-        from: '"Devam System Alerts" <info@thedevam.com>',
+        from: process.env.SMTP_FROM || '"Devam System Alerts" <thedevam2024@gmail.com>',
         to: [payload.customerEmail, ...ADMIN_NOTIFICATION_EMAILS].filter(Boolean).join(', '),
         subject: `🚨 New Order Received #${payload.orderId} - ₹${payload.totalAmount}`,
         text: `New Order Received on Devam!\n\nOrder ID: #${payload.orderId}\nCustomer: ${payload.customerName}\nPhone: ${payload.customerPhone || 'N/A'}\nEmail: ${payload.customerEmail || 'N/A'}\nTotal Amount: ₹${payload.totalAmount}\nStatus: ${payload.status}\n\nItems:\n${orderItemsText}\n\nShipping Address:\n${payload.shippingAddress || 'N/A'}`,

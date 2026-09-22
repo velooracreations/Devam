@@ -119,7 +119,7 @@ export default function AdminLogin() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-[var(--color-devam-red)] focus:border-[var(--color-devam-red)] text-sm"
-                        placeholder="info@thedevam.com"
+                        placeholder="thedevam2024@gmail.com"
                       />
                     </div>
                   </div>
