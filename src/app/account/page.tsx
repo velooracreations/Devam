@@ -1,22 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { User, Package, MapPin, LogOut, CreditCard, Gift, Heart, Star, Bell, ChevronRight, Edit2, Plus, Settings, Camera, Loader2 } from "lucide-react";
-import { useOrderStore } from "@/store/orderStore";
+import { User, Package, MapPin, LogOut, CreditCard, Gift, Heart, Star, Bell, ChevronRight, Edit2, Plus, Settings, Camera, Loader2, ChevronDown, ChevronUp, Clock } from "lucide-react";
+import { useOrderStore, Order } from "@/store/orderStore";
 import { useAuthStore } from "@/store/authStore";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { doc, updateDoc, setDoc, arrayUnion } from "firebase/firestore";
+import { doc, updateDoc, setDoc, arrayUnion, collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
+import OrderTimeline from "@/components/OrderTimeline";
 
 type Tab = "profile" | "addresses" | "orders" | "gift-cards" | "upi" | "cards" | "coupons" | "wishlist";
 
 export default function AccountPage() {
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [expandedTimelines, setExpandedTimelines] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Address State
@@ -40,8 +41,85 @@ export default function AccountPage() {
   const { userData, loading: isUserDataLoading } = useAuth();
   const isLoading = useAuthStore((state) => state.isLoading);
   const logout = useAuthStore((state) => state.logout);
-  const orders = useOrderStore((state) => state.orders);
+  const localOrders = useOrderStore((state) => state.orders);
   const router = useRouter();
+
+  // Cross-device Firestore order listener for the current user
+  useEffect(() => {
+    if (!db || !user?.email) return;
+    try {
+      const q = query(
+        collection(db, "orders"),
+        where("customerEmail", "==", user.email)
+      );
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const liveOrders: Order[] = [];
+        snapshot.forEach((docSnap) => {
+          liveOrders.push(docSnap.data() as Order);
+        });
+        if (liveOrders.length > 0) {
+          const current = useOrderStore.getState().orders;
+          const mergedMap = new Map<string, Order>();
+          current.forEach((o) => mergedMap.set(o.id, o));
+          liveOrders.forEach((lo) => {
+            const existing = mergedMap.get(lo.id);
+            if (existing) {
+              mergedMap.set(lo.id, {
+                ...existing,
+                ...lo,
+                timeline: { ...(existing.timeline || {}), ...(lo.timeline || {}) }
+              });
+            } else {
+              mergedMap.set(lo.id, lo);
+            }
+          });
+          const mergedList = Array.from(mergedMap.values()).sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+          useOrderStore.setState({ orders: mergedList });
+        }
+      }, (err) => {
+        console.warn("[Account] Order subscription notice:", err);
+      });
+      return () => unsubscribe();
+    } catch (e) {
+      console.warn("[Account] Firestore listener error:", e);
+    }
+  }, [user?.email]);
+
+  // Combined orders ensuring cross-device visibility
+  const orders = useMemo(() => {
+    const map = new Map<string, Order>();
+    if (Array.isArray(userData?.orders)) {
+      userData.orders.forEach((o: any) => {
+        if (o?.id) map.set(o.id, o);
+      });
+    }
+    localOrders.forEach((o) => {
+      if (o?.id) {
+        const existing = map.get(o.id);
+        if (existing) {
+          map.set(o.id, {
+            ...existing,
+            ...o,
+            timeline: { ...(existing.timeline || {}), ...(o.timeline || {}) }
+          });
+        } else {
+          map.set(o.id, o);
+        }
+      }
+    });
+    return Array.from(map.values()).sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [userData?.orders, localOrders]);
+
+  const toggleTimeline = (orderId: string) => {
+    setExpandedTimelines((prev) => ({
+      ...prev,
+      [orderId]: prev[orderId] === false ? true : false,
+    }));
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -479,61 +557,124 @@ export default function AccountPage() {
             {/* ORDERS */}
             {activeTab === "orders" && (
               <div className="animate-in fade-in">
-                <h2 className="text-lg font-bold text-gray-900 mb-6">My Orders</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">My Orders</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">Track your order status and dispatch timeline in real-time</p>
+                  </div>
+                  <span className="text-xs font-semibold bg-stone-100 text-stone-700 px-3 py-1 rounded-full border border-stone-200">
+                    {orders.length} {orders.length === 1 ? "Order" : "Orders"}
+                  </span>
+                </div>
                 
                 {orders.length === 0 ? (
-                  <div className="text-center text-gray-500 py-10 border border-gray-200 rounded">
+                  <div className="text-center text-gray-500 py-16 border border-gray-200 rounded-xl bg-white shadow-2xs">
                     <Package className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                    <p>You haven't placed any orders yet.</p>
+                    <p className="font-semibold text-gray-800 text-sm">You haven't placed any orders yet.</p>
+                    <p className="text-xs text-gray-400 mt-1 mb-5">Explore our stone-ground fresh flours, spices & cold-pressed oils.</p>
+                    <Link href="/products" className="inline-block bg-[var(--color-devam-red)] text-white text-xs font-bold px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-opacity">
+                      Start Shopping
+                    </Link>
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {orders.map((order) => (
-                      <div key={order.id} className="border border-gray-200 rounded p-6 shadow-sm">
-                        <div className="flex justify-between items-center mb-4">
-                          <div>
-                            <span className="font-bold text-gray-900">Order ID: {order.id}</span>
-                            <span className={`ml-4 text-xs font-bold px-2 py-1 rounded uppercase tracking-wide ${
-                              order.status === 'Order Placed' ? 'bg-yellow-100 text-yellow-700' :
-                              order.status === 'Confirmed' ? 'bg-blue-100 text-blue-700' :
-                              'bg-green-100 text-green-700'
-                            }`}>
-                              {order.status}
-                            </span>
-                          </div>
-                          <span className="text-sm font-medium text-gray-600">Arriving Tomorrow</span>
-                        </div>
-                        
-                        <div className="divide-y divide-gray-100 border-t border-gray-100 pt-4">
-                          {order.items.map((item, idx) => (
-                            <div key={idx} className="flex gap-4 items-center py-4 first:pt-0 last:pb-0">
-                              <div className="w-16 h-16 bg-gray-50 border border-gray-100 rounded flex-shrink-0 flex items-center justify-center overflow-hidden relative">
-                                {item.image ? (
-                                  <Image src={item.image} alt={item.name} fill className="object-cover" />
-                                ) : (
-                                  <Package className="w-8 h-8 text-gray-400" />
-                                )}
+                    {orders.map((order) => {
+                      const isTimelineOpen = expandedTimelines[order.id] !== false; // Open by default
+                      return (
+                        <div key={order.id} className="border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm bg-white hover:border-stone-300 transition-all">
+                          {/* Header: ID, Date, Status & Total */}
+                          <div className="flex flex-wrap justify-between items-start gap-3 pb-4 border-b border-gray-100">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-extrabold text-sm sm:text-base text-gray-900 font-mono">
+                                  #{order.id}
+                                </span>
+                                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border ${
+                                  order.status === "Delivered"
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                    : order.status === "Out for Dispatch"
+                                    ? "bg-purple-50 text-purple-800 border-purple-300"
+                                    : order.status === "Shipped"
+                                    ? "bg-indigo-50 text-indigo-800 border-indigo-300"
+                                    : order.status === "Confirmed"
+                                    ? "bg-blue-50 text-blue-800 border-blue-300"
+                                    : "bg-amber-50 text-amber-800 border-amber-300"
+                                }`}>
+                                  {order.status}
+                                </span>
                               </div>
-                              <div className="flex-1">
-                                <p className="font-bold text-gray-900">{item.name}</p>
-                                <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-bold text-gray-900">₹{(item.price * item.quantity).toFixed(2)}</p>
-                              </div>
+                              <p className="text-xs text-gray-500 mt-1">
+                                Placed on {new Date(order.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} at {new Date(order.date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })}
+                              </p>
+                              {order.shippingAddress && (
+                                <p className="text-[11px] text-gray-600 mt-1 line-clamp-1">
+                                  <span className="font-semibold text-gray-700">Ship to:</span> {order.shippingAddress}
+                                </p>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                        
-                        <div className="flex justify-between items-center border-t border-gray-100 pt-4 mt-2">
-                          <p className="text-sm text-gray-500">Paid via {order.paymentMethod}</p>
-                          <div className="text-right flex items-center gap-4">
-                            <span className="font-bold text-gray-900">Total: <span className="text-[var(--color-devam-red)]">₹{order.totalAmount.toFixed(2)}</span></span>
-                            <button className="text-[var(--color-devam-brown)] font-bold text-sm hover:underline border border-[var(--color-devam-brown)] px-4 py-2 rounded">Track Order</button>
+                            <div className="text-right">
+                              <span className="text-[11px] text-gray-500 block">Total Amount</span>
+                              <span className="font-extrabold text-base sm:text-lg text-[var(--color-devam-red)]">
+                                ₹{order.totalAmount.toFixed(2)}
+                              </span>
+                              <span className="text-[10px] text-gray-400 block mt-0.5">
+                                {order.paymentMethod}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Items List */}
+                          <div className="divide-y divide-gray-100 py-2 sm:py-3">
+                            {order.items.map((item, idx) => (
+                              <div key={idx} className="flex gap-3 sm:gap-4 items-center py-3 first:pt-1 last:pb-1">
+                                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gray-50 border border-gray-100 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden relative">
+                                  {item.image ? (
+                                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                  ) : (
+                                    <Package className="w-6 h-6 text-gray-400" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-bold text-gray-900 text-xs sm:text-sm truncate">{item.name}</p>
+                                  <p className="text-[11px] sm:text-xs text-gray-500">Qty: {item.quantity} × ₹{item.price}</p>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  <p className="font-bold text-gray-900 text-xs sm:text-sm">₹{(item.price * item.quantity).toFixed(2)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Order Timeline Section with Toggle */}
+                          <div className="border-t border-gray-100 pt-3">
+                            <button
+                              type="button"
+                              onClick={() => toggleTimeline(order.id)}
+                              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-stone-50 hover:bg-stone-100 border border-stone-200 transition-colors cursor-pointer group"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-[var(--color-devam-brown)] group-hover:text-[var(--color-devam-red)] transition-colors flex-shrink-0" />
+                                <span className="text-xs sm:text-sm font-bold text-stone-900 group-hover:text-[var(--color-devam-red)] transition-colors">
+                                  Order Timeline & Dispatch Tracking
+                                </span>
+                                <span className="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full hidden sm:inline">
+                                  5 Milestones
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--color-devam-brown)] flex-shrink-0">
+                                <span>{isTimelineOpen ? "Hide Details" : "View Details"}</span>
+                                {isTimelineOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                              </div>
+                            </button>
+
+                            {/* Live 5-Step Order Timeline */}
+                            {isTimelineOpen && (
+                              <OrderTimeline order={order} />
+                            )}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

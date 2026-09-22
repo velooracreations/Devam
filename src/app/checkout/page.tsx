@@ -256,13 +256,17 @@ export default function CheckoutPage() {
       const addr = form;
       const fullAddr = `${addr.name} (${addr.phone}) — ${addr.houseNo}${addr.buildingName ? " " + addr.buildingName : ""}, ${addr.street}, ${addr.area}${addr.landmark ? ", " + addr.landmark : ""}, ${addr.cityDistrict}, ${addr.state} — ${addr.pin}`;
 
+      const now = new Date().toISOString();
       const orderData: Order = {
         id:              orderId,
-        date:            new Date().toISOString(),
+        date:            now,
         totalAmount:     total,
         paymentMethod:   payMethod === "razorpay" ? "Razorpay (Online)" : "Cash on Delivery",
         items:           [...items],
         status:          "Order Placed",
+        timeline: {
+          orderPlaced:   now,
+        },
         customerName:    addr.name  || user?.displayName || "Customer",
         customerEmail:   user?.email || "guest@thedevam.com",
         customerPhone:   addr.phone,

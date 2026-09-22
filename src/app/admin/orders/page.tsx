@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useOrderStore, Order } from "@/store/orderStore";
-import { subscribeToLiveOrders } from "@/lib/orderSync";
+import { useOrderStore, Order, computeTimeline } from "@/store/orderStore";
+import { subscribeToLiveOrders, updateOrderInFirestore } from "@/lib/orderSync";
 import { 
   Search, 
   ChevronDown, 
@@ -63,6 +63,7 @@ export default function AdminOrdersPage() {
       case 'Order Placed': return 'bg-amber-100 text-amber-800 border-amber-300';
       case 'Confirmed': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'Shipped': return 'bg-indigo-100 text-indigo-800 border-indigo-300';
+      case 'Out for Dispatch': return 'bg-purple-100 text-purple-800 border-purple-300';
       case 'Delivered': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
       default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
@@ -73,7 +74,8 @@ export default function AdminOrdersPage() {
       case 'Order Placed': return 1;
       case 'Confirmed': return 2;
       case 'Shipped': return 3;
-      case 'Delivered': return 4;
+      case 'Out for Dispatch': return 4;
+      case 'Delivered': return 5;
       default: return 1;
     }
   };
@@ -114,6 +116,8 @@ export default function AdminOrdersPage() {
       });
     } else {
       updateOrderStatus(id, newStatus);
+      const updatedTimeline = computeTimeline(targetOrder.timeline, newStatus, targetOrder.date);
+      updateOrderInFirestore(id, { status: newStatus, timeline: updatedTimeline });
       triggerNotification(targetOrder, newStatus);
     }
   };
@@ -121,14 +125,18 @@ export default function AdminOrdersPage() {
   const confirmShippingUpdate = () => {
     if (!shippingModalOrder) return;
     
-    useOrderStore.setState((state) => ({
-      orders: state.orders.map(o => o.id === shippingModalOrder.id ? { 
-        ...o, 
-        status: 'Shipped',
-        trackingNumber: trackingInput.number,
-        courierPartner: trackingInput.courier
-      } : o)
-    }));
+    const updatedTimeline = computeTimeline(shippingModalOrder.timeline, 'Shipped', shippingModalOrder.date);
+    updateOrderStatus(shippingModalOrder.id, 'Shipped', {
+      trackingNumber: trackingInput.number,
+      courierPartner: trackingInput.courier
+    });
+
+    updateOrderInFirestore(shippingModalOrder.id, {
+      status: 'Shipped',
+      trackingNumber: trackingInput.number,
+      courierPartner: trackingInput.courier,
+      timeline: updatedTimeline
+    });
 
     triggerNotification(shippingModalOrder, 'Shipped', {
       trackingNumber: trackingInput.number,
@@ -218,7 +226,7 @@ export default function AdminOrdersPage() {
               />
             </div>
             <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
-              {['All', 'Order Placed', 'Confirmed', 'Shipped', 'Delivered'].map(status => (
+              {['All', 'Order Placed', 'Confirmed', 'Shipped', 'Out for Dispatch', 'Delivered'].map(status => (
                 <button 
                   key={status}
                   onClick={() => setFilterStatus(status)}
@@ -284,6 +292,7 @@ export default function AdminOrdersPage() {
                               <option value="Order Placed">Order Placed</option>
                               <option value="Confirmed">Confirmed</option>
                               <option value="Shipped">Shipped</option>
+                              <option value="Out for Dispatch">Out for Dispatch</option>
                               <option value="Delivered">Delivered</option>
                             </select>
                             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
@@ -397,16 +406,31 @@ export default function AdminOrdersPage() {
               {/* Order Status Timeline Bar */}
               <div className="bg-amber-50/60 border border-amber-200/80 rounded-xl p-4">
                 <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">Order Status Progress</p>
-                <div className="flex items-center justify-between text-xs font-bold">
-                  {['Order Placed', 'Confirmed', 'Shipped', 'Delivered'].map((st, i) => {
+                <div className="flex items-center justify-between text-xs font-bold gap-2 overflow-x-auto pb-1">
+                  {[
+                    { key: 'orderPlaced', label: 'Order Placed' },
+                    { key: 'confirmed', label: 'Confirmed' },
+                    { key: 'shipped', label: 'Shipped' },
+                    { key: 'outForDispatch', label: 'Out for Dispatch' },
+                    { key: 'delivered', label: 'Delivered' }
+                  ].map((step, i) => {
                     const currentIdx = getStatusStepIndex(selectedOrder.status);
                     const isPassed = (i + 1) <= currentIdx;
+                    const timestamp = (selectedOrder.timeline as any)?.[step.key];
                     return (
-                      <div key={st} className="flex flex-col items-center gap-1 text-center">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${isPassed ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                      <div key={step.key} className="flex flex-col items-center gap-1 text-center min-w-[76px]">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isPassed ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                           {isPassed ? '✓' : i + 1}
                         </div>
-                        <span className={isPassed ? 'text-emerald-900' : 'text-gray-400'}>{st}</span>
+                        <span className={`text-[11px] leading-tight ${isPassed ? 'text-emerald-900 font-bold' : 'text-gray-400'}`}>{step.label}</span>
+                        {timestamp ? (
+                          <span className="text-[10px] text-gray-500 font-normal leading-tight">
+                            {new Date(timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}<br/>
+                            {new Date(timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-gray-400 italic">Pending</span>
+                        )}
                       </div>
                     );
                   })}

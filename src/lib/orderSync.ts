@@ -180,3 +180,24 @@ export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
     unsubscribes.forEach(fn => fn());
   };
 }
+
+/**
+ * Update an existing order in Firestore and broadcast to all tabs
+ */
+export async function updateOrderInFirestore(orderId: string, updates: Partial<Order>) {
+  if (!db) return;
+  try {
+    const orderRef = doc(db, "orders", orderId);
+    await setDoc(orderRef, updates, { merge: true });
+
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        const channel = new BroadcastChannel('devam_orders_channel');
+        channel.postMessage({ type: 'UPDATE_ORDER', orderId, updates });
+        channel.close();
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.warn("[OrderSync] Failed to update order in Firestore:", err);
+  }
+}
