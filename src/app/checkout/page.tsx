@@ -120,9 +120,14 @@ export default function CheckoutPage() {
   useEffect(() => { setHydrated(true); }, []);
 
   // ── Restore address draft from localStorage (runs once after hydration) ────
+  // Also re-runs whenever userData loads (so cross-device Firebase addresses appear)
   useEffect(() => {
     if (!hydrated) return;
 
+    // Always try to load Firebase saved addresses when they become available
+    const addrs: any[] = userData?.addresses ?? [];
+
+    // If we have a localStorage draft on THIS device, restore it
     const draft = lsGet(LS_ADDR);
     if (draft) {
       try {
@@ -133,13 +138,14 @@ export default function CheckoutPage() {
           if (savedSel) setSelId(savedSel);
           const savedStep = lsGet(LS_STEP);
           if (savedStep === "2") setStep(2);
+          // Do NOT return — still check if a Firebase default address should be shown
+          // Only override the draft with Firebase if form is still basically empty
           return;
         }
       } catch {}
     }
 
-    // No draft — try saved addresses from Firebase profile
-    const addrs: any[] = userData?.addresses ?? [];
+    // No localStorage draft on this device — load from Firebase profile (cross-device sync)
     if (addrs.length > 0) {
       const def = addrs.find((a) => a.isDefault) ?? addrs[0];
       fillForm(def);
@@ -344,17 +350,28 @@ export default function CheckoutPage() {
   }
 
   // ────────────────────────────────────────────────────────────────────────────
-  // RENDER: Order Success Screen
+  // RENDER: Order Success Screen — shown as a full-page overlay with manual close
   // ────────────────────────────────────────────────────────────────────────────
   if (placedOrder) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center px-4 py-16">
-        <div className="bg-white rounded-3xl p-8 sm:p-12 max-w-md w-full text-center shadow-2xl border border-emerald-100 relative overflow-hidden">
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 py-8 overflow-y-auto">
+        <div className="bg-white rounded-3xl p-8 sm:p-10 max-w-md w-full text-center shadow-2xl border border-emerald-100 relative overflow-hidden my-auto">
           {/* Top color bar */}
           <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 rounded-t-3xl" />
 
+          {/* Manual close button — top right */}
+          <button
+            onClick={() => router.push("/shop")}
+            title="Close and continue shopping"
+            className="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer z-10"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
           {/* Animated green tick */}
-          <div className="relative flex items-center justify-center mb-8 mt-4">
+          <div className="relative flex items-center justify-center mb-6 mt-4">
             <div className="absolute w-28 h-28 bg-emerald-400/20 rounded-full animate-ping" />
             <div className="relative w-24 h-24 bg-emerald-50 border-4 border-emerald-500 rounded-full flex items-center justify-center shadow-lg">
               <CheckCircle2 className="w-14 h-14 text-emerald-500" />
@@ -364,11 +381,11 @@ export default function CheckoutPage() {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-2">
             Your Order Placed Successfully!
           </h1>
-          <p className="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl py-2 px-4 inline-block mb-8">
+          <p className="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl py-2 px-4 inline-block mb-6">
             ✅ Order Intimated to Devam Admin in Real-Time
           </p>
 
-          <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200 text-left space-y-3 mb-8 text-sm">
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 text-left space-y-2.5 mb-6 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-500">Order ID</span>
               <span className="font-extrabold font-mono text-gray-900">{placedOrder.id}</span>
@@ -382,9 +399,15 @@ export default function CheckoutPage() {
               <span className="font-extrabold text-emerald-700">₹{placedOrder.totalAmount}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Name</span>
+              <span className="text-gray-500">Customer</span>
               <span className="font-semibold text-gray-800">{placedOrder.customerName}</span>
             </div>
+            {placedOrder.shippingAddress && (
+              <div className="pt-2 border-t border-gray-200">
+                <p className="text-gray-500 text-xs mb-1">Shipping To</p>
+                <p className="text-xs text-gray-700 font-medium leading-relaxed">{placedOrder.shippingAddress}</p>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-3">
@@ -392,7 +415,7 @@ export default function CheckoutPage() {
               onClick={() => router.push("/account?tab=orders")}
               className="w-full bg-[var(--color-devam-red)] hover:bg-red-800 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
             >
-              View & Track Order <ChevronRight className="w-4 h-4" />
+              View &amp; Track Order <ChevronRight className="w-4 h-4" />
             </button>
             <button
               onClick={() => router.push("/shop")}
@@ -401,6 +424,8 @@ export default function CheckoutPage() {
               Continue Shopping
             </button>
           </div>
+
+          <p className="text-[11px] text-gray-400 mt-4">Click × or any button above to close this confirmation</p>
         </div>
       </div>
     );

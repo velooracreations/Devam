@@ -154,13 +154,47 @@ export default function AccountPage() {
     }
   };
 
-  if (isLoading || isUserDataLoading || !user) {
+  // Show a fast skeleton while auth/data loads — never block the entire page
+  const isPageLoading = isLoading || (!user && isUserDataLoading);
+
+  if (isPageLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--color-devam-red)]" />
+      <div className="bg-gray-100 min-h-screen pt-8 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row gap-4 animate-pulse">
+            {/* Sidebar skeleton */}
+            <div className="w-full md:w-[300px] flex-shrink-0 space-y-4">
+              <div className="bg-white rounded shadow-sm p-4 flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+                </div>
+              </div>
+              <div className="bg-white rounded shadow-sm overflow-hidden">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-10 bg-gray-50 border-b border-gray-100 flex items-center px-6">
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Main skeleton */}
+            <div className="flex-1 bg-white rounded shadow-sm p-6 space-y-4">
+              <div className="h-5 bg-gray-200 rounded w-1/4" />
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-10 bg-gray-100 rounded" />
+              ))}
+              <div className="h-24 bg-gray-100 rounded mt-4" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
+
+  // Auth resolved but no user → redirect handled by useEffect above
+  if (!user) return null;
 
   // Sidebar Group Component
   const SidebarGroup = ({ title, icon: Icon, children }: any) => (
