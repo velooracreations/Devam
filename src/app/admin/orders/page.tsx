@@ -40,21 +40,8 @@ export default function AdminOrdersPage() {
   const [shippingModalOrder, setShippingModalOrder] = useState<Order | null>(null);
   const [trackingInput, setTrackingInput] = useState({ number: "", courier: "SpeedPost" });
 
-  // A5 Label Delivery QR Option (Direct UPI: GPay, PhonePe, Paytm)
+  // A5 Label Delivery QR Option (Razorpay Tracked Link)
   const [includeDeliveryQr, setIncludeDeliveryQr] = useState<boolean>(true);
-  const [merchantUpiId, setMerchantUpiId] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('devam_merchant_upi_id') || process.env.NEXT_PUBLIC_MERCHANT_UPI_ID || "thedevam@okhdfcbank";
-    }
-    return process.env.NEXT_PUBLIC_MERCHANT_UPI_ID || "thedevam@okhdfcbank";
-  });
-
-  const handleUpiIdChange = (newVal: string) => {
-    setMerchantUpiId(newVal);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('devam_merchant_upi_id', newVal.trim());
-    }
-  };
 
   // A5 Label Batch Details Option
   const [showBatchEditor, setShowBatchEditor] = useState<boolean>(true);
@@ -680,8 +667,7 @@ export default function AdminOrdersPage() {
               <div className="p-4 bg-gray-100 overflow-y-auto flex-1 flex flex-col items-center">
                 {/* 1. Delivery Payment Section: QR scan option only for COD orders; disabled/hidden for Prepaid */}
                 {selectedOrder.paymentMethod?.toLowerCase().includes("cash") || selectedOrder.paymentMethod?.toLowerCase().includes("cod") ? (
-                  <>
-                    <div className="w-full max-w-[138mm] mb-2 flex flex-col sm:flex-row sm:items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs text-xs gap-2">
+                  <div className="w-full max-w-[138mm] mb-2.5 flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs text-xs">
                       <label className="flex items-center gap-2 cursor-pointer select-none font-semibold text-gray-800">
                         <input
                           type="checkbox"
@@ -690,31 +676,13 @@ export default function AdminOrdersPage() {
                           className="rounded text-[var(--color-devam-red)] focus:ring-[var(--color-devam-red)] w-4 h-4 cursor-pointer"
                         />
                         <span>
-                          Direct UPI QR at Delivery (GPay • PhonePe • Paytm: ₹{selectedOrder.totalAmount})
+                          Include Razorpay Delivery Payment QR on Label (₹{selectedOrder.totalAmount})
                         </span>
                       </label>
-                      <div className="flex items-center gap-1.5 self-end sm:self-auto">
-                        <span className="text-[10px] text-gray-500 font-bold uppercase">Store UPI ID:</span>
-                        <input
-                          type="text"
-                          value={merchantUpiId}
-                          onChange={(e) => handleUpiIdChange(e.target.value)}
-                          placeholder="e.g. 9979640900@okaxis"
-                          className="px-2.5 py-1 border border-gray-300 rounded-lg text-xs font-mono font-bold text-gray-800 focus:ring-1 focus:ring-[var(--color-devam-red)] outline-none w-52"
-                          title="Enter your registered merchant UPI ID (Google Pay / PhonePe / Paytm / Bank VPA) to receive payments"
-                        />
-                      </div>
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1">
+                        <span>⚡</span> Razorpay Tracked Link
+                      </span>
                     </div>
-
-                    {merchantUpiId === "thedevam@okhdfcbank" && (
-                      <div className="w-full max-w-[138mm] mb-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-800 flex items-center gap-1.5">
-                        <span>💡</span>
-                        <span>
-                          Please enter your store&apos;s real registered UPI ID (e.g. <strong>9979640900@okaxis</strong> or bank VPA) in the box above so Google Pay / PhonePe can verify your account.
-                        </span>
-                      </div>
-                    )}
-                  </>
                 ) : (
                   <div className="w-full max-w-[138mm] mb-2.5 flex items-center justify-between bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 text-xs">
                     <div className="flex items-center gap-2 text-emerald-900 font-semibold">
@@ -843,7 +811,6 @@ export default function AdminOrdersPage() {
                   <ShippingLabelA5 
                     order={orderForLabel || selectedOrder} 
                     includePaymentQr={includeDeliveryQr} 
-                    merchantUpiId={merchantUpiId}
                   />
                 </div>
               </div>
@@ -1021,7 +988,6 @@ export default function AdminOrdersPage() {
             <ShippingLabelA5 
               order={orderForLabel || selectedOrder} 
               includePaymentQr={includeDeliveryQr} 
-              merchantUpiId={merchantUpiId}
             />
           </div>
 

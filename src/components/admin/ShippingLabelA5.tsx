@@ -218,10 +218,9 @@ export function ShippingLabelA5({
   order,
   className = "",
   includePaymentQr = true,
-  merchantUpiId
 }: ShippingLabelA5Props) {
   const barcodeRef = useRef<SVGSVGElement>(null);
-  const [directUpiQrUrl, setDirectUpiQrUrl] = useState<string>("");
+  const [razorpayQrUrl, setRazorpayQrUrl] = useState<string>("");
 
   const isCod =
     order.paymentMethod.toLowerCase().includes("cash") ||
@@ -235,16 +234,11 @@ export function ShippingLabelA5({
   const grandTotal = Number(order.totalAmount || itemsSubtotal);
   const deliveryCharge = Math.max(0, grandTotal - itemsSubtotal);
 
-  const targetUpiId = (merchantUpiId || process.env.NEXT_PUBLIC_MERCHANT_UPI_ID || "thedevam@okhdfcbank").trim();
-  const payeeName = "Devam Atta and Masala Hub";
-  const formattedAmount = grandTotal.toFixed(2);
-  const txnNote = `Devam Order ${order.id}`;
+  // Fallback direct payment URL (e.g. store online checkout with order id)
+  const fallbackPaymentUrl = `https://thedevam.com/checkout?order=${encodeURIComponent(order.id)}`;
+  const defaultRazorpayQr = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=${encodeURIComponent(fallbackPaymentUrl)}`;
 
-  // Universal NPCI UPI Intent URI: Opens Google Pay, PhonePe, Paytm directly without browser
-  const directUpiUri = `upi://pay?pa=${targetUpiId}&pn=${encodeURIComponent(payeeName)}&am=${formattedAmount}&cu=INR&tn=${encodeURIComponent(txnNote)}&tr=${encodeURIComponent(order.id)}`;
-  const defaultDirectQr = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=${encodeURIComponent(directUpiUri)}`;
-
-  // Sync dynamic direct UPI QR from delivery-qr endpoint
+  // Sync dynamic direct Razorpay Payment Link QR from delivery-qr endpoint
   useEffect(() => {
     let isMounted = true;
     if (includePaymentQr && isCod && grandTotal > 0) {
@@ -255,21 +249,22 @@ export function ShippingLabelA5({
           orderId: order.id,
           amount: grandTotal,
           customerName: order.customerName,
-          merchantUpiId: targetUpiId,
+          customerPhone: order.customerPhone,
+          customerEmail: (order as any).customerEmail,
         }),
       })
         .then((res) => res.json())
         .then((data) => {
           if (isMounted && data?.qrImageUrl) {
-            setDirectUpiQrUrl(data.qrImageUrl);
+            setRazorpayQrUrl(data.qrImageUrl);
           }
         })
-        .catch((err) => console.warn("[ShippingLabel] Delivery QR generation note:", err));
+        .catch((err) => console.warn("[ShippingLabel] Razorpay delivery QR generation note:", err));
     }
     return () => {
       isMounted = false;
     };
-  }, [order.id, grandTotal, isCod, includePaymentQr, targetUpiId, order.customerName]);
+  }, [order.id, grandTotal, isCod, includePaymentQr, order.customerName, order.customerPhone]);
 
   useEffect(() => {
     if (barcodeRef.current && order.id) {
@@ -300,7 +295,7 @@ export function ShippingLabelA5({
   const totalQuantity =
     order.items?.reduce((acc, item) => acc + (item.quantity || 1), 0) || 1;
 
-  const activeQrSrc = directUpiQrUrl || defaultDirectQr;
+  const activeQrSrc = razorpayQrUrl || defaultRazorpayQr;
 
   return (
     <div
@@ -692,10 +687,10 @@ export function ShippingLabelA5({
                       Amount: ₹{grandTotal}
                     </div>
                     <div style={{ fontSize: "8px", color: "#15803d", marginTop: "1px", fontWeight: "700" }}>
-                      Direct UPI: GPay • PhonePe • Paytm
+                      Razorpay Verified: UPI • GPay • Cards
                     </div>
-                    <div style={{ fontSize: "7.5px", color: "#555", letterSpacing: "0.2px", fontFamily: "monospace" }}>
-                      UPI ID: {targetUpiId}
+                    <div style={{ fontSize: "7.5px", color: "#555", marginTop: "1px", fontFamily: "monospace" }}>
+                      Order #{order.id} Tracked
                     </div>
                   </div>
                 </div>
