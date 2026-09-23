@@ -10,6 +10,9 @@ export interface CartItem {
   quantity: number;
   image: string;
   weight: string;
+  batchNo?: string;
+  mfgDate?: string;
+  expDate?: string;
 }
 
 interface CartState {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useOrderStore, Order, computeTimeline, normalizeOrderStatus } from "@/store/orderStore";
 import { subscribeToLiveOrders, updateOrderInFirestore } from "@/lib/orderSync";
-import { ShippingLabelA5, cleanShippingAddress, formatIndianPhone } from "@/components/admin/ShippingLabelA5";
+import { ShippingLabelA5, cleanShippingAddress, formatIndianPhone, getProductBatchDetails, formatMonthYear } from "@/components/admin/ShippingLabelA5";
 import { 
   Search, 
   ChevronDown, 
@@ -42,6 +42,110 @@ export default function AdminOrdersPage() {
 
   // A5 Label Delivery QR Option
   const [includeDeliveryQr, setIncludeDeliveryQr] = useState<boolean>(true);
+
+  // A5 Label Batch Details Option
+  const [showBatchEditor, setShowBatchEditor] = useState<boolean>(true);
+  const [batchInputs, setBatchInputs] = useState<{ [itemKey: string]: { batchNo: string; mfgDate: string; expDate: string } }>({});
+
+  // Sync batch inputs whenever selectedOrder changes
+  useEffect(() => {
+    if (selectedOrder && selectedOrder.items) {
+      const initial: { [key: string]: { batchNo: string; mfgDate: string; expDate: string } } = {};
+      selectedOrder.items.forEach((item, idx) => {
+        const key = item.id || `item-${idx}`;
+        const defaultBatch = getProductBatchDetails(item, selectedOrder.date, idx);
+        initial[key] = {
+          batchNo: item.batchNo || defaultBatch.batchNo,
+          mfgDate: item.mfgDate || defaultBatch.mfgDate,
+          expDate: item.expDate || defaultBatch.expDate,
+        };
+      });
+      setBatchInputs(initial);
+    }
+  }, [selectedOrder?.id]);
+
+  const handleBatchInputChange = (itemKey: string, field: 'batchNo' | 'mfgDate' | 'expDate', value: string) => {
+    setBatchInputs(prev => ({
+      ...prev,
+      [itemKey]: {
+        ...(prev[itemKey] || { batchNo: '', mfgDate: '', expDate: '' }),
+        [field]: value
+      }
+    }));
+  };
+
+  const handleAutoCalcDates = (itemKey: string) => {
+    const today = new Date();
+    const mfgMonth = String(today.getMonth() + 1).padStart(2, "0");
+    const mfgYear = today.getFullYear();
+    const mfgDate = `${mfgMonth}/${mfgYear}`;
+
+    const expD = new Date(today);
+    expD.setMonth(expD.getMonth() + 6);
+    const expMonth = String(expD.getMonth() + 1).padStart(2, "0");
+    const expYear = expD.getFullYear();
+    const expDate = `${expMonth}/${expYear}`;
+
+    setBatchInputs(prev => ({
+      ...prev,
+      [itemKey]: {
+        ...(prev[itemKey] || { batchNo: `DVM-${String(mfgYear).slice(-2)}${mfgMonth}01` }),
+        mfgDate,
+        expDate,
+      }
+    }));
+  };
+
+  const handleApplyBatchDetails = () => {
+    if (!selectedOrder || !selectedOrder.items) return;
+    const updatedItems = selectedOrder.items.map((item, idx) => {
+      const key = item.id || `item-${idx}`;
+      const entry = batchInputs[key];
+      if (entry) {
+        return {
+          ...item,
+          batchNo: entry.batchNo.trim(),
+          mfgDate: formatMonthYear(entry.mfgDate.trim()),
+          expDate: formatMonthYear(entry.expDate.trim()),
+        };
+      }
+      return item;
+    });
+
+    const updatedOrder = {
+      ...selectedOrder,
+      items: updatedItems,
+    };
+
+    setSelectedOrder(updatedOrder);
+    updateOrderStatus(selectedOrder.id, selectedOrder.status, { items: updatedItems });
+    toast.success("Product batch details saved to order & label!");
+  };
+
+  const handlePrintLabel = () => {
+    handleApplyBatchDetails();
+    setTimeout(() => {
+      window.print();
+    }, 150);
+  };
+
+  // Order with live batch details applied for label preview & printing
+  const orderForLabel: Order | null = selectedOrder ? {
+    ...selectedOrder,
+    items: selectedOrder.items.map((item, idx) => {
+      const key = item.id || `item-${idx}`;
+      const entry = batchInputs[key];
+      if (entry) {
+        return {
+          ...item,
+          batchNo: entry.batchNo || item.batchNo,
+          mfgDate: entry.mfgDate || item.mfgDate,
+          expDate: entry.expDate || item.expDate,
+        };
+      }
+      return item;
+    })
+  } : null;
 
   // Email Intimation State
   const [emailConfig, setEmailConfig] = useState<{ configured: boolean; provider: string; instructions?: string } | null>(null);
@@ -429,8 +533,23 @@ export default function AdminOrdersPage() {
                           </a>
 
                           <button 
-                            onClick={() => setSelectedOrder(order)}
-                            className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-bold"
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setModalTab('label');
+                              setShowBatchEditor(true);
+                            }}
+                            className="text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-bold cursor-pointer"
+                            title="Enter Batch & Print A5 Label"
+                          >
+                            🏷️ Label
+                          </button>
+
+                          <button 
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setModalTab('details');
+                            }}
+                            className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1 text-xs font-bold cursor-pointer"
                           >
                             <Eye className="w-3.5 h-3.5" /> Details
                           </button>
@@ -546,8 +665,8 @@ export default function AdminOrdersPage() {
 
             {modalTab === 'label' ? (
               <div className="p-4 bg-gray-100 overflow-y-auto flex-1 flex flex-col items-center">
-                {/* Razorpay Delivery QR Option Toolbar */}
-                <div className="w-full max-w-[138mm] mb-3 flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs text-xs">
+                {/* 1. Razorpay Delivery QR Option Toolbar */}
+                <div className="w-full max-w-[138mm] mb-2.5 flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs text-xs">
                   <label className="flex items-center gap-2 cursor-pointer select-none font-semibold text-gray-800">
                     <input
                       type="checkbox"
@@ -566,8 +685,120 @@ export default function AdminOrdersPage() {
                   </span>
                 </div>
 
+                {/* 2. Product Batch Details Entry Card (Before generating label) */}
+                <div className="w-full max-w-[138mm] mb-3 bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden text-xs">
+                  <div 
+                    onClick={() => setShowBatchEditor(!showBatchEditor)} 
+                    className="flex items-center justify-between p-3 bg-amber-50/70 border-b border-amber-100 cursor-pointer hover:bg-amber-100/60 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">📦</span>
+                      <div>
+                        <div className="font-bold text-gray-900 text-xs flex items-center gap-1.5">
+                          Enter Product Batch Details
+                          <span className="text-[10px] font-semibold px-2 py-0.2 bg-amber-200 text-amber-900 rounded-full font-mono">
+                            {showBatchEditor ? '▲ Collapse' : '▼ Enter/Edit Batch Details'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-gray-500">
+                          Set Batch No., Mfg Date &amp; Exp Date before printing label
+                        </div>
+                      </div>
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={(e) => { e.stopPropagation(); setShowBatchEditor(!showBatchEditor); }}
+                      className="text-amber-800 font-bold px-2.5 py-1 bg-white border border-amber-200 rounded-lg hover:bg-amber-50 text-[11px] cursor-pointer shadow-2xs"
+                    >
+                      {showBatchEditor ? 'Close' : '✏️ Edit Batch'}
+                    </button>
+                  </div>
+
+                  {showBatchEditor && (
+                    <div className="p-3.5 space-y-3 bg-gray-50/60">
+                      {selectedOrder.items?.map((item, idx) => {
+                        const itemKey = item.id || `item-${idx}`;
+                        const currentVals = batchInputs[itemKey] || { batchNo: '', mfgDate: '', expDate: '' };
+
+                        return (
+                          <div key={itemKey} className="bg-white p-3 rounded-xl border border-gray-200 shadow-2xs space-y-2">
+                            <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
+                              <span className="font-bold text-gray-900 text-xs">
+                                #{idx + 1}. {item.name} {item.weight ? `(${item.weight})` : ''} × {item.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleAutoCalcDates(itemKey)}
+                                className="text-[10px] text-amber-800 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded border border-amber-200 font-semibold cursor-pointer"
+                                title="Auto set Today Mfg Date + 6 Months Expiry"
+                              >
+                                ⚡ Today + 6 Mo Exp
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">
+                                  Batch No.
+                                </label>
+                                <input
+                                  type="text"
+                                  value={currentVals.batchNo}
+                                  onChange={(e) => handleBatchInputChange(itemKey, 'batchNo', e.target.value)}
+                                  placeholder="e.g. DVM-260901"
+                                  className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-xs font-mono font-bold text-gray-900 focus:bg-white focus:ring-1 focus:ring-[var(--color-devam-red)] outline-none"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">
+                                  Mfg Date (MM/YYYY)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={currentVals.mfgDate}
+                                  onChange={(e) => handleBatchInputChange(itemKey, 'mfgDate', e.target.value)}
+                                  placeholder="09/2026"
+                                  className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium text-gray-900 focus:bg-white focus:ring-1 focus:ring-[var(--color-devam-red)] outline-none"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">
+                                  Exp Date (MM/YYYY)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={currentVals.expDate}
+                                  onChange={(e) => handleBatchInputChange(itemKey, 'expDate', e.target.value)}
+                                  placeholder="03/2027"
+                                  className="w-full px-2.5 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-xs font-medium text-gray-900 focus:bg-white focus:ring-1 focus:ring-[var(--color-devam-red)] outline-none"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+                        <span className="text-[10.5px] text-gray-500 italic">
+                          * Live A5 label preview below updates automatically as you type.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={handleApplyBatchDetails}
+                          className="px-3.5 py-1.5 bg-[var(--color-devam-red)] text-white font-bold rounded-lg text-xs hover:bg-red-700 transition-colors shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5"
+                        >
+                          💾 Save Batch Details to Order
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. A5 Shipping Label Live Preview */}
                 <div className="bg-white p-3 rounded-2xl shadow-md border border-gray-300 w-full max-w-[138mm]">
-                  <ShippingLabelA5 order={selectedOrder} includePaymentQr={includeDeliveryQr} />
+                  <ShippingLabelA5 order={orderForLabel || selectedOrder} includePaymentQr={includeDeliveryQr} />
                 </div>
               </div>
             ) : (
@@ -646,22 +877,46 @@ export default function AdminOrdersPage() {
 
                 {/* Items List */}
                 <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 border-b pb-1">Purchased Products</h4>
+                  <div className="flex items-center justify-between border-b pb-1 mb-3">
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Purchased Products</h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModalTab('label');
+                        setShowBatchEditor(true);
+                      }}
+                      className="text-[11px] font-bold text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+                    >
+                      🏷️ Enter Batch for Label
+                    </button>
+                  </div>
                   <div className="space-y-2">
-                    {selectedOrder.items.map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-1">
-                            <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                    {selectedOrder.items.map((item, idx) => {
+                      const itemKey = item.id || `item-${idx}`;
+                      const curBatch = batchInputs[itemKey] || {
+                        batchNo: item.batchNo || 'Auto',
+                        mfgDate: item.mfgDate || 'Auto',
+                        expDate: item.expDate || 'Auto'
+                      };
+
+                      return (
+                        <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs gap-2">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-1">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                            </div>
+                            <div>
+                              <p className="font-bold text-gray-900">{item.name}</p>
+                              <p className="text-gray-500">Qty: {item.quantity} {item.weight ? `(${item.weight})` : ''} × ₹{item.price}</p>
+                              <p className="text-[10px] text-gray-600 font-mono mt-0.5">
+                                B.No: <strong>{curBatch.batchNo}</strong> | Mfg: <strong>{curBatch.mfgDate}</strong> | Exp: <strong>{curBatch.expDate}</strong>
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-bold text-gray-900">{item.name}</p>
-                            <p className="text-gray-500">Qty: {item.quantity} {item.weight ? `(${item.weight})` : ''} × ₹{item.price}</p>
-                          </div>
+                          <span className="font-bold text-gray-900 text-right">₹{item.price * item.quantity}</span>
                         </div>
-                        <span className="font-bold text-gray-900">₹{item.price * item.quantity}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -696,7 +951,7 @@ export default function AdminOrdersPage() {
               </div>
               <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <button 
-                  onClick={() => window.print()}
+                  onClick={handlePrintLabel}
                   className="px-4 py-2 bg-[var(--color-devam-red)] text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   <Printer className="w-3.5 h-3.5" />
@@ -714,7 +969,7 @@ export default function AdminOrdersPage() {
 
           {/* Printable A5 Shipping Label View (Active only during browser print) */}
           <div className="shipping-label-a5-print-wrapper hidden print:!block">
-            <ShippingLabelA5 order={selectedOrder} includePaymentQr={includeDeliveryQr} />
+            <ShippingLabelA5 order={orderForLabel || selectedOrder} includePaymentQr={includeDeliveryQr} />
           </div>
 
         </div>

@@ -164,25 +164,42 @@ export function formatProductNameWithSuffix(rawName?: string, category?: string,
 }
 
 /**
- * Generates or formats product Batch details (Batch No, Mfg Date, Exp Date)
+ * Normalizes any date string into MM/YYYY format
+ */
+export function formatMonthYear(val?: string, fallbackMonth?: string, fallbackYear?: string | number): string {
+  if (!val) return fallbackMonth && fallbackYear ? `${fallbackMonth}/${fallbackYear}` : "";
+  const trimmed = val.trim();
+  // If already mm/yyyy (e.g. 09/2026 or 9/2026)
+  if (/^\d{1,2}\/\d{4}$/.test(trimmed)) {
+    const [m, y] = trimmed.split('/');
+    return `${m.padStart(2, '0')}/${y}`;
+  }
+  // If dd/mm/yyyy (e.g. 24/09/2026)
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmed)) {
+    const [, m, y] = trimmed.split('/');
+    return `${m.padStart(2, '0')}/${y}`;
+  }
+  return trimmed;
+}
+
+/**
+ * Generates or formats product Batch details (Batch No, Mfg Date, Exp Date) in MM/YYYY format
  */
 export function getProductBatchDetails(item: any, orderDateStr?: string, index: number = 0) {
   const baseDate = orderDateStr ? new Date(orderDateStr) : new Date();
   const validDate = isNaN(baseDate.getTime()) ? new Date() : baseDate;
 
-  // Mfg Date (DD/MM/YYYY)
-  const mfgDay = String(validDate.getDate()).padStart(2, "0");
+  // Mfg Date (MM/YYYY)
   const mfgMonth = String(validDate.getMonth() + 1).padStart(2, "0");
   const mfgYear = validDate.getFullYear();
-  const mfgDate = item.mfgDate || `${mfgDay}/${mfgMonth}/${mfgYear}`;
+  const mfgDate = formatMonthYear(item.mfgDate, mfgMonth, mfgYear);
 
-  // Exp Date (6 months shelf life)
+  // Exp Date (MM/YYYY - 6 months shelf life)
   const expD = new Date(validDate);
   expD.setMonth(expD.getMonth() + 6);
-  const expDay = String(expD.getDate()).padStart(2, "0");
   const expMonth = String(expD.getMonth() + 1).padStart(2, "0");
   const expYear = expD.getFullYear();
-  const expDate = item.expDate || `${expDay}/${expMonth}/${expYear}`;
+  const expDate = formatMonthYear(item.expDate, expMonth, expYear);
 
   // Batch Number: e.g. DVM-260901
   const cleanId = (item.id || String(index + 1)).replace(/\D/g, "").slice(-2) || String(index + 1).padStart(2, "0");
