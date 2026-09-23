@@ -86,7 +86,8 @@ export async function POST(req: Request) {
     // ── 2. Send email via SMTP if configured ──────────────────────────────────
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
       try {
-        const nodemailer = (await import('nodemailer')).default;
+        const getReq = eval('require');
+        const nodemailer = getReq('nodemailer');
         const transporter = nodemailer.createTransport({
           host:   process.env.SMTP_HOST,
           port:   parseInt(process.env.SMTP_PORT || '587'),
