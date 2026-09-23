@@ -127,8 +127,6 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!hydrated) return;
 
-    const addrs = savedAddresses;
-
     // Check if we have a saved form draft
     const draft = lsGet(LS_ADDR);
     if (draft) {
@@ -146,6 +144,7 @@ export default function CheckoutPage() {
     }
 
     // Otherwise auto-select default or first saved address
+    const addrs = getSavedAddresses(user, userData);
     if (addrs.length > 0) {
       const def = addrs.find((a: any) => a.isDefault) ?? addrs[0];
       fillForm(def);
@@ -157,7 +156,7 @@ export default function CheckoutPage() {
       }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, savedAddresses]);
+  }, [hydrated]);
 
   // ── Persist form changes to localStorage ──────────────────────────────────
   useEffect(() => {
@@ -229,13 +228,18 @@ export default function CheckoutPage() {
     if (form.phone.replace(/\D/g, "").length !== 10) { toast.error("Enter a valid 10-digit mobile number."); return; }
     if (form.pin.length !== 6) { toast.error("Enter a valid 6-digit PIN code."); return; }
 
-    // Save new address to addressStore (handles React state, localStorage & Firestore)
-    try {
-      await saveUserAddress(form, user, userData, setUserData);
-    } catch (e) {
-      console.warn("[Checkout] Could not save address:", e);
+    // Only save to addressStore if user selected "+ Add New Address"
+    if (selAddrId === "new") {
+      try {
+        await saveUserAddress(form, user, userData, setUserData);
+      } catch (e) {
+        console.warn("[Checkout] Could not save address:", e);
+      }
     }
 
+    lsSet(LS_ADDR, JSON.stringify(form));
+    lsSet(LS_SEL,  selAddrId);
+    lsSet(LS_STEP, "2");
     setStep(2);
   };
 

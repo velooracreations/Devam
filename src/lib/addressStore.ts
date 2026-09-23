@@ -18,20 +18,31 @@ export interface Address {
 
 const GUEST_KEY = "devam_guest_addresses";
 
+function getAddressSignature(a: Partial<Address>): string {
+  const pin = (a.pin || "").trim();
+  const houseNo = (a.houseNo || "").toLowerCase().trim();
+  const street = (a.street || "").toLowerCase().trim();
+  return `${pin}_${houseNo}_${street}`;
+}
+
 /**
  * Retrieves all saved addresses for the current user or guest, merging Firestore data & localStorage cache.
  */
 export function getSavedAddresses(user: any, userData: any): Address[] {
   const map = new Map<string, Address>();
 
+  const processAddress = (a: Address) => {
+    if (a && (a.id || a.houseNo || a.pin)) {
+      const sig = getAddressSignature(a);
+      if (!map.has(sig)) {
+        map.set(sig, { ...a, id: a.id || `addr_${sig}` });
+      }
+    }
+  };
+
   // 1. Load from userData (Firebase AuthContext)
   if (Array.isArray(userData?.addresses)) {
-    userData.addresses.forEach((a: Address) => {
-      if (a && (a.id || a.houseNo || a.pin)) {
-        const key = a.id || `${a.pin}_${a.houseNo}_${a.street}`;
-        map.set(key, { ...a, id: a.id || key });
-      }
-    });
+    userData.addresses.forEach(processAddress);
   }
 
   // 2. Load from user-specific localStorage cache
@@ -43,14 +54,7 @@ export function getSavedAddresses(user: any, userData: any): Address[] {
         if (cachedUserStr) {
           const cachedData = JSON.parse(cachedUserStr);
           if (Array.isArray(cachedData?.addresses)) {
-            cachedData.addresses.forEach((a: Address) => {
-              if (a && (a.id || a.houseNo || a.pin)) {
-                const key = a.id || `${a.pin}_${a.houseNo}_${a.street}`;
-                if (!map.has(key)) {
-                  map.set(key, { ...a, id: a.id || key });
-                }
-              }
-            });
+            cachedData.addresses.forEach(processAddress);
           }
         }
       }
@@ -60,14 +64,7 @@ export function getSavedAddresses(user: any, userData: any): Address[] {
       if (guestStr) {
         const guestAddrs = JSON.parse(guestStr);
         if (Array.isArray(guestAddrs)) {
-          guestAddrs.forEach((a: Address) => {
-            if (a && (a.id || a.houseNo || a.pin)) {
-              const key = a.id || `${a.pin}_${a.houseNo}_${a.street}`;
-              if (!map.has(key)) {
-                map.set(key, { ...a, id: a.id || key });
-              }
-            }
-          });
+          guestAddrs.forEach(processAddress);
         }
       }
     } catch (e) {
@@ -88,14 +85,15 @@ export async function saveUserAddress(
   setUserData?: (updater: any) => void
 ): Promise<Address[]> {
   const existing = getSavedAddresses(user, userData);
+  const newSig = getAddressSignature(address);
   const newAddr: Address = {
     ...address,
     id: address.id || `addr_${Date.now()}`,
     type: address.type || "HOME",
   };
 
-  // Check if updating an existing address or adding new
-  const updated = [newAddr, ...existing.filter((a) => a.id !== newAddr.id)];
+  // Filter out any existing address with the same ID OR same content signature
+  const updated = [newAddr, ...existing.filter((a) => a.id !== newAddr.id && getAddressSignature(a) !== newSig)];
 
   // 1. Immediately update React state in AuthContext if provided
   if (setUserData) {
