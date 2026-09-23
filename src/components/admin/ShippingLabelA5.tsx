@@ -1,13 +1,17 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import JsBarcode from "jsbarcode";
 import { Order } from "@/store/orderStore";
 
 interface ShippingLabelA5Props {
   order: Order;
   className?: string;
+  includePaymentQr?: boolean;
 }
+
+const STORE_FSSAI = process.env.NEXT_PUBLIC_STORE_FSSAI || "10725008000026";
+const STORE_GSTIN = process.env.NEXT_PUBLIC_STORE_GSTIN || "24AAHFG1234A1Z5";
 
 /**
  * Format Indian mobile number to match Shreeji style: +91 XXXXX XXXXX
@@ -159,8 +163,82 @@ export function formatProductNameWithSuffix(rawName?: string, category?: string,
   return `${name} Flour (Atta)`;
 }
 
-export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props) {
+/**
+ * Generates or formats product Batch details (Batch No, Mfg Date, Exp Date)
+ */
+export function getProductBatchDetails(item: any, orderDateStr?: string, index: number = 0) {
+  const baseDate = orderDateStr ? new Date(orderDateStr) : new Date();
+  const validDate = isNaN(baseDate.getTime()) ? new Date() : baseDate;
+
+  // Mfg Date (DD/MM/YYYY)
+  const mfgDay = String(validDate.getDate()).padStart(2, "0");
+  const mfgMonth = String(validDate.getMonth() + 1).padStart(2, "0");
+  const mfgYear = validDate.getFullYear();
+  const mfgDate = item.mfgDate || `${mfgDay}/${mfgMonth}/${mfgYear}`;
+
+  // Exp Date (6 months shelf life)
+  const expD = new Date(validDate);
+  expD.setMonth(expD.getMonth() + 6);
+  const expDay = String(expD.getDate()).padStart(2, "0");
+  const expMonth = String(expD.getMonth() + 1).padStart(2, "0");
+  const expYear = expD.getFullYear();
+  const expDate = item.expDate || `${expDay}/${expMonth}/${expYear}`;
+
+  // Batch Number: e.g. DVM-260901
+  const cleanId = (item.id || String(index + 1)).replace(/\D/g, "").slice(-2) || String(index + 1).padStart(2, "0");
+  const batchCode = item.batchNo || `DVM-${String(mfgYear).slice(-2)}${mfgMonth}${cleanId}`;
+
+  return {
+    batchNo: batchCode,
+    mfgDate,
+    expDate,
+    bestBefore: "Best Before 6 Months",
+  };
+}
+
+export function ShippingLabelA5({ order, className = "", includePaymentQr = true }: ShippingLabelA5Props) {
   const barcodeRef = useRef<SVGSVGElement>(null);
+  const [razorpayQrUrl, setRazorpayQrUrl] = useState<string>("");
+
+  const isCod =
+    order.paymentMethod.toLowerCase().includes("cash") ||
+    order.paymentMethod.toLowerCase().includes("cod");
+
+  // Calculate Subtotal and Delivery / Shipping Fee breakdown
+  const itemsSubtotal = (order.items || []).reduce(
+    (sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)),
+    0
+  );
+  const grandTotal = Number(order.totalAmount || itemsSubtotal);
+  const deliveryCharge = Math.max(0, grandTotal - itemsSubtotal);
+
+  // Generate dynamic Razorpay QR for exact invoice amount
+  useEffect(() => {
+    let isMounted = true;
+    if (includePaymentQr && isCod && grandTotal > 0) {
+      fetch("/api/razorpay/delivery-qr", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: order.id,
+          amount: grandTotal,
+          customerName: order.customerName,
+          customerPhone: order.customerPhone,
+          customerEmail: order.customerEmail,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (isMounted && data?.qrImageUrl) {
+            setRazorpayQrUrl(data.qrImageUrl);
+          }
+        })
+        .catch((err) => console.warn("[ShippingLabel] Delivery QR generation note:", err));
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [order.id, grandTotal, isCod, includePaymentQr, order.customerName, order.customerPhone, order.customerEmail]);
 
   useEffect(() => {
     if (barcodeRef.current && order.id) {
@@ -170,7 +248,7 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
           lineColor: "#000",
           width: 1.8,
           height: 38,
-          displayValue: false, // We render the custom formatted monospace text below
+          displayValue: false, // Custom formatted monospace text rendered below
           margin: 0,
         });
       } catch (err) {
@@ -178,10 +256,6 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
       }
     }
   }, [order.id]);
-
-  const isCod =
-    order.paymentMethod.toLowerCase().includes("cash") ||
-    order.paymentMethod.toLowerCase().includes("cod");
 
   const cleanedAddress = cleanShippingAddress(
     order.shippingAddress,
@@ -195,13 +269,12 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
   const totalQuantity =
     order.items?.reduce((acc, item) => acc + (item.quantity || 1), 0) || 1;
 
-  // Calculate Subtotal and Delivery / Shipping Fee breakdown
-  const itemsSubtotal = (order.items || []).reduce(
-    (sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)),
-    0
-  );
-  const grandTotal = Number(order.totalAmount || itemsSubtotal);
-  const deliveryCharge = Math.max(0, grandTotal - itemsSubtotal);
+  // Fallback UPI QR URL if Razorpay request is pending
+  const fallbackUpiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+    `upi://pay?pa=thedevam@okhdfcbank&pn=Shreeji%20Foods%20and%20Spices&am=${grandTotal}&cu=INR&tn=Order%20${order.id}`
+  )}`;
+
+  const activeQrSrc = razorpayQrUrl || fallbackUpiUrl;
 
   return (
     <div
@@ -225,7 +298,7 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
       {/* TOP SECTION: Header, Metadata, Ship To / Ship From                       */}
       {/* ──────────────────────────────────────────────────────────────────────── */}
       <div style={{ flexShrink: 0 }}>
-        {/* 1. Header: Devam Logo + Brand Title + Tax Invoice Subtitle + Payment Badge */}
+        {/* 1. Header: Devam Logo + Brand Title + Tax Invoice Subtitle + FSSAI & GSTIN + Payment Badge */}
         <div
           style={{
             display: "flex",
@@ -269,7 +342,19 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
                   textTransform: "uppercase",
                 }}
               >
-                TAX INVOICE &amp; SHIPPING LABEL | www.thedevam.com
+                TAX INVOICE &amp; SHIPPING LABEL | WWW.THEDEVAM.COM
+              </div>
+              {/* Item 1: FSSAI Lic. No. and GST No. below Tax Invoice & Shipping Label */}
+              <div
+                style={{
+                  fontSize: "9px",
+                  color: "#111",
+                  marginTop: "2px",
+                  fontWeight: "700",
+                  letterSpacing: "0.3px",
+                }}
+              >
+                FSSAI Lic. No.: {STORE_FSSAI} &nbsp;|&nbsp; GST No.: {STORE_GSTIN}
               </div>
             </div>
           </div>
@@ -302,13 +387,15 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
           }}
         >
           <div>
-            <strong>Order ID:</strong> <span style={{ fontFamily: "monospace", fontWeight: "bold" }}>{order.id}</span>
+            <strong>Order ID:</strong>{" "}
+            <span style={{ fontFamily: "monospace", fontWeight: "bold" }}>{order.id}</span>
           </div>
           <div>
             <strong>Date &amp; Time:</strong> {formattedDateTime}
           </div>
           <div>
-            <strong>Payment Mode:</strong> {isCod ? "Cash on Delivery" : (order.paymentMethod || "Prepaid Online")}
+            <strong>Payment Mode:</strong>{" "}
+            {isCod ? "Cash on Delivery" : order.paymentMethod || "Prepaid Online"}
           </div>
         </div>
 
@@ -365,7 +452,7 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
             </div>
           </div>
 
-          {/* SHIP FROM */}
+          {/* SHIP FROM (Item 2: FSSAI removed from address detail as requested) */}
           <div style={{ flex: 1, paddingLeft: "12px" }}>
             <div
               style={{
@@ -398,17 +485,7 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
             </div>
             <div
               style={{
-                marginTop: "4px",
-                fontSize: "11px",
-                color: "#333",
-                fontWeight: "600",
-              }}
-            >
-              FSSAI Lic. No.: <strong>10725008000026</strong>
-            </div>
-            <div
-              style={{
-                marginTop: "2px",
+                marginTop: "6px",
                 fontSize: "12px",
                 fontWeight: "bold",
                 color: "#000",
@@ -421,7 +498,7 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
       </div>
 
       {/* ──────────────────────────────────────────────────────────────────────── */}
-      {/* BODY SECTION: Package Contents / Item Details (Flexible Invoice Body)     */}
+      {/* BODY SECTION: Package Contents / Product Details with Batch, Mfg, Exp   */}
       {/* ──────────────────────────────────────────────────────────────────────── */}
       <div
         style={{
@@ -460,9 +537,9 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
                 #
               </th>
               <th style={{ padding: "5px 6px", fontWeight: "bold" }}>
-                Product Name &amp; Description
+                Product Name &amp; Batch Details
               </th>
-              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "70px", textAlign: "center" }}>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "65px", textAlign: "center" }}>
                 Variant
               </th>
               <th style={{ padding: "5px 6px", fontWeight: "bold", width: "38px", textAlign: "center" }}>
@@ -481,24 +558,41 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
               order.items.map((item, idx) => {
                 const displayName = formatProductNameWithSuffix(item.name, (item as any).category, item.weight);
                 const itemTotal = Number(item.price || 0) * Number(item.quantity || 1);
+                // Item 3: Product batch details (Batch no, Mfg, Exp)
+                const batch = getProductBatchDetails(item, order.date, idx);
+
                 return (
                   <tr key={idx} style={{ borderBottom: "1px dotted #ccc" }}>
-                    <td style={{ padding: "6px", textAlign: "center" }}>
+                    <td style={{ padding: "6px 4px", textAlign: "center", verticalAlign: "top" }}>
                       {idx + 1}
                     </td>
-                    <td style={{ padding: "6px", fontWeight: "600", fontSize: "11px" }}>
-                      {displayName}
+                    <td style={{ padding: "6px 6px", verticalAlign: "top" }}>
+                      <div style={{ fontWeight: "700", fontSize: "11px", color: "#000" }}>
+                        {displayName}
+                      </div>
+                      {/* Product Batch Details Line */}
+                      <div
+                        style={{
+                          fontSize: "9px",
+                          color: "#333",
+                          marginTop: "2px",
+                          lineHeight: "1.3",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        B.No: <strong>{batch.batchNo}</strong> &nbsp;|&nbsp; Mfg: <strong>{batch.mfgDate}</strong> &nbsp;|&nbsp; Exp: <strong>{batch.expDate}</strong>
+                      </div>
                     </td>
-                    <td style={{ padding: "6px", textAlign: "center", color: "#555" }}>
+                    <td style={{ padding: "6px 4px", textAlign: "center", color: "#555", verticalAlign: "top" }}>
                       {item.weight || "-"}
                     </td>
-                    <td style={{ padding: "6px", textAlign: "center", fontWeight: "bold" }}>
+                    <td style={{ padding: "6px 4px", textAlign: "center", fontWeight: "bold", verticalAlign: "top" }}>
                       {item.quantity}
                     </td>
-                    <td style={{ padding: "6px", textAlign: "right" }}>
+                    <td style={{ padding: "6px 4px", textAlign: "right", verticalAlign: "top" }}>
                       ₹{item.price}
                     </td>
-                    <td style={{ padding: "6px", textAlign: "right", fontWeight: "bold" }}>
+                    <td style={{ padding: "6px 6px", textAlign: "right", fontWeight: "bold", verticalAlign: "top" }}>
                       ₹{itemTotal}
                     </td>
                   </tr>
@@ -516,24 +610,94 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
       </div>
 
       {/* ──────────────────────────────────────────────────────────────────────── */}
-      {/* BOTTOM SECTION: Total Items, Cost Breakdown, GST Incl, Barcode & Footer   */}
+      {/* BOTTOM SECTION: Total Items, Cost Breakdown, Razorpay QR, Barcode Footer */}
       {/* ──────────────────────────────────────────────────────────────────────── */}
       <div style={{ flexShrink: 0 }}>
-        {/* 1. Price Accounting Breakdown (Explains product cost + delivery = total) */}
+        {/* 1. Price Accounting Breakdown & Scan to Pay QR Section */}
         <div style={{ padding: "8px 12px", backgroundColor: "#fafafa", borderBottom: "2px solid #000" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
+            
             {/* Left: Total Items count & GST note */}
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: "11px", fontWeight: "bold", color: "#222" }}>
                 Total Items: {order.items?.length || 1} &nbsp;|&nbsp; Total Quantity: {totalQuantity} Units
               </div>
-              <div style={{ fontSize: "9px", color: "#444", marginTop: "3px", lineHeight: "1.4" }}>
-                * All item prices and shipping charges are inclusive of <strong>GST (Goods &amp; Services Tax)</strong>.
+              <div style={{ fontSize: "9px", color: "#444", marginTop: "2px", lineHeight: "1.35" }}>
+                * All item prices and delivery charges are inclusive of <strong>GST (Goods &amp; Services Tax)</strong>.
               </div>
+
+              {/* Item 4: Scan QR for payment at delivery time (Razorpay Dynamic Amount QR) */}
+              {includePaymentQr && isCod && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    marginTop: "6px",
+                    padding: "4px 8px",
+                    backgroundColor: "#fff",
+                    border: "1.5px dashed #000",
+                    borderRadius: "6px",
+                    maxWidth: "280px",
+                  }}
+                >
+                  <img
+                    src={activeQrSrc}
+                    alt="Razorpay Payment QR"
+                    style={{
+                      width: "56px",
+                      height: "56px",
+                      display: "block",
+                      flexShrink: 0,
+                      backgroundColor: "#fff",
+                    }}
+                  />
+                  <div>
+                    <div style={{ fontSize: "9.5px", fontWeight: "900", textTransform: "uppercase", color: "#000" }}>
+                      📲 SCAN &amp; PAY AT DELIVERY
+                    </div>
+                    <div style={{ fontSize: "11.5px", fontWeight: "900", color: "#991b1b", marginTop: "1px" }}>
+                      Amount: ₹{grandTotal}
+                    </div>
+                    <div style={{ fontSize: "8px", color: "#444", marginTop: "1px", fontWeight: "600" }}>
+                      UPI • GPay • PhonePe • Paytm • Cards
+                    </div>
+                    <div style={{ fontSize: "7.5px", color: "#666", letterSpacing: "0.2px" }}>
+                      Powered by Razorpay Secure
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {includePaymentQr && !isCod && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    marginTop: "6px",
+                    padding: "5px 8px",
+                    backgroundColor: "#f0fdf4",
+                    border: "1px solid #16a34a",
+                    borderRadius: "6px",
+                    maxWidth: "280px",
+                  }}
+                >
+                  <span style={{ fontSize: "14px" }}>✅</span>
+                  <div>
+                    <div style={{ fontSize: "10px", fontWeight: "900", color: "#166534", textTransform: "uppercase" }}>
+                      PREPAID ORDER — DO NOT COLLECT CASH
+                    </div>
+                    <div style={{ fontSize: "8px", color: "#15803d", marginTop: "1px" }}>
+                      Payment verified online via Razorpay ({order.paymentMethod || "Online"})
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right: Transparent financial calculation */}
-            <div style={{ width: "210px", fontSize: "10.5px" }}>
+            <div style={{ width: "200px", fontSize: "10.5px", flexShrink: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", color: "#444" }}>
                 <span>Items Subtotal:</span>
                 <span style={{ fontWeight: "600" }}>₹{itemsSubtotal}</span>
@@ -551,7 +715,7 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
                   padding: "4px 0 2px 0",
                   borderTop: "1.5px solid #000",
                   marginTop: "2px",
-                  fontSize: "12.5px",
+                  fontSize: "12px",
                   fontWeight: "900",
                   color: "#000",
                 }}
@@ -564,13 +728,13 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
         </div>
 
         {/* 2. Barcode & Logistics Identification Box */}
-        <div style={{ padding: "10px 12px", textAlign: "center", backgroundColor: "#fff" }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "4px" }}>
-            <svg ref={barcodeRef} style={{ maxHeight: "38px", maxWidth: "260px" }}></svg>
+        <div style={{ padding: "8px 12px", textAlign: "center", backgroundColor: "#fff" }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "3px" }}>
+            <svg ref={barcodeRef} style={{ maxHeight: "36px", maxWidth: "260px" }}></svg>
           </div>
           <div
             style={{
-              fontSize: "17px",
+              fontSize: "16px",
               fontWeight: "900",
               fontFamily: "monospace",
               letterSpacing: "4px",
@@ -579,7 +743,7 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
           >
             {order.id}
           </div>
-          <div style={{ fontSize: "8.5px", color: "#555", marginTop: "4px", letterSpacing: "0.2px" }}>
+          <div style={{ fontSize: "8px", color: "#555", marginTop: "3px", letterSpacing: "0.2px" }}>
             System Generated Shipping Label &amp; Tax Invoice | Shreeji Gruh Udhyog © {new Date().getFullYear()} | www.thedevam.com
           </div>
         </div>

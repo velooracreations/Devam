@@ -40,6 +40,9 @@ export default function AdminOrdersPage() {
   const [shippingModalOrder, setShippingModalOrder] = useState<Order | null>(null);
   const [trackingInput, setTrackingInput] = useState({ number: "", courier: "SpeedPost" });
 
+  // A5 Label Delivery QR Option
+  const [includeDeliveryQr, setIncludeDeliveryQr] = useState<boolean>(true);
+
   // Email Intimation State
   const [emailConfig, setEmailConfig] = useState<{ configured: boolean; provider: string; instructions?: string } | null>(null);
   const [testingEmail, setTestingEmail] = useState(false);
@@ -542,9 +545,29 @@ export default function AdminOrdersPage() {
             </div>
 
             {modalTab === 'label' ? (
-              <div className="p-6 bg-gray-100 overflow-y-auto flex-1 flex justify-center">
+              <div className="p-4 bg-gray-100 overflow-y-auto flex-1 flex flex-col items-center">
+                {/* Razorpay Delivery QR Option Toolbar */}
+                <div className="w-full max-w-[138mm] mb-3 flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer select-none font-semibold text-gray-800">
+                    <input
+                      type="checkbox"
+                      checked={includeDeliveryQr}
+                      onChange={(e) => setIncludeDeliveryQr(e.target.checked)}
+                      className="rounded text-[var(--color-devam-red)] focus:ring-[var(--color-devam-red)] w-4 h-4 cursor-pointer"
+                    />
+                    <span>
+                      Scan &amp; Pay QR at Delivery (Razorpay: ₹{selectedOrder.totalAmount})
+                    </span>
+                  </label>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    includeDeliveryQr ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {includeDeliveryQr ? 'QR Included' : 'QR Excluded'}
+                  </span>
+                </div>
+
                 <div className="bg-white p-3 rounded-2xl shadow-md border border-gray-300 w-full max-w-[138mm]">
-                  <ShippingLabelA5 order={selectedOrder} />
+                  <ShippingLabelA5 order={selectedOrder} includePaymentQr={includeDeliveryQr} />
                 </div>
               </div>
             ) : (
@@ -691,7 +714,7 @@ export default function AdminOrdersPage() {
 
           {/* Printable A5 Shipping Label View (Active only during browser print) */}
           <div className="shipping-label-a5-print-wrapper hidden print:!block">
-            <ShippingLabelA5 order={selectedOrder} />
+            <ShippingLabelA5 order={selectedOrder} includePaymentQr={includeDeliveryQr} />
           </div>
 
         </div>
