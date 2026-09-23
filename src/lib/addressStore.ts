@@ -45,10 +45,22 @@ export function getSavedAddresses(user: any, userData: any): Address[] {
     userData.addresses.forEach(processAddress);
   }
 
-  // 2. Load from user-specific localStorage cache
+  // 2. Load from user-specific & email-specific localStorage cache
   if (typeof window !== "undefined") {
     try {
       const uid = user?.uid || userData?.uid;
+      const email = user?.email || userData?.email;
+
+      if (email) {
+        const emailCachedStr = localStorage.getItem(`devam_user_data_email_${email.toLowerCase()}`);
+        if (emailCachedStr) {
+          const emailData = JSON.parse(emailCachedStr);
+          if (Array.isArray(emailData?.addresses)) {
+            emailData.addresses.forEach(processAddress);
+          }
+        }
+      }
+
       if (uid) {
         const cachedUserStr = localStorage.getItem(`devam_user_data_${uid}`);
         if (cachedUserStr) {
@@ -76,7 +88,7 @@ export function getSavedAddresses(user: any, userData: any): Address[] {
 }
 
 /**
- * Saves or updates an address across React state, localStorage cache, and Firestore.
+ * Saves or updates an address across React state, localStorage cache, and Firestore (synced by Email & UID).
  */
 export async function saveUserAddress(
   address: Partial<Address> & { name: string; phone: string; pin: string; houseNo: string; street: string; area: string; cityDistrict: string; state: string },
@@ -103,28 +115,51 @@ export async function saveUserAddress(
     }));
   }
 
-  // 2. Immediately persist to localStorage cache
+  // 2. Immediately persist to localStorage cache (both UID and Email)
   if (typeof window !== "undefined") {
     try {
       const uid = user?.uid || userData?.uid;
+      const email = user?.email || userData?.email;
+
       if (uid) {
         const cachedUserStr = localStorage.getItem(`devam_user_data_${uid}`);
         const baseData = cachedUserStr ? JSON.parse(cachedUserStr) : {};
         baseData.addresses = updated;
         localStorage.setItem(`devam_user_data_${uid}`, JSON.stringify(baseData));
       }
+
+      if (email) {
+        const emailCachedStr = localStorage.getItem(`devam_user_data_email_${email.toLowerCase()}`);
+        const emailBase = emailCachedStr ? JSON.parse(emailCachedStr) : {};
+        emailBase.addresses = updated;
+        localStorage.setItem(`devam_user_data_email_${email.toLowerCase()}`, JSON.stringify(emailBase));
+      }
+
       localStorage.setItem(GUEST_KEY, JSON.stringify(updated));
     } catch (e) {
       console.warn("[addressStore] Could not update localStorage address cache:", e);
     }
   }
 
-  // 3. Persist to Firestore asynchronously if user is logged in
+  // 3. Persist to Firestore by UID & Email for cross-device sync
   const uid = user?.uid || userData?.uid;
-  if (uid && db) {
+  const email = (user?.email || userData?.email || "").toLowerCase();
+
+  if (db) {
     try {
-      const { doc, setDoc } = await import("firebase/firestore");
-      await setDoc(doc(db, "users", uid), { addresses: updated }, { merge: true });
+      const { doc, setDoc, collection, query, where, getDocs } = await import("firebase/firestore");
+      
+      if (uid) {
+        await setDoc(doc(db, "users", uid), { addresses: updated, email: email || undefined }, { merge: true });
+      }
+
+      if (email) {
+        const q = query(collection(db, "users"), where("email", "==", email));
+        const snap = await getDocs(q);
+        snap.forEach(async (dSnap) => {
+          await setDoc(doc(db, "users", dSnap.id), { addresses: updated }, { merge: true });
+        });
+      }
     } catch (err) {
       console.warn("[addressStore] Firestore address update skipped:", err);
     }
@@ -134,7 +169,7 @@ export async function saveUserAddress(
 }
 
 /**
- * Deletes an address by ID across React state, localStorage cache, and Firestore.
+ * Deletes an address by ID across React state, localStorage cache, and Firestore (synced by Email & UID).
  */
 export async function deleteUserAddress(
   addressId: string,
@@ -157,24 +192,45 @@ export async function deleteUserAddress(
   if (typeof window !== "undefined") {
     try {
       const uid = user?.uid || userData?.uid;
+      const email = user?.email || userData?.email;
+
       if (uid) {
         const cachedUserStr = localStorage.getItem(`devam_user_data_${uid}`);
         const baseData = cachedUserStr ? JSON.parse(cachedUserStr) : {};
         baseData.addresses = updated;
         localStorage.setItem(`devam_user_data_${uid}`, JSON.stringify(baseData));
       }
+
+      if (email) {
+        const emailCachedStr = localStorage.getItem(`devam_user_data_email_${email.toLowerCase()}`);
+        const emailBase = emailCachedStr ? JSON.parse(emailCachedStr) : {};
+        emailBase.addresses = updated;
+        localStorage.setItem(`devam_user_data_email_${email.toLowerCase()}`, JSON.stringify(emailBase));
+      }
+
       localStorage.setItem(GUEST_KEY, JSON.stringify(updated));
     } catch (e) {
       console.warn("[addressStore] Could not update localStorage delete cache:", e);
     }
   }
 
-  // 3. Persist to Firestore
+  // 3. Persist to Firestore by UID & Email
   const uid = user?.uid || userData?.uid;
-  if (uid && db) {
+  const email = (user?.email || userData?.email || "").toLowerCase();
+
+  if (db) {
     try {
-      const { doc, setDoc } = await import("firebase/firestore");
-      await setDoc(doc(db, "users", uid), { addresses: updated }, { merge: true });
+      const { doc, setDoc, collection, query, where, getDocs } = await import("firebase/firestore");
+      if (uid) {
+        await setDoc(doc(db, "users", uid), { addresses: updated }, { merge: true });
+      }
+      if (email) {
+        const q = query(collection(db, "users"), where("email", "==", email));
+        const snap = await getDocs(q);
+        snap.forEach(async (dSnap) => {
+          await setDoc(doc(db, "users", dSnap.id), { addresses: updated }, { merge: true });
+        });
+      }
     } catch (err) {
       console.warn("[addressStore] Firestore address delete skipped:", err);
     }
