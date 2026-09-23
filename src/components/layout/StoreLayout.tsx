@@ -29,7 +29,7 @@ export function StoreLayout({ children }: { children: React.ReactNode }) {
     return (
       <main className="flex-grow">
         {children}
-        <Toaster position="bottom-right" richColors />
+        <Toaster position="top-right" richColors />
       </main>
     );
   }

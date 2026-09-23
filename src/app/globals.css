@@ -68,8 +68,10 @@ textarea:focus-visible {
     print-color-adjust: exact !important;
   }
 
-  nav, aside, header, footer, .no-print, .print-hide, [data-no-print] {
+  nav, aside, header, footer, .no-print, .print-hide, [data-no-print], [data-sonner-toaster], [data-sonner-toast], [data-sonner-toaster] *, .toaster {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
   }
 
   .shipping-label-a5-root {

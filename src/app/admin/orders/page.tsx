@@ -45,6 +45,7 @@ export default function AdminOrdersPage() {
 
   // A5 Label Batch Details Option
   const [showBatchEditor, setShowBatchEditor] = useState<boolean>(true);
+  const [batchSaved, setBatchSaved] = useState<boolean>(false);
   const [batchInputs, setBatchInputs] = useState<{ [itemKey: string]: { batchNo: string; mfgDate: string; expDate: string } }>({});
 
   // Sync batch inputs whenever selectedOrder changes
@@ -96,7 +97,7 @@ export default function AdminOrdersPage() {
     }));
   };
 
-  const handleApplyBatchDetails = () => {
+  const handleApplyBatchDetails = (showToast: boolean = true) => {
     if (!selectedOrder || !selectedOrder.items) return;
     const updatedItems = selectedOrder.items.map((item, idx) => {
       const key = item.id || `item-${idx}`;
@@ -119,11 +120,18 @@ export default function AdminOrdersPage() {
 
     setSelectedOrder(updatedOrder);
     updateOrderStatus(selectedOrder.id, selectedOrder.status, { items: updatedItems });
-    toast.success("Product batch details saved to order & label!");
+    setBatchSaved(true);
+    setTimeout(() => setBatchSaved(false), 3000);
+
+    if (showToast) {
+      toast.dismiss();
+      toast.success("Product batch details saved to order & label!");
+    }
   };
 
   const handlePrintLabel = () => {
-    handleApplyBatchDetails();
+    toast.dismiss(); // Dismiss any on-screen toast so it never overlaps the barcode or printed document
+    handleApplyBatchDetails(false); // Apply silently without firing a floating toast popup
     setTimeout(() => {
       window.print();
     }, 150);
@@ -664,7 +672,7 @@ export default function AdminOrdersPage() {
             </div>
 
             {modalTab === 'label' ? (
-              <div className="p-4 bg-gray-100 overflow-y-auto flex-1 flex flex-col items-center">
+              <div className="p-4 pb-20 bg-gray-100 overflow-y-auto flex-1 flex flex-col items-center">
                 {/* 1. Delivery Payment Section: QR scan option only for COD orders; disabled/hidden for Prepaid */}
                 {selectedOrder.paymentMethod?.toLowerCase().includes("cash") || selectedOrder.paymentMethod?.toLowerCase().includes("cod") ? (
                   <div className="w-full max-w-[138mm] mb-2.5 flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs text-xs">
@@ -794,13 +802,20 @@ export default function AdminOrdersPage() {
                         <span className="text-[10.5px] text-gray-500 italic">
                           * Live A5 label preview below updates automatically as you type.
                         </span>
-                        <button
-                          type="button"
-                          onClick={handleApplyBatchDetails}
-                          className="px-3.5 py-1.5 bg-[var(--color-devam-red)] text-white font-bold rounded-lg text-xs hover:bg-red-700 transition-colors shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5"
-                        >
-                          💾 Save Batch Details to Order
-                        </button>
+                        <div className="flex items-center gap-2 self-end sm:self-auto">
+                          {batchSaved && (
+                            <span className="text-emerald-700 font-bold text-xs flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-md animate-pulse">
+                              ✅ Saved to order &amp; label!
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleApplyBatchDetails(true)}
+                            className="px-3.5 py-1.5 bg-[var(--color-devam-red)] text-white font-bold rounded-lg text-xs hover:bg-red-700 transition-colors shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5"
+                          >
+                            💾 Save Batch Details to Order
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
