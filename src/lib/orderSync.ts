@@ -1,17 +1,15 @@
-import { db } from './firebase';
-import { doc, setDoc, onSnapshot, collection, arrayUnion } from 'firebase/firestore';
 import { useOrderStore, Order, normalizeOrderStatus } from '@/store/orderStore';
 
 /**
- * Save an order to Firestore, sync with local store, broadcast to tabs, and trigger notifications
+ * Save an order to Cloud Firestore via Server API, sync with local store, broadcast to tabs, and trigger notifications
  */
 export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
-  const normalizedOrder = {
+  const normalizedOrder: Order = {
     ...newOrder,
     status: normalizeOrderStatus(newOrder.status)
   };
 
-  // 1. Sync to local Zustand store immediately
+  // 1. Sync to local Zustand store immediately for instant 0ms latency UI response
   useOrderStore.getState().addOrder(normalizedOrder);
 
   // 2. Broadcast via Window CustomEvent and BroadcastChannel for instant local tab sync
@@ -28,60 +26,24 @@ export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
     }
   }
 
-  // 3. Save to Firebase Firestore for cross-device live entry in Admin Dashboard
-  const saveFirestoreTask = async () => {
-    try {
-      if (db) {
-        const nowIso = new Date().toISOString();
-        const payload = { ...normalizedOrder, createdAt: nowIso };
-
-        // A. Save to global orders collection
-        const orderRef = doc(db, "orders", normalizedOrder.id);
-        await setDoc(orderRef, payload, { merge: true });
-        console.log(`[OrderSync] Order #${normalizedOrder.id} saved to Firestore orders collection.`);
-
-        // B. Save to user profile by UID if logged in
-        if (userId) {
-          const userRef = doc(db, "users", userId);
-          await setDoc(userRef, {
-            orders: arrayUnion(payload)
-          }, { merge: true });
-        }
-
-        // C. Save to user profile by Email for cross-device visibility
-        const email = (normalizedOrder.customerEmail || "").toLowerCase();
-        if (email && email !== "guest@thedevam.com") {
-          const { collection, query, where, getDocs } = await import("firebase/firestore");
-          const q = query(collection(db, "users"), where("email", "==", email));
-          const snap = await getDocs(q);
-          snap.forEach(async (dSnap) => {
-            await setDoc(doc(db, "users", dSnap.id), {
-              orders: arrayUnion(payload)
-            }, { merge: true });
-          });
-        }
-      }
-    } catch (err) {
-      console.warn("[OrderSync] Firestore save error:", err);
-    }
-  };
-
-  // Run Firestore save with a 3.5-second safety race
-  await Promise.race([
-    saveFirestoreTask(),
-    new Promise((resolve) => setTimeout(resolve, 3500))
-  ]);
-
-  // 4. Trigger Email & Notification API
+  // 3. Persist to Server & Cloud Firestore via /api/orders (Works seamlessly on Mobile and Laptop)
   try {
-    await fetch("/api/notifications/order-status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(normalizedOrder)
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: normalizedOrder, userId }),
     });
-    console.log(`[OrderSync] Email intimation sent for Order #${normalizedOrder.id}`);
+    if (res.ok) {
+      const data = await res.json();
+      console.log(`[OrderSync] Order #${normalizedOrder.id} successfully saved to server & Cloud Firestore.`);
+      if (data?.order) {
+        useOrderStore.getState().addOrder(data.order);
+      }
+    } else {
+      console.warn('[OrderSync] Server responded with error status:', res.status);
+    }
   } catch (err) {
-    console.warn("[OrderSync] Notification API error:", err);
+    console.warn('[OrderSync] Failed to post order to /api/orders:', err);
   }
 }
 
@@ -95,7 +57,7 @@ export function playOrderAlertSound() {
     if (!AudioContext) return;
     const ctx = new AudioContext();
     
-    // Play double chime note
+    // Play double chime note (D5 -> A5)
     const playNote = (freq: number, startTime: number, duration: number) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -118,7 +80,9 @@ export function playOrderAlertSound() {
 }
 
 /**
- * Real-time Firestore & Local listener setup for Admin pages
+ * Real-time Server & Local listener setup for Admin pages
+ * Polls the centralized Server/Cloud Firestore API so orders placed from Mobile, Laptop,
+ * or ANY device are instantly synced into Admin and trigger audio/visual alerts.
  */
 export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
   if (typeof window === 'undefined') return () => {};
@@ -160,50 +124,66 @@ export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
     }
   } catch (e) {}
 
-  // C. Listen to Firestore real-time collection (Works cross-device)
-  try {
-    if (db) {
-      const ordersColRef = collection(db, "orders");
-      const unsubscribeFirestore = onSnapshot(ordersColRef, (snapshot) => {
-        const firestoreOrders: Order[] = [];
-        snapshot.forEach((docSnap) => {
-          const raw = docSnap.data() as Order;
-          if (raw && raw.id) {
-            firestoreOrders.push({
-              ...raw,
-              status: normalizeOrderStatus(raw.status)
+  // C. Centralized Server Sync (Works cross-device: Mobile <-> Laptop <-> Admin)
+  let isPolling = true;
+
+  const fetchLatestServerOrders = async () => {
+    try {
+      const res = await fetch('/api/orders?admin=true', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data?.orders) && data.orders.length > 0) {
+          const serverOrders: Order[] = data.orders.map((o: Order) => ({
+            ...o,
+            status: normalizeOrderStatus(o.status)
+          }));
+
+          const prevOrders = useOrderStore.getState().orders;
+
+          // Check if any brand new orders arrived from other devices (e.g. Mobile browser)
+          if (prevOrders.length > 0) {
+            serverOrders.forEach(serverOrder => {
+              if (!prevOrders.some(p => p.id === serverOrder.id)) {
+                // New order discovered from cloud!
+                playOrderAlertSound();
+                if (onNewLiveOrder) onNewLiveOrder(serverOrder);
+              }
             });
           }
-        });
 
-        // Sort descending by date
-        firestoreOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          // Merge server orders with local orders (preferring newest updates)
+          const mergedMap = new Map<string, Order>();
+          serverOrders.forEach(o => mergedMap.set(o.id, o));
+          prevOrders.forEach(o => {
+            if (!mergedMap.has(o.id)) mergedMap.set(o.id, o);
+          });
 
-        const prevOrders = useOrderStore.getState().orders;
+          const finalList = Array.from(mergedMap.values()).sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
 
-        // Check for newly added documents in real-time
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === "added") {
-            const addedOrder = change.doc.data() as Order;
-            if (prevOrders.length > 0 && !prevOrders.some(o => o.id === addedOrder.id)) {
-              playOrderAlertSound();
-              if (onNewLiveOrder) onNewLiveOrder(addedOrder);
-            }
-          }
-        });
-
-        if (firestoreOrders.length > 0) {
-          useOrderStore.setState({ orders: firestoreOrders });
+          useOrderStore.setState({ orders: finalList });
         }
-      }, (err) => {
-        console.warn("[OrderSync] Firestore subscription warning:", err);
-      });
-
-      unsubscribes.push(unsubscribeFirestore);
+      }
+    } catch (err) {
+      console.warn('[OrderSync] Server polling error:', err);
     }
-  } catch (err) {
-    console.warn("[OrderSync] Realtime setup error:", err);
-  }
+  };
+
+  // Immediate initial sync
+  fetchLatestServerOrders();
+
+  // Periodic polling every 4 seconds for real-time cross-device sync
+  const intervalId = setInterval(() => {
+    if (isPolling) {
+      fetchLatestServerOrders();
+    }
+  }, 4000);
+
+  unsubscribes.push(() => {
+    isPolling = false;
+    clearInterval(intervalId);
+  });
 
   return () => {
     unsubscribes.forEach(fn => fn());
@@ -211,33 +191,44 @@ export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
 }
 
 /**
- * Update an existing order in Firestore and broadcast to all tabs
+ * Update an existing order via Server API and broadcast to all tabs
  */
 export async function updateOrderInFirestore(orderId: string, updates: Partial<Order>) {
-  if (!db) return;
-  try {
-    const orderRef = doc(db, "orders", orderId);
-    await setDoc(orderRef, updates, { merge: true });
+  // 1. Update local Zustand state immediately
+  if (updates.status) {
+    useOrderStore.getState().updateOrderStatus(orderId, normalizeOrderStatus(updates.status), updates);
+  }
 
-    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
-      try {
-        const channel = new BroadcastChannel('devam_orders_channel');
-        channel.postMessage({ type: 'UPDATE_ORDER', orderId, updates });
-        channel.close();
-      } catch (e) {}
-    }
+  // 2. Broadcast across tabs
+  if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+    try {
+      const channel = new BroadcastChannel('devam_orders_channel');
+      channel.postMessage({ type: 'UPDATE_ORDER', orderId, updates });
+      channel.close();
+    } catch (e) {}
+  }
+
+  // 3. Update via Server API
+  try {
+    await fetch('/api/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, updates }),
+    });
+    console.log(`[OrderSync] Order #${orderId} updated on server.`);
   } catch (err) {
-    console.warn("[OrderSync] Failed to update order in Firestore:", err);
+    console.warn('[OrderSync] Failed to update order on server:', err);
   }
 }
 
 /**
- * Cancel an order, update Firestore, sync with local store, broadcast to tabs, and trigger email notification
+ * Cancel an order, update Server, sync with local store, broadcast to tabs, and trigger email notification
  */
 export async function cancelOrderAndNotify(targetOrder: Order, reason?: string, userId?: string) {
   const nowIso = new Date().toISOString();
   const updates: Partial<Order> = {
     status: 'Cancelled',
+    cancellationReason: reason || 'Cancelled by Customer',
     timeline: {
       ...(targetOrder.timeline || {}),
       cancelled: nowIso
@@ -259,36 +250,18 @@ export async function cancelOrderAndNotify(targetOrder: Order, reason?: string, 
     } catch (e) {}
   }
 
-  // 3. Update Firestore
-  if (db) {
-    try {
-      const orderRef = doc(db, "orders", targetOrder.id);
-      await setDoc(orderRef, updates, { merge: true });
-
-      if (userId) {
-        const userRef = doc(db, "users", userId);
-        await setDoc(userRef, {
-          orders: arrayUnion({ ...targetOrder, ...updates })
-        }, { merge: true });
-      }
-
-      const email = (targetOrder.customerEmail || "").toLowerCase();
-      if (email && email !== "guest@thedevam.com") {
-        const { collection, query, where, getDocs } = await import("firebase/firestore");
-        const q = query(collection(db, "users"), where("email", "==", email));
-        const snap = await getDocs(q);
-        snap.forEach(async (dSnap) => {
-          await setDoc(doc(db, "users", dSnap.id), {
-            orders: arrayUnion({ ...targetOrder, ...updates })
-          }, { merge: true });
-        });
-      }
-    } catch (err) {
-      console.warn("[OrderSync] Cancel order Firestore error:", err);
-    }
+  // 3. Update Server & Cloud Firestore
+  try {
+    await fetch('/api/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId: targetOrder.id, updates }),
+    });
+  } catch (err) {
+    console.warn('[OrderSync] Server cancel order error:', err);
   }
 
-  // 4. Trigger Email & Notification API
+  // 4. Trigger Email Notification API
   try {
     await fetch("/api/notifications/order-status", {
       method: "POST",

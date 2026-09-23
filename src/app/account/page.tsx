@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import { User, Package, MapPin, LogOut, CreditCard, Gift, Heart, Star, Bell, ChevronRight, Edit2, Plus, Settings, Camera, Loader2, ChevronDown, ChevronUp, Clock, XCircle, X } from "lucide-react";
 import { useOrderStore, Order, normalizeOrderStatus } from "@/store/orderStore";
@@ -77,7 +77,55 @@ export default function AccountPage() {
     }
   };
 
-  // Cross-device Firestore order listener for the current user
+  const [cloudOrders, setCloudOrders] = useState<Order[]>([]);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(false);
+
+  // Cross-device Server & Cloud Firestore order fetcher
+  const fetchCloudOrders = useCallback(async () => {
+    const email = user?.email || userData?.email || '';
+    const phone = user?.phoneNumber || userData?.mobile || userData?.phone || '';
+    const uid = user?.uid || userData?.uid || '';
+
+    if (!email && !phone && !uid) return;
+
+    try {
+      setIsOrdersLoading(true);
+      const queryParams = new URLSearchParams();
+      if (email) queryParams.set('email', email);
+      if (phone) queryParams.set('phone', phone);
+      if (uid) queryParams.set('userId', uid);
+
+      const res = await fetch(`/api/orders?${queryParams.toString()}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data?.orders)) {
+          setCloudOrders(data.orders);
+          // Merge into global orderStore
+          const current = useOrderStore.getState().orders;
+          const mergedMap = new Map<string, Order>();
+          data.orders.forEach((o: Order) => mergedMap.set(o.id, o));
+          current.forEach((o: Order) => {
+            if (!mergedMap.has(o.id)) mergedMap.set(o.id, o);
+          });
+          const mergedList = Array.from(mergedMap.values()).sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+          useOrderStore.setState({ orders: mergedList });
+        }
+      }
+    } catch (e) {
+      console.warn('[Account] Cloud orders fetch error:', e);
+    } finally {
+      setIsOrdersLoading(false);
+    }
+  }, [user, userData]);
+
+  // Sync orders on tab activation and user update
+  useEffect(() => {
+    fetchCloudOrders();
+  }, [fetchCloudOrders, activeTab]);
+
+  // Cross-device Firestore order listener for the current user (if client db active)
   useEffect(() => {
     if (!db || !user?.email) return;
     try {
@@ -111,18 +159,19 @@ export default function AccountPage() {
           );
           useOrderStore.setState({ orders: mergedList });
         }
-      }, (err) => {
-        console.warn("[Account] Order subscription notice:", err);
-      });
+      }, () => {});
       return () => unsubscribe();
-    } catch (e) {
-      console.warn("[Account] Firestore listener error:", e);
-    }
+    } catch (e) {}
   }, [user?.email]);
 
-  // Combined orders ensuring cross-device visibility
+  // Combined orders ensuring cross-device visibility across Mobile, Laptop, and Cloud
   const orders = useMemo(() => {
     const map = new Map<string, Order>();
+    if (Array.isArray(cloudOrders)) {
+      cloudOrders.forEach((o: any) => {
+        if (o?.id) map.set(o.id, o);
+      });
+    }
     if (Array.isArray(userData?.orders)) {
       userData.orders.forEach((o: any) => {
         if (o?.id) map.set(o.id, o);
@@ -145,7 +194,7 @@ export default function AccountPage() {
     return Array.from(map.values()).sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
-  }, [userData?.orders, localOrders]);
+  }, [cloudOrders, userData?.orders, localOrders]);
 
   const toggleTimeline = (orderId: string) => {
     setExpandedTimelines((prev) => ({

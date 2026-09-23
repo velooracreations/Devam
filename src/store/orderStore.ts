@@ -29,6 +29,7 @@ export interface Order {
   courierPartner?: string;
   cancellationReason?: string;
   gstNumber?: string;
+  updatedAt?: string;
 }
 
 interface OrderState {

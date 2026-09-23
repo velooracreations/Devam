@@ -235,8 +235,8 @@ export default function CheckoutPage() {
         timeline: {
           orderPlaced:   now,
         },
-        customerName:    addr.name  || user?.displayName || "Customer",
-        customerEmail:   user?.email || "guest@thedevam.com",
+        customerName:    addr.name  || userData?.name || user?.displayName || "Customer",
+        customerEmail:   user?.email || userData?.email || (typeof window !== 'undefined' ? (localStorage.getItem('devam_user_email') || '') : '') || "guest@thedevam.com",
         customerPhone:   addr.phone,
         shippingAddress: fullAddr,
       };
@@ -247,8 +247,9 @@ export default function CheckoutPage() {
         lsRemove(LS_ADDR, LS_SEL, LS_STEP);             // clear draft
         setPlacedOrder(orderData);
         setPlacing(false);
-        // Save to Firestore, update user profile, broadcast real-time to Admin, and trigger mail notification
-        await saveOrderAndNotify(orderData, user?.uid);
+        // Save to Cloud Firestore + Server cache, update user profile, broadcast real-time to Admin, and trigger mail notification
+        const activeUid = user?.uid || userData?.uid || (typeof window !== 'undefined' ? (localStorage.getItem('devam_user_uid') || undefined) : undefined);
+        await saveOrderAndNotify(orderData, activeUid);
       };
 
       // ── COD path ────────────────────────────────────────────────────────

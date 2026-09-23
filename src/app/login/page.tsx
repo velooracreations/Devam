@@ -35,6 +35,10 @@ export default function LoginPage() {
       if (isLogin) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         setUser(userCredential.user);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("devam_user_email", email.toLowerCase());
+          localStorage.setItem("devam_user_uid", userCredential.user.uid);
+        }
         toast.success("Welcome back to Devam!");
       } else {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -53,13 +57,22 @@ export default function LoginPage() {
         });
         
         setUser(userCredential.user);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("devam_user_email", email.toLowerCase());
+          localStorage.setItem("devam_user_uid", userCredential.user.uid);
+        }
         toast.success("Account created successfully!");
       }
       router.push(redirectUrl);
     } catch (error: any) {
       console.error("Auth Error:", error);
       if (error.code === "auth/unauthorized-domain") {
-        setUser({ uid: "user-session-123", email, displayName: name || email.split('@')[0] } as any);
+        const fallbackUser = { uid: "user-session-123", email, displayName: name || email.split('@')[0] };
+        setUser(fallbackUser as any);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("devam_user_email", email.toLowerCase());
+          localStorage.setItem("devam_user_uid", fallbackUser.uid);
+        }
         toast.success("Welcome back to Devam!");
         router.push(redirectUrl);
         return;
@@ -80,11 +93,20 @@ export default function LoginPage() {
     try {
       const userCredential = await signInWithPopup(auth, provider);
       setUser(userCredential.user);
+      if (typeof window !== "undefined") {
+        if (userCredential.user.email) localStorage.setItem("devam_user_email", userCredential.user.email.toLowerCase());
+        localStorage.setItem("devam_user_uid", userCredential.user.uid);
+      }
       toast.success("Signed in with Google!");
       router.push(redirectUrl);
     } catch (error: any) {
       if (error.code === "auth/unauthorized-domain") {
-        setUser({ uid: "google-user-123", email: "customer@thedevam.com", displayName: "Devam Customer" } as any);
+        const fallbackUser = { uid: "google-user-123", email: "customer@thedevam.com", displayName: "Devam Customer" };
+        setUser(fallbackUser as any);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("devam_user_email", fallbackUser.email);
+          localStorage.setItem("devam_user_uid", fallbackUser.uid);
+        }
         toast.success("Signed in with Google!");
         router.push(redirectUrl);
         return;
