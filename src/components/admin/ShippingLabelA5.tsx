@@ -558,22 +558,22 @@ export function ShippingLabelA5({
         >
           <thead>
             <tr style={{ borderBottom: "1.5px solid #000", background: "#f2f2f2" }}>
-              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "26px", textAlign: "center" }}>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "22px", textAlign: "center" }}>
                 #
               </th>
               <th style={{ padding: "5px 6px", fontWeight: "bold" }}>
                 Product Name &amp; Batch Details
               </th>
-              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "65px", textAlign: "center" }}>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "48px", textAlign: "center" }}>
                 Variant
               </th>
-              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "38px", textAlign: "center" }}>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "30px", textAlign: "center" }}>
                 Qty
               </th>
-              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "65px", textAlign: "right" }}>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "50px", textAlign: "right" }}>
                 Price (₹)
               </th>
-              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "65px", textAlign: "right" }}>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "55px", textAlign: "right" }}>
                 Total (₹)
               </th>
             </tr>
@@ -595,17 +595,24 @@ export function ShippingLabelA5({
                       <div style={{ fontWeight: "700", fontSize: "11px", color: "#000" }}>
                         {displayName}
                       </div>
-                      {/* Product Batch Details Line */}
+                      {/* Product Batch Details Line - Strictly Single Line */}
                       <div
                         style={{
-                          fontSize: "9px",
+                          fontSize: "8.5px",
                           color: "#333",
                           marginTop: "2px",
-                          lineHeight: "1.3",
-                          fontFamily: "monospace",
+                          lineHeight: "1.25",
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        B.No: <strong>{batch.batchNo}</strong> &nbsp;|&nbsp; Mfg: <strong>{batch.mfgDate}</strong> &nbsp;|&nbsp; Exp: <strong>{batch.expDate}</strong>
+                        <span style={{ color: "#555" }}>B.No:</span>{" "}
+                        <strong style={{ fontWeight: "700" }}>{batch.batchNo}</strong>
+                        <span style={{ color: "#aaa", margin: "0 4px" }}>|</span>
+                        <span style={{ color: "#555" }}>Mfg:</span>{" "}
+                        <strong style={{ fontWeight: "700" }}>{batch.mfgDate}</strong>
+                        <span style={{ color: "#aaa", margin: "0 4px" }}>|</span>
+                        <span style={{ color: "#555" }}>Exp:</span>{" "}
+                        <strong style={{ fontWeight: "700" }}>{batch.expDate}</strong>
                       </div>
                     </td>
                     <td style={{ padding: "6px 4px", textAlign: "center", color: "#555", verticalAlign: "top" }}>

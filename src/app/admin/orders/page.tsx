@@ -953,9 +953,12 @@ export default function AdminOrdersPage() {
                             </div>
                             <div>
                               <p className="font-bold text-gray-900">{item.name}</p>
-                              <p className="text-gray-500">Qty: {item.quantity} {item.weight ? `(${item.weight})` : ''} × ₹{item.price}</p>
-                              <p className="text-[10px] text-gray-600 font-mono mt-0.5">
-                                B.No: <strong>{curBatch.batchNo}</strong> | Mfg: <strong>{curBatch.mfgDate}</strong> | Exp: <strong>{curBatch.expDate}</strong>
+                              <p className="text-[10px] text-gray-600 mt-0.5 whitespace-nowrap">
+                                <span className="text-gray-500">B.No:</span> <strong className="font-semibold text-gray-800">{curBatch.batchNo}</strong>
+                                <span className="text-gray-300 mx-1.5">|</span>
+                                <span className="text-gray-500">Mfg:</span> <strong className="font-semibold text-gray-800">{curBatch.mfgDate}</strong>
+                                <span className="text-gray-300 mx-1.5">|</span>
+                                <span className="text-gray-500">Exp:</span> <strong className="font-semibold text-gray-800">{curBatch.expDate}</strong>
                               </p>
                             </div>
                           </div>
