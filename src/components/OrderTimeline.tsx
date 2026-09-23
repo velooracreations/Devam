@@ -124,6 +124,11 @@ export default function OrderTimeline({ order }: OrderTimelineProps) {
         <p className="text-xs text-red-700 leading-relaxed">
           This order was cancelled {cancelledTime ? `on ${cancelledTime.dateStr} at ${cancelledTime.timeStr}` : ""}. An automated email intimation has been delivered to the seller &amp; customer.
         </p>
+        {(order as any).cancellationReason && (
+          <p className="text-xs font-semibold text-red-800 mt-1">
+            Reason: &ldquo;{(order as any).cancellationReason}&rdquo;
+          </p>
+        )}
       </div>
     );
   }

@@ -1,9 +1,48 @@
 import { NextResponse } from 'next/server';
+import { 
+  sendOrderNotificationEmail, 
+  sendTestEmail, 
+  verifyEmailConfiguration, 
+  ADMIN_NOTIFICATION_EMAILS,
+  NotificationPayload 
+} from '@/lib/notifications';
 
-// ── Admin configuration ───────────────────────────────────────────────────────
 const ADMIN_WHATSAPP = process.env.ADMIN_WHATSAPP_NUMBER || '919979640900';
-const ADMIN_EMAILS   = ['thedevam2024@gmail.com', 'info@thedevam.com'];
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+/**
+ * Diagnostic and Test Email Endpoint
+ * GET /api/notifications/order-status
+ * GET /api/notifications/order-status?action=test&to=thedevam2024@gmail.com
+ */
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const action = searchParams.get('action');
+    const to = searchParams.get('to');
+
+    if (action === 'test') {
+      const testResult = await sendTestEmail(to || undefined);
+      return NextResponse.json(testResult);
+    }
+
+    const config = verifyEmailConfiguration();
+    return NextResponse.json({
+      success: true,
+      service: 'Devam Notification Engine',
+      config
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+/**
+ * Dispatch Order Placed or Order Cancelled notification
+ * POST /api/notifications/order-status
+ */
 export async function POST(req: Request) {
   try {
     const payload = await req.json();
@@ -11,30 +50,44 @@ export async function POST(req: Request) {
       id, orderId: rawOrderId, customerName, customerEmail,
       customerPhone, totalAmount, items, status, shippingAddress,
       paymentMethod, trackingNumber, courierPartner, date,
+      cancellationReason
     } = payload;
 
-    const orderId     = id || rawOrderId || 'N/A';
+    const orderId = id || rawOrderId || 'N/A';
     const orderStatus = status || 'Order Placed';
 
-    if (!orderId) {
+    if (!orderId || orderId === 'N/A') {
       return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
     }
 
-    const results: Record<string, any> = { orderId, status: orderStatus };
+    const notificationPayload: NotificationPayload = {
+      orderId,
+      customerName: customerName || 'Valued Customer',
+      customerEmail,
+      customerPhone,
+      totalAmount: totalAmount || 0,
+      items: items || [],
+      status: orderStatus,
+      shippingAddress,
+      paymentMethod,
+      trackingNumber,
+      courierPartner,
+      cancellationReason,
+      date
+    };
 
-    // ── 1. Build admin WhatsApp message ───────────────────────────────────────
-    const itemList = (items || [])
-      .map((i: any) => `  • ${i.name} (${i.weight || ''}) ×${i.quantity} @ ₹${i.price}`)
-      .join('\n');
+    // 1. Dispatch Email to Admins & Customer
+    const emailResult = await sendOrderNotificationEmail(notificationPayload);
 
+    // 2. Build WhatsApp Click-to-Chat deep links for instant fallback
+    const isCancelled = orderStatus === 'Cancelled' || orderStatus.toLowerCase().includes('cancel');
     const orderDate = date
       ? new Date(date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
       : new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
 
-    const isCancelled = orderStatus === 'Cancelled';
-    const emailSubject = isCancelled 
-      ? `❌ Order #${orderId} CANCELLED — ₹${totalAmount} | ${customerName || 'Customer'}`
-      : `🚨 Order #${orderId} Update [${orderStatus}] — ₹${totalAmount} | ${customerName || 'Guest'}`;
+    const itemList = (items || [])
+      .map((i: any) => `  • ${i.name} (${i.weight || ''}) ×${i.quantity} @ ₹${i.price}`)
+      .join('\n');
 
     const adminHeader = isCancelled
       ? `❌ *ORDER CANCELLED BY CUSTOMER — DEVAM*`
@@ -46,7 +99,7 @@ export async function POST(req: Request) {
       `📦 *Order ID:* ${orderId}`,
       `📅 *Date:* ${orderDate}`,
       `📊 *Status:* ${orderStatus.toUpperCase()}`,
-      ...(isCancelled ? [`⚠️ *Cancellation Reason:* ${payload.cancellationReason || 'Cancelled by customer in My Account'}`] : []),
+      ...(isCancelled ? [`⚠️ *Cancellation Reason:* ${cancellationReason || 'Cancelled by customer in My Account'}`] : []),
       ``,
       `👤 *Customer Details*`,
       `  Name: ${customerName || 'Guest'}`,
@@ -65,16 +118,16 @@ export async function POST(req: Request) {
       `🔗 Manage orders: https://thedevam.com/admin/orders`,
     ].join('\n');
 
-    const cleanPhone           = (customerPhone || '').replace(/\D/g, '');
+    const cleanPhone = (customerPhone || '').replace(/\D/g, '');
     const customerWhatsappPhone = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
 
-    const adminWhatsappUrl    = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`;
-    const customerMsg         = isCancelled ? [
+    const adminWhatsappUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`;
+    const customerMsg = isCancelled ? [
       `❌ *Order Cancelled — Devam Atta & Spices*`,
       ``,
       `Hi ${customerName || 'Valued Customer'},`,
       `Your order #${orderId} (₹${totalAmount}) has been cancelled.`,
-      ``,
+      ...(cancellationReason ? [`Reason: ${cancellationReason}`, ``] : [``]),
       `If you have paid online, your refund will be processed within 3-5 business days.`,
       `Track account: https://thedevam.com/account`,
       ``,
@@ -99,39 +152,15 @@ export async function POST(req: Request) {
 
     const customerWhatsappUrl = `https://wa.me/${customerWhatsappPhone}?text=${encodeURIComponent(customerMsg)}`;
 
-    results.adminWhatsappUrl   = adminWhatsappUrl;
-    results.customerWhatsappUrl = customerWhatsappUrl;
-    results.adminMessage        = adminMsg;
-
-    // ── 2. Send email via SMTP if configured ──────────────────────────────────
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      try {
-        const getReq = eval('require');
-        const nodemailer = getReq('nodemailer');
-        const transporter = nodemailer.createTransport({
-          host:   process.env.SMTP_HOST,
-          port:   parseInt(process.env.SMTP_PORT || '587'),
-          secure: process.env.SMTP_SECURE === 'true',
-          auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-        });
-
-        const plainText = adminMsg.replace(/\*/g, '');
-        await transporter.sendMail({
-          from:    process.env.SMTP_FROM || '"Devam Order Notification" <thedevam2024@gmail.com>',
-          to:      [...ADMIN_EMAILS, customerEmail].filter(Boolean).join(', '),
-          subject: emailSubject,
-          text:    plainText,
-        });
-        results.email = `sent to admins + ${customerEmail || 'customer'}`;
-      } catch (emailErr: any) {
-        console.warn('[Notify] Email send failed:', emailErr.message);
-        results.email = 'failed';
-      }
-    } else {
-      results.email = 'smtp_not_configured';
-    }
-
-    return NextResponse.json({ success: true, ...results });
+    return NextResponse.json({
+      success: true,
+      orderId,
+      status: orderStatus,
+      email: emailResult,
+      adminWhatsappUrl,
+      customerWhatsappUrl,
+      adminMessage: adminMsg
+    });
 
   } catch (error: any) {
     console.error('[Notify] Order notification error:', error);

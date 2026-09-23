@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { saveServerOrder, getAllServerOrders, getCustomerServerOrders, updateServerOrder } from '@/lib/serverOrders';
+import { sendOrderNotificationEmail, NotificationPayload } from '@/lib/notifications';
 import { Order } from '@/store/orderStore';
 
 export const dynamic = 'force-dynamic';
@@ -45,17 +46,34 @@ export async function POST(request: Request) {
     // 1. Save to persistent Cloud Firestore + Server Cache
     const savedOrder = await saveServerOrder(order as Order, userId);
 
-    // 2. Dispatch notifications to Admin and Customer asynchronously
+    // 2. Dispatch in-process email notification to Admin & Customer immediately
+    let notificationResult: any = null;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-      fetch(`${baseUrl}/api/notifications/order-status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(savedOrder),
-      }).catch(err => console.warn('[API/orders] Background notification trigger:', err));
-    } catch {}
+      notificationResult = await sendOrderNotificationEmail({
+        orderId: savedOrder.id,
+        customerName: savedOrder.customerName,
+        customerEmail: savedOrder.customerEmail,
+        customerPhone: savedOrder.customerPhone,
+        totalAmount: savedOrder.totalAmount,
+        items: savedOrder.items,
+        status: savedOrder.status || 'Order Placed',
+        shippingAddress: savedOrder.shippingAddress,
+        paymentMethod: savedOrder.paymentMethod,
+        trackingNumber: savedOrder.trackingNumber,
+        courierPartner: savedOrder.courierPartner,
+        date: savedOrder.date,
+        userId
+      });
+      console.log(`[API/orders] Order #${savedOrder.id} email intimation dispatch:`, notificationResult.diagnostic);
+    } catch (notifyErr: any) {
+      console.error('[API/orders] Error sending order placement email:', notifyErr.message);
+    }
 
-    return NextResponse.json({ success: true, order: savedOrder });
+    return NextResponse.json({ 
+      success: true, 
+      order: savedOrder,
+      notification: notificationResult 
+    });
   } catch (error: any) {
     console.error('[API/orders] POST error:', error);
     return NextResponse.json({ error: error.message || 'Failed to save order' }, { status: 500 });
@@ -76,17 +94,37 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
-    // If status was changed or cancelled, trigger notification
+    // Dispatch notification if status changed, especially when cancelled
+    let notificationResult: any = null;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-      fetch(`${baseUrl}/api/notifications/order-status`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedOrder),
-      }).catch(err => console.warn('[API/orders] Status update notification trigger:', err));
-    } catch {}
+      const isCancelled = updates.status === 'Cancelled' || updatedOrder.status === 'Cancelled';
+      const reason = updates.cancellationReason || (updatedOrder as any).cancellationReason;
 
-    return NextResponse.json({ success: true, order: updatedOrder });
+      notificationResult = await sendOrderNotificationEmail({
+        orderId: updatedOrder.id,
+        customerName: updatedOrder.customerName,
+        customerEmail: updatedOrder.customerEmail,
+        customerPhone: updatedOrder.customerPhone,
+        totalAmount: updatedOrder.totalAmount,
+        items: updatedOrder.items,
+        status: updatedOrder.status,
+        shippingAddress: updatedOrder.shippingAddress,
+        paymentMethod: updatedOrder.paymentMethod,
+        trackingNumber: updatedOrder.trackingNumber,
+        courierPartner: updatedOrder.courierPartner,
+        cancellationReason: reason,
+        date: updatedOrder.date,
+      });
+      console.log(`[API/orders] Order #${updatedOrder.id} update intimation dispatch:`, notificationResult.diagnostic);
+    } catch (notifyErr: any) {
+      console.error('[API/orders] Error sending order update email:', notifyErr.message);
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      order: updatedOrder,
+      notification: notificationResult 
+    });
   } catch (error: any) {
     console.error('[API/orders] PATCH error:', error);
     return NextResponse.json({ error: error.message || 'Failed to update order' }, { status: 500 });

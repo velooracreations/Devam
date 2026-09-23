@@ -25,6 +25,7 @@ import {
 // ── Address shape ────────────────────────────────────────────────────────────
 const EMPTY_ADDR = {
   name: "",
+  email: "",
   phone: "",
   pin: "",
   houseNo: "",
@@ -136,6 +137,7 @@ export default function CheckoutPage() {
       setForm((p) => ({
         ...p,
         name:  p.name  || userData?.name  || user?.displayName || "",
+        email: p.email || user?.email || userData?.email || (typeof window !== 'undefined' ? (localStorage.getItem('devam_user_email') || '') : '') || "",
         phone: p.phone || userData?.mobile || "",
       }));
     }
@@ -165,6 +167,7 @@ export default function CheckoutPage() {
     setSelId(addr.id ?? "new");
     setForm({
       name:         addr.name         ?? userData?.name ?? user?.displayName ?? "",
+      email:        addr.email        ?? user?.email ?? userData?.email ?? (typeof window !== 'undefined' ? (localStorage.getItem('devam_user_email') || '') : '') ?? "",
       phone:        addr.phone        ?? userData?.mobile ?? "",
       pin:          addr.pin          ?? "",
       houseNo:      addr.houseNo      ?? "",
@@ -249,10 +252,14 @@ export default function CheckoutPage() {
           orderPlaced:   now,
         },
         customerName:    addr.name  || userData?.name || user?.displayName || "Customer",
-        customerEmail:   user?.email || userData?.email || (typeof window !== 'undefined' ? (localStorage.getItem('devam_user_email') || '') : '') || "guest@thedevam.com",
+        customerEmail:   form.email?.trim() || user?.email || userData?.email || (typeof window !== 'undefined' ? (localStorage.getItem('devam_user_email') || '') : '') || "guest@thedevam.com",
         customerPhone:   addr.phone,
         shippingAddress: fullAddr,
       };
+
+      if (form.email && typeof window !== 'undefined') {
+        try { localStorage.setItem('devam_user_email', form.email.trim()); } catch {}
+      }
 
       // ── Finalize helper (saves order to Firestore, notifies Admin, sends Email) ──
       const finalize = async () => {
@@ -518,6 +525,19 @@ export default function CheckoutPage() {
                           className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[var(--color-devam-red)] outline-none"
                           placeholder="10-digit mobile" />
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">
+                        Email Address <span className="text-gray-400 font-normal">(for order confirmation &amp; invoice intimation)</span>
+                      </label>
+                      <input 
+                        type="email" 
+                        value={form.email || ''} 
+                        onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[var(--color-devam-red)] outline-none"
+                        placeholder="yourname@gmail.com" 
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

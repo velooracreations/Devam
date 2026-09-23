@@ -28,9 +28,42 @@ export default function AdminSettingsPage() {
   const [qrEmail, setQrEmail] = useState("");
   const [copied, setCopied] = useState(false);
 
+  // Email Notification Diagnostics
+  const [emailConfig, setEmailConfig] = useState<{ configured: boolean; provider: string; instructions?: string; adminRecipients?: string[] } | null>(null);
+  const [testEmailTarget, setTestEmailTarget] = useState("thedevam2024@gmail.com");
+  const [testingEmail, setTestingEmail] = useState(false);
+
   useEffect(() => {
     setAdminEmails(getAdminEmails());
+    fetch('/api/notifications/order-status')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.config) setEmailConfig(data.config);
+      })
+      .catch(() => {});
   }, []);
+
+  const handleSendTestEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testEmailTarget || !testEmailTarget.includes('@')) {
+      toast.error('Please enter a valid recipient email.');
+      return;
+    }
+    setTestingEmail(true);
+    try {
+      const res = await fetch(`/api/notifications/order-status?action=test&to=${encodeURIComponent(testEmailTarget)}`);
+      const data = await res.json();
+      if (data?.success) {
+        toast.success(data.message || `Test intimation delivered to ${testEmailTarget}!`);
+      } else {
+        toast.error(data?.message || 'Email delivery failed. Verify SMTP password in environment.');
+      }
+    } catch (err: any) {
+      toast.error('Test error: ' + err.message);
+    } finally {
+      setTestingEmail(false);
+    }
+  };
 
   const handleAddAdmin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,6 +295,94 @@ export default function AdminSettingsPage() {
             Update Password
           </button>
         </form>
+      </div>
+
+      {/* Automated Email Intimations & Deliverability Settings */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            <Mail className="w-5 h-5 text-emerald-700" />
+            Automated Order &amp; Cancellation Email Intimations
+          </h3>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${emailConfig?.configured ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+            {emailConfig?.configured ? `Active (${emailConfig.provider.toUpperCase()})` : 'Configuration Required'}
+          </span>
+        </div>
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+              <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Automated Triggers</h4>
+              <ul className="text-xs text-gray-600 space-y-1.5">
+                <li className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <strong>New Order Placed:</strong> Instant alert to Admin + Customer receipt
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                  <strong>Order Cancelled:</strong> Urgent alert to Admin + Cancellation intimation to Customer
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  <strong>Dispatched / Shipped:</strong> Tracking details delivered
+                </li>
+              </ul>
+            </div>
+
+            <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+              <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Admin Alert Recipient Inboxes</h4>
+              <div className="space-y-1">
+                <div className="text-xs font-mono font-bold text-gray-800 bg-white border border-gray-200 px-2.5 py-1 rounded">
+                  thedevam2024@gmail.com
+                </div>
+                <div className="text-xs font-mono font-bold text-gray-800 bg-white border border-gray-200 px-2.5 py-1 rounded">
+                  info@thedevam.com
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Test Email Dispatch Form */}
+          <div className="bg-emerald-50/50 border border-emerald-200 rounded-xl p-4">
+            <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wider mb-1">
+              Test Live Intimation Dispatch
+            </h4>
+            <p className="text-xs text-emerald-800 mb-3">
+              Trigger a simulated order notification to verify that Gmail App Password or Resend credentials are functioning properly.
+            </p>
+            <form onSubmit={handleSendTestEmail} className="flex flex-col sm:flex-row gap-2.5">
+              <input
+                type="email"
+                value={testEmailTarget}
+                onChange={(e) => setTestEmailTarget(e.target.value)}
+                placeholder="Enter recipient email (e.g. thedevam2024@gmail.com)"
+                className="flex-1 px-3.5 py-2 text-xs border border-emerald-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                required
+              />
+              <button
+                type="submit"
+                disabled={testingEmail}
+                className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                {testingEmail ? 'Dispatching Test...' : 'Send Test Intimation'}
+              </button>
+            </form>
+          </div>
+
+          {/* Setup Guide Callout */}
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-2">
+            <h4 className="font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+              <span>📋</span> Gmail App Password Setup Instructions
+            </h4>
+            <ol className="list-decimal pl-4 space-y-1 text-amber-800">
+              <li>Log in to your store Google Account (<strong>thedevam2024@gmail.com</strong>).</li>
+              <li>Ensure <strong>2-Step Verification</strong> is enabled in your Google Account Security settings.</li>
+              <li>Visit <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="font-bold underline text-amber-900">https://myaccount.google.com/apppasswords</a>.</li>
+              <li>Create a new App Password named <strong>"Devam Store"</strong> and copy the 16-character code.</li>
+              <li>Add <code className="bg-white px-1.5 py-0.5 rounded border border-amber-300 font-bold">SMTP_PASS="your-16-char-code"</code> to your <code className="font-mono">.env.local</code> and Vercel Environment Variables.</li>
+            </ol>
+          </div>
+        </div>
       </div>
 
       {/* Master Recovery System Info */}

@@ -40,6 +40,36 @@ export default function AdminOrdersPage() {
   const [shippingModalOrder, setShippingModalOrder] = useState<Order | null>(null);
   const [trackingInput, setTrackingInput] = useState({ number: "", courier: "SpeedPost" });
 
+  // Email Intimation State
+  const [emailConfig, setEmailConfig] = useState<{ configured: boolean; provider: string; instructions?: string } | null>(null);
+  const [testingEmail, setTestingEmail] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/notifications/order-status')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.config) setEmailConfig(data.config);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleTestEmail = async () => {
+    setTestingEmail(true);
+    try {
+      const res = await fetch('/api/notifications/order-status?action=test&to=thedevam2024@gmail.com');
+      const data = await res.json();
+      if (data?.success) {
+        toast.success(data.message || 'Test intimation sent successfully to thedevam2024@gmail.com!');
+      } else {
+        toast.error(data?.message || 'Email delivery failed. Check SMTP configuration in .env.local.');
+      }
+    } catch (err: any) {
+      toast.error('Failed to trigger test email: ' + err.message);
+    } finally {
+      setTestingEmail(false);
+    }
+  };
+
   // Subscribe to live order stream (Firestore + Tab Broadcast)
   useEffect(() => {
     const unsub = subscribeToLiveOrders((newOrder) => {
@@ -89,7 +119,10 @@ export default function AdminOrdersPage() {
 
   const triggerNotification = async (targetOrder: Order, newStatus: Order['status'], extraTracking?: { trackingNumber: string; courierPartner: string }) => {
     try {
-      await fetch('/api/notifications/order-status', {
+      const isCancelled = newStatus === 'Cancelled';
+      const cancellationReason = (targetOrder as any).cancellationReason || (isCancelled ? 'Cancelled by Admin in Dashboard' : undefined);
+
+      const res = await fetch('/api/notifications/order-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -102,10 +135,20 @@ export default function AdminOrdersPage() {
           status: newStatus,
           shippingAddress: targetOrder.shippingAddress,
           trackingNumber: extraTracking?.trackingNumber || targetOrder.trackingNumber,
-          courierPartner: extraTracking?.courierPartner || targetOrder.courierPartner
+          courierPartner: extraTracking?.courierPartner || targetOrder.courierPartner,
+          cancellationReason,
+          date: targetOrder.date
         })
       });
-      toast.success(`Notification sent for order #${targetOrder.id}`);
+
+      const data = await res.json();
+      if (data?.email?.success) {
+        toast.success(`Intimation email delivered for order #${targetOrder.id}`);
+      } else if (data?.email?.diagnostic) {
+        toast.info(data.email.diagnostic);
+      } else {
+        toast.success(`Order #${targetOrder.id} status updated to ${newStatus}`);
+      }
     } catch (err) {
       console.error("Failed to dispatch notification", err);
     }
@@ -122,10 +165,40 @@ export default function AdminOrdersPage() {
         courier: targetOrder.courierPartner || "SpeedPost"
       });
     } else {
-      updateOrderStatus(id, newStatus);
+      const isCancelled = newStatus === 'Cancelled';
+      const cancellationReason = isCancelled ? 'Cancelled by Admin in Dashboard' : undefined;
       const updatedTimeline = computeTimeline(targetOrder.timeline, newStatus, targetOrder.date);
-      updateOrderInFirestore(id, { status: newStatus, timeline: updatedTimeline });
-      triggerNotification(targetOrder, newStatus);
+
+      updateOrderStatus(id, newStatus, {
+        ...(isCancelled ? { cancellationReason, cancelled: new Date().toISOString() } : {})
+      });
+      
+      updateOrderInFirestore(id, { 
+        status: newStatus, 
+        timeline: updatedTimeline,
+        ...(isCancelled ? { cancellationReason } : {})
+      });
+
+      // Synchronize with server orders API
+      fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId: id,
+          updates: {
+            status: newStatus,
+            timeline: updatedTimeline,
+            ...(isCancelled ? { cancellationReason } : {})
+          }
+        })
+      }).catch(err => console.warn('[AdminOrders] Server order patch warning:', err));
+
+      triggerNotification({
+        ...targetOrder,
+        status: newStatus,
+        timeline: updatedTimeline,
+        ...(isCancelled ? { cancellationReason } : {})
+      }, newStatus);
     }
   };
 
@@ -145,6 +218,21 @@ export default function AdminOrdersPage() {
       timeline: updatedTimeline
     });
 
+    // Synchronize with server orders API
+    fetch('/api/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: shippingModalOrder.id,
+        updates: {
+          status: 'Shipped',
+          trackingNumber: trackingInput.number,
+          courierPartner: trackingInput.courier,
+          timeline: updatedTimeline
+        }
+      })
+    }).catch(err => console.warn('[AdminOrders] Server order patch warning:', err));
+
     triggerNotification(shippingModalOrder, 'Shipped', {
       trackingNumber: trackingInput.number,
       courierPartner: trackingInput.courier
@@ -161,16 +249,29 @@ export default function AdminOrdersPage() {
         {/* Page Header & Quick Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <div>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
               <h1 className="text-2xl font-bold text-gray-900 font-heading">Order Tracking &amp; Management</h1>
               <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-full text-[11px] font-bold">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                 Live Stream Active
               </span>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${emailConfig?.configured ? 'bg-blue-50 text-blue-800 border-blue-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+                <Mail className="w-3 h-3" />
+                {emailConfig?.configured ? `Email Alerts: ${emailConfig.provider.toUpperCase()}` : 'Email Alerts: Setup Required'}
+              </span>
             </div>
             <p className="text-xs text-gray-500">Real-time customer order monitoring, live intimation alerts, and shipment label generation.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleTestEmail}
+              disabled={testingEmail}
+              className="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold px-3.5 py-2 rounded-xl text-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Send a live test order intimation email to admin inbox"
+            >
+              <Mail className="w-3.5 h-3.5 text-blue-600" />
+              {testingEmail ? 'Sending Test...' : 'Test Email Alert'}
+            </button>
             <button
               onClick={() => {
                 if (window.confirm("Are you sure you want to reset all order data and history?")) {
