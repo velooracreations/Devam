@@ -73,9 +73,14 @@ textarea:focus-visible {
   }
 
   .shipping-label-a5-root {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
     width: 100% !important;
     max-width: 138mm !important;
+    min-height: 196mm !important;
+    height: 196mm !important;
+    box-sizing: border-box !important;
     margin: 0 auto !important;
     padding: 0 !important;
     background: white !important;

@@ -102,6 +102,63 @@ export function formatOrderDateTime(dateStr?: string): string {
   return `${dateFormatted}, ${timeFormatted}`;
 }
 
+/**
+ * Intelligently ensures product name has a proper suffix (e.g. Flour, Atta, Masala, Grain)
+ */
+export function formatProductNameWithSuffix(rawName?: string, category?: string, weight?: string): string {
+  if (!rawName) return "Devam Food Product";
+  const name = rawName.trim();
+  const lower = name.toLowerCase();
+
+  // If already has descriptive suffix like Atta, Flour, Masala, Spices, Grain, Dal, Powder, Oil
+  if (
+    lower.includes("atta") ||
+    lower.includes("flour") ||
+    lower.includes("masala") ||
+    lower.includes("spice") ||
+    lower.includes("grain") ||
+    lower.includes("powder") ||
+    lower.includes("oil")
+  ) {
+    return name;
+  }
+
+  // Exact mappings for Devam products
+  const SUFFIX_MAP: Record<string, string> = {
+    "makkai": "Makkai Flour (Atta)",
+    "jowar": "Jowar Flour (Atta)",
+    "bajri": "Bajri Flour (Atta)",
+    "ragi": "Ragi Flour (Atta)",
+    "wheat": "Sharbati Wheat Flour (Atta)",
+    "sharbati": "Sharbati Wheat Flour (Atta)",
+    "chana": "Chana Dal Flour (Besan)",
+    "besan": "Pure Besan (Gram Flour)",
+    "haldi": "Haldi Powder (Turmeric Masala)",
+    "turmeric": "Pure Turmeric Powder",
+    "mirchi": "Lal Mirchi Powder (Chilli Masala)",
+    "dhaniya": "Dhaniya Jeera Powder (Coriander Cumin Masala)",
+    "garam": "Special Garam Masala",
+  };
+
+  if (SUFFIX_MAP[lower]) {
+    return SUFFIX_MAP[lower];
+  }
+
+  // Category based fallback
+  if (category && category.toLowerCase().includes("flour")) {
+    return `${name} Flour (Atta)`;
+  }
+  if (category && category.toLowerCase().includes("spice")) {
+    return `${name} Masala`;
+  }
+  if (category && category.toLowerCase().includes("grain")) {
+    return `${name} Whole Grain`;
+  }
+
+  // Default fallback for single-word food items
+  return `${name} Flour (Atta)`;
+}
+
 export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props) {
   const barcodeRef = useRef<SVGSVGElement>(null);
 
@@ -113,7 +170,7 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
           lineColor: "#000",
           width: 1.8,
           height: 38,
-          displayValue: false, // We render the custom formatted text below
+          displayValue: false, // We render the custom formatted monospace text below
           margin: 0,
         });
       } catch (err) {
@@ -138,28 +195,37 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
   const totalQuantity =
     order.items?.reduce((acc, item) => acc + (item.quantity || 1), 0) || 1;
 
+  // Calculate Subtotal and Delivery / Shipping Fee breakdown
+  const itemsSubtotal = (order.items || []).reduce(
+    (sum, item) => sum + (Number(item.price || 0) * Number(item.quantity || 1)),
+    0
+  );
+  const grandTotal = Number(order.totalAmount || itemsSubtotal);
+  const deliveryCharge = Math.max(0, grandTotal - itemsSubtotal);
+
   return (
     <div
       className={`shipping-label-a5-root bg-white text-black font-sans leading-tight ${className}`}
       style={{
         width: "100%",
         maxWidth: "138mm",
+        minHeight: "196mm",
         margin: "0 auto",
         boxSizing: "border-box",
         fontSize: "11px",
         color: "#000",
         backgroundColor: "#ffffff",
+        border: "2px solid #000",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
       }}
     >
-      <div
-        style={{
-          border: "2px solid #000",
-          width: "100%",
-          boxSizing: "border-box",
-          backgroundColor: "#fff",
-        }}
-      >
-        {/* 1. Header: Devam Logo (top left) + Brand Name & Subtext + Payment Method Badge */}
+      {/* ──────────────────────────────────────────────────────────────────────── */}
+      {/* TOP SECTION: Header, Metadata, Ship To / Ship From                       */}
+      {/* ──────────────────────────────────────────────────────────────────────── */}
+      <div style={{ flexShrink: 0 }}>
+        {/* 1. Header: Devam Logo + Brand Title + Tax Invoice Subtitle + Payment Badge */}
         <div
           style={{
             display: "flex",
@@ -196,12 +262,14 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
               <div
                 style={{
                   fontSize: "9px",
-                  color: "#444",
+                  color: "#333",
                   marginTop: "2px",
-                  fontWeight: "600",
+                  fontWeight: "700",
+                  letterSpacing: "0.5px",
+                  textTransform: "uppercase",
                 }}
               >
-                Shreeji Gruh Udhyog, Jhalod, Gujarat | www.thedevam.com
+                TAX INVOICE &amp; SHIPPING LABEL | www.thedevam.com
               </div>
             </div>
           </div>
@@ -214,13 +282,14 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
               textTransform: "uppercase",
               letterSpacing: "1px",
               whiteSpace: "nowrap",
+              backgroundColor: isCod ? "#fff" : "#f2f2f2",
             }}
           >
             {isCod ? "C.O.D" : "PREPAID"}
           </div>
         </div>
 
-        {/* 2. Order Metadata: Order ID, Date & Time, Total Amount */}
+        {/* 2. Order Metadata: Order ID, Date & Time, Payment Mode */}
         <div
           style={{
             display: "flex",
@@ -233,13 +302,13 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
           }}
         >
           <div>
-            <strong>Order ID:</strong> {order.id}
+            <strong>Order ID:</strong> <span style={{ fontFamily: "monospace", fontWeight: "bold" }}>{order.id}</span>
           </div>
           <div>
             <strong>Date &amp; Time:</strong> {formattedDateTime}
           </div>
           <div>
-            <strong>Amount:</strong> ₹{order.totalAmount}
+            <strong>Payment Mode:</strong> {isCod ? "Cash on Delivery" : (order.paymentMethod || "Prepaid Online")}
           </div>
         </div>
 
@@ -262,8 +331,8 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
             <div
               style={{
                 fontSize: "10px",
-                fontWeight: "bold",
-                color: "#555",
+                fontWeight: "900",
+                color: "#444",
                 textTransform: "uppercase",
                 marginBottom: "4px",
                 letterSpacing: "0.5px",
@@ -301,14 +370,14 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
             <div
               style={{
                 fontSize: "10px",
-                fontWeight: "bold",
-                color: "#555",
+                fontWeight: "900",
+                color: "#444",
                 textTransform: "uppercase",
                 marginBottom: "4px",
                 letterSpacing: "0.5px",
               }}
             >
-              SHIP FROM:
+              SHIP FROM / SOLD BY:
             </div>
             <div style={{ fontSize: "12px", fontWeight: "900", color: "#000" }}>
               SHREEJI GRUH UDHYOG
@@ -325,11 +394,21 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
               <br />
               Block 1/12, Nr. Market Yard, Jhalod,
               <br />
-              Dahod, Gujarat-389170, India
+              Dahod, Gujarat - 389170, India
             </div>
             <div
               style={{
                 marginTop: "4px",
+                fontSize: "11px",
+                color: "#333",
+                fontWeight: "600",
+              }}
+            >
+              FSSAI Lic. No.: <strong>10725008000026</strong>
+            </div>
+            <div
+              style={{
+                marginTop: "2px",
                 fontSize: "12px",
                 fontWeight: "bold",
                 color: "#000",
@@ -339,110 +418,159 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
             </div>
           </div>
         </div>
+      </div>
 
-        {/* 4. Product Information Section */}
-        <div style={{ borderBottom: "2px solid #000", padding: "8px 12px" }}>
-          <div
-            style={{
-              fontSize: "10px",
-              fontWeight: "900",
-              color: "#333",
-              textTransform: "uppercase",
-              marginBottom: "5px",
-              letterSpacing: "0.5px",
-            }}
-          >
-            PACKAGE CONTENTS / ORDER ITEMS:
-          </div>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: "10.5px",
-              textAlign: "left",
-            }}
-          >
-            <thead>
-              <tr style={{ borderBottom: "1.5px solid #000", background: "#f2f2f2" }}>
-                <th style={{ padding: "4px 6px", fontWeight: "bold", width: "28px", textAlign: "center" }}>
-                  #
-                </th>
-                <th style={{ padding: "4px 6px", fontWeight: "bold" }}>
-                  Product Name
-                </th>
-                <th style={{ padding: "4px 6px", fontWeight: "bold", width: "70px", textAlign: "center" }}>
-                  Variant
-                </th>
-                <th style={{ padding: "4px 6px", fontWeight: "bold", width: "40px", textAlign: "center" }}>
-                  Qty
-                </th>
-                <th style={{ padding: "4px 6px", fontWeight: "bold", width: "65px", textAlign: "right" }}>
-                  Price
-                </th>
-                <th style={{ padding: "4px 6px", fontWeight: "bold", width: "65px", textAlign: "right" }}>
-                  Total
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.items && order.items.length > 0 ? (
-                order.items.map((item, idx) => (
-                  <tr key={idx} style={{ borderBottom: "1px dotted #ccc" }}>
-                    <td style={{ padding: "4px 6px", textAlign: "center" }}>
-                      {idx + 1}
-                    </td>
-                    <td style={{ padding: "4px 6px", fontWeight: "600" }}>
-                      {item.name}
-                    </td>
-                    <td style={{ padding: "4px 6px", textAlign: "center", color: "#555" }}>
-                      {item.weight || "-"}
-                    </td>
-                    <td style={{ padding: "4px 6px", textAlign: "center", fontWeight: "bold" }}>
-                      {item.quantity}
-                    </td>
-                    <td style={{ padding: "4px 6px", textAlign: "right" }}>
-                      ₹{item.price}
-                    </td>
-                    <td style={{ padding: "4px 6px", textAlign: "right", fontWeight: "bold" }}>
-                      ₹{item.price * item.quantity}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} style={{ padding: "6px", textAlign: "center", color: "#666" }}>
-                    Items details recorded in order system
-                  </td>
-                </tr>
-              )}
-            </tbody>
-            <tfoot>
-              <tr style={{ borderTop: "1.5px solid #000", fontWeight: "bold", background: "#fafafa" }}>
-                <td colSpan={3} style={{ padding: "5px 6px", textAlign: "right" }}>
-                  Total Items: {totalQuantity}
-                </td>
-                <td style={{ padding: "5px 6px", textAlign: "center" }}>
-                  {totalQuantity}
-                </td>
-                <td style={{ padding: "5px 6px", textAlign: "right" }}>
-                  Total:
-                </td>
-                <td style={{ padding: "5px 6px", textAlign: "right", fontSize: "11.5px" }}>
-                  ₹{order.totalAmount}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
+      {/* ──────────────────────────────────────────────────────────────────────── */}
+      {/* BODY SECTION: Package Contents / Item Details (Flexible Invoice Body)     */}
+      {/* ──────────────────────────────────────────────────────────────────────── */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          padding: "10px 12px",
+          borderBottom: "2px solid #000",
+          backgroundColor: "#fff",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "10.5px",
+            fontWeight: "900",
+            color: "#111",
+            textTransform: "uppercase",
+            marginBottom: "6px",
+            letterSpacing: "0.5px",
+          }}
+        >
+          PACKAGE CONTENTS / PRODUCT DETAILS:
         </div>
 
-        {/* 5. Barcode & Logistics Section */}
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            fontSize: "10.5px",
+            textAlign: "left",
+          }}
+        >
+          <thead>
+            <tr style={{ borderBottom: "1.5px solid #000", background: "#f2f2f2" }}>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "26px", textAlign: "center" }}>
+                #
+              </th>
+              <th style={{ padding: "5px 6px", fontWeight: "bold" }}>
+                Product Name &amp; Description
+              </th>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "70px", textAlign: "center" }}>
+                Variant
+              </th>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "38px", textAlign: "center" }}>
+                Qty
+              </th>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "65px", textAlign: "right" }}>
+                Price (₹)
+              </th>
+              <th style={{ padding: "5px 6px", fontWeight: "bold", width: "65px", textAlign: "right" }}>
+                Total (₹)
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {order.items && order.items.length > 0 ? (
+              order.items.map((item, idx) => {
+                const displayName = formatProductNameWithSuffix(item.name, (item as any).category, item.weight);
+                const itemTotal = Number(item.price || 0) * Number(item.quantity || 1);
+                return (
+                  <tr key={idx} style={{ borderBottom: "1px dotted #ccc" }}>
+                    <td style={{ padding: "6px", textAlign: "center" }}>
+                      {idx + 1}
+                    </td>
+                    <td style={{ padding: "6px", fontWeight: "600", fontSize: "11px" }}>
+                      {displayName}
+                    </td>
+                    <td style={{ padding: "6px", textAlign: "center", color: "#555" }}>
+                      {item.weight || "-"}
+                    </td>
+                    <td style={{ padding: "6px", textAlign: "center", fontWeight: "bold" }}>
+                      {item.quantity}
+                    </td>
+                    <td style={{ padding: "6px", textAlign: "right" }}>
+                      ₹{item.price}
+                    </td>
+                    <td style={{ padding: "6px", textAlign: "right", fontWeight: "bold" }}>
+                      ₹{itemTotal}
+                    </td>
+                  </tr>
+                );
+              })
+            ) : (
+              <tr>
+                <td colSpan={6} style={{ padding: "12px", textAlign: "center", color: "#666" }}>
+                  Items details recorded in order system
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ──────────────────────────────────────────────────────────────────────── */}
+      {/* BOTTOM SECTION: Total Items, Cost Breakdown, GST Incl, Barcode & Footer   */}
+      {/* ──────────────────────────────────────────────────────────────────────── */}
+      <div style={{ flexShrink: 0 }}>
+        {/* 1. Price Accounting Breakdown (Explains product cost + delivery = total) */}
+        <div style={{ padding: "8px 12px", backgroundColor: "#fafafa", borderBottom: "2px solid #000" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
+            {/* Left: Total Items count & GST note */}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "11px", fontWeight: "bold", color: "#222" }}>
+                Total Items: {order.items?.length || 1} &nbsp;|&nbsp; Total Quantity: {totalQuantity} Units
+              </div>
+              <div style={{ fontSize: "9px", color: "#444", marginTop: "3px", lineHeight: "1.4" }}>
+                * All item prices and shipping charges are inclusive of <strong>GST (Goods &amp; Services Tax)</strong>.
+              </div>
+            </div>
+
+            {/* Right: Transparent financial calculation */}
+            <div style={{ width: "210px", fontSize: "10.5px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", color: "#444" }}>
+                <span>Items Subtotal:</span>
+                <span style={{ fontWeight: "600" }}>₹{itemsSubtotal}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", color: "#444" }}>
+                <span>Shipping &amp; Delivery:</span>
+                <span style={{ fontWeight: "600" }}>
+                  {deliveryCharge > 0 ? `₹${deliveryCharge}` : "FREE (₹0)"}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "4px 0 2px 0",
+                  borderTop: "1.5px solid #000",
+                  marginTop: "2px",
+                  fontSize: "12.5px",
+                  fontWeight: "900",
+                  color: "#000",
+                }}
+              >
+                <span>Total Amount (GST incl.):</span>
+                <span>₹{grandTotal}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Barcode & Logistics Identification Box */}
         <div style={{ padding: "10px 12px", textAlign: "center", backgroundColor: "#fff" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "4px" }}>
-            <svg ref={barcodeRef} style={{ maxHeight: "40px", maxWidth: "260px" }}></svg>
+            <svg ref={barcodeRef} style={{ maxHeight: "38px", maxWidth: "260px" }}></svg>
           </div>
           <div
             style={{
-              fontSize: "18px",
+              fontSize: "17px",
               fontWeight: "900",
               fontFamily: "monospace",
               letterSpacing: "4px",
@@ -451,8 +579,8 @@ export function ShippingLabelA5({ order, className = "" }: ShippingLabelA5Props)
           >
             {order.id}
           </div>
-          <div style={{ fontSize: "8.5px", color: "#666", marginTop: "4px" }}>
-            System Generated Shipping Label | Devam © {new Date().getFullYear()} | www.thedevam.com
+          <div style={{ fontSize: "8.5px", color: "#555", marginTop: "4px", letterSpacing: "0.2px" }}>
+            System Generated Shipping Label &amp; Tax Invoice | Shreeji Gruh Udhyog © {new Date().getFullYear()} | www.thedevam.com
           </div>
         </div>
       </div>
