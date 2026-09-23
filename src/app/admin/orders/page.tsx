@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useOrderStore, Order, computeTimeline } from "@/store/orderStore";
+import { useOrderStore, Order, computeTimeline, normalizeOrderStatus } from "@/store/orderStore";
 import { subscribeToLiveOrders, updateOrderInFirestore } from "@/lib/orderSync";
 import { 
   Search, 
@@ -50,27 +50,30 @@ export default function AdminOrdersPage() {
   }, []);
 
   const filteredOrders = orders.filter(order => {
+    const norm = normalizeOrderStatus(order.status);
     const matchesSearch = 
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
       (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.customerPhone && order.customerPhone.includes(searchTerm));
-    const matchesStatus = filterStatus === "All" || order.status === filterStatus;
+    const matchesStatus = filterStatus === "All" || norm === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    const norm = normalizeOrderStatus(status);
+    switch (norm) {
       case 'Order Placed': return 'bg-amber-100 text-amber-800 border-amber-300';
       case 'Confirmed': return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'Shipped': return 'bg-indigo-100 text-indigo-800 border-indigo-300';
       case 'Out for Dispatch': return 'bg-purple-100 text-purple-800 border-purple-300';
       case 'Delivered': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      default: return 'bg-amber-100 text-amber-800 border-amber-300';
     }
   };
 
   const getStatusStepIndex = (status: string) => {
-    switch (status) {
+    const norm = normalizeOrderStatus(status);
+    switch (norm) {
       case 'Order Placed': return 1;
       case 'Confirmed': return 2;
       case 'Shipped': return 3;
@@ -285,7 +288,7 @@ export default function AdminOrdersPage() {
                         <td className="px-5 py-4">
                           <div className="relative inline-block text-left min-w-[140px]">
                             <select 
-                              value={order.status}
+                              value={normalizeOrderStatus(order.status)}
                               onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
                               className={`appearance-none outline-none cursor-pointer pr-7 pl-3 py-1.5 rounded-full text-xs font-bold border flex items-center shadow-xs w-full transition-colors ${getStatusColor(order.status)}`}
                             >

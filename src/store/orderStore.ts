@@ -38,6 +38,16 @@ interface OrderState {
   clearAllOrders: () => void;
 }
 
+export function normalizeOrderStatus(rawStatus?: string): OrderStatus {
+  if (!rawStatus) return "Order Placed";
+  const s = rawStatus.trim().toLowerCase();
+  if (s.includes("deliver")) return "Delivered";
+  if (s.includes("out for") || s.includes("dispatch")) return "Out for Dispatch";
+  if (s.includes("ship")) return "Shipped";
+  if (s.includes("confirm")) return "Confirmed";
+  return "Order Placed";
+}
+
 export function computeTimeline(
   currentTimeline?: OrderTimeline,
   newStatus?: OrderStatus,
@@ -45,6 +55,7 @@ export function computeTimeline(
 ): OrderTimeline {
   const now = new Date().toISOString();
   const base = orderDate || now;
+  const normalized = normalizeOrderStatus(newStatus);
   const tl: OrderTimeline = {
     orderPlaced: currentTimeline?.orderPlaced || base,
     ...(currentTimeline || {})
@@ -52,16 +63,16 @@ export function computeTimeline(
 
   if (!tl.orderPlaced) tl.orderPlaced = base;
 
-  if (newStatus === 'Confirmed') {
+  if (normalized === 'Confirmed') {
     if (!tl.confirmed) tl.confirmed = now;
-  } else if (newStatus === 'Shipped') {
+  } else if (normalized === 'Shipped') {
     if (!tl.confirmed) tl.confirmed = tl.orderPlaced;
     if (!tl.shipped) tl.shipped = now;
-  } else if (newStatus === 'Out for Dispatch') {
+  } else if (normalized === 'Out for Dispatch') {
     if (!tl.confirmed) tl.confirmed = tl.orderPlaced;
     if (!tl.shipped) tl.shipped = tl.orderPlaced;
     if (!tl.outForDispatch) tl.outForDispatch = now;
-  } else if (newStatus === 'Delivered') {
+  } else if (normalized === 'Delivered') {
     if (!tl.confirmed) tl.confirmed = tl.orderPlaced;
     if (!tl.shipped) tl.shipped = tl.orderPlaced;
     if (!tl.outForDispatch) tl.outForDispatch = tl.orderPlaced;
@@ -77,14 +88,19 @@ export const useOrderStore = create<OrderState>()(
       orders: [],
       nextOrderId: 10001,
       addOrder: (newOrder) => {
+        const normalizedStatus = normalizeOrderStatus(newOrder.status);
         const orderWithTimeline: Order = {
           ...newOrder,
+          status: normalizedStatus,
           timeline: {
             orderPlaced: newOrder.timeline?.orderPlaced || newOrder.date || new Date().toISOString(),
             ...(newOrder.timeline || {})
           }
         };
-        set((state) => ({ orders: [orderWithTimeline, ...state.orders] }));
+        set((state) => {
+          const filtered = state.orders.filter(o => o.id !== newOrder.id);
+          return { orders: [orderWithTimeline, ...filtered] };
+        });
       },
       getNextOrderId: () => {
         const id = get().nextOrderId;
@@ -94,10 +110,11 @@ export const useOrderStore = create<OrderState>()(
       updateOrderStatus: (id, status, extra) => set((state) => ({
         orders: state.orders.map(order => {
           if (order.id !== id) return order;
-          const updatedTimeline = computeTimeline(order.timeline, status, order.date);
+          const normalized = normalizeOrderStatus(status);
+          const updatedTimeline = computeTimeline(order.timeline, normalized, order.date);
           return {
             ...order,
-            status,
+            status: normalized,
             ...(extra || {}),
             timeline: updatedTimeline
           };

@@ -6,7 +6,7 @@ import {
   AlertTriangle, ShoppingBag, CheckCircle2, Bell, MapPin,
   Phone, X, ExternalLink, Clock
 } from "lucide-react";
-import { useOrderStore, Order } from "@/store/orderStore";
+import { useOrderStore, Order, normalizeOrderStatus } from "@/store/orderStore";
 import { useProductStore } from "@/store/productStore";
 import { subscribeToLiveOrders } from "@/lib/orderSync";
 import { toast } from "sonner";
@@ -240,15 +240,17 @@ export default function AdminDashboard() {
           ) : (
             <div className="divide-y divide-gray-50">
               {recentOrders.map((order) => {
+                const normStatus = normalizeOrderStatus(order.status);
                 const statusColor =
-                  order.status === 'Delivered'   ? 'bg-emerald-100 text-emerald-800' :
-                  order.status === 'Shipped'     ? 'bg-blue-100 text-blue-800' :
-                  order.status === 'Confirmed'   ? 'bg-purple-100 text-purple-800' :
+                  normStatus === 'Delivered'        ? 'bg-emerald-100 text-emerald-800' :
+                  normStatus === 'Shipped'          ? 'bg-blue-100 text-blue-800' :
+                  normStatus === 'Confirmed'        ? 'bg-purple-100 text-purple-800' :
+                  normStatus === 'Out for Dispatch' ? 'bg-indigo-100 text-indigo-800' :
                   'bg-amber-100 text-amber-800';
 
                 const cleanPh = (order.customerPhone || '').replace(/\D/g, '');
                 const waPh = cleanPh.startsWith('91') ? cleanPh : `91${cleanPh}`;
-                const waMsg = encodeURIComponent(`Hello ${order.customerName || 'Customer'}, your Devam order *#${order.id}* (₹${order.totalAmount}) status: *${order.status}*. Track: https://thedevam.com/account`);
+                const waMsg = encodeURIComponent(`Hello ${order.customerName || 'Customer'}, your Devam order *#${order.id}* (₹${order.totalAmount}) status: *${normStatus}*. Track: https://thedevam.com/account`);
 
                 return (
                   <div key={order.id} className="px-5 py-4 hover:bg-amber-50/30 transition-colors">
@@ -256,7 +258,7 @@ export default function AdminDashboard() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-extrabold text-sm text-gray-900 font-mono">{order.id}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusColor}`}>{order.status}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusColor}`}>{normStatus}</span>
                         </div>
                         <p className="text-xs text-gray-600 font-semibold mt-0.5">
                           {order.customerName} • {order.customerPhone}

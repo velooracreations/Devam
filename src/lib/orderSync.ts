@@ -1,21 +1,26 @@
 import { db } from './firebase';
 import { doc, setDoc, onSnapshot, collection, arrayUnion } from 'firebase/firestore';
-import { useOrderStore, Order } from '@/store/orderStore';
+import { useOrderStore, Order, normalizeOrderStatus } from '@/store/orderStore';
 
 /**
  * Save an order to Firestore, sync with local store, broadcast to tabs, and trigger notifications
  */
 export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
+  const normalizedOrder = {
+    ...newOrder,
+    status: normalizeOrderStatus(newOrder.status)
+  };
+
   // 1. Sync to local Zustand store immediately
-  useOrderStore.getState().addOrder(newOrder);
+  useOrderStore.getState().addOrder(normalizedOrder);
 
   // 2. Broadcast via Window CustomEvent and BroadcastChannel for instant local tab sync
   if (typeof window !== 'undefined') {
     try {
-      window.dispatchEvent(new CustomEvent('devam_new_order', { detail: newOrder }));
+      window.dispatchEvent(new CustomEvent('devam_new_order', { detail: normalizedOrder }));
       if ('BroadcastChannel' in window) {
         const channel = new BroadcastChannel('devam_orders_channel');
-        channel.postMessage({ type: 'NEW_ORDER', order: newOrder });
+        channel.postMessage({ type: 'NEW_ORDER', order: normalizedOrder });
         channel.close();
       }
     } catch (err) {
@@ -28,12 +33,12 @@ export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
     try {
       if (db) {
         const nowIso = new Date().toISOString();
-        const payload = { ...newOrder, createdAt: nowIso };
+        const payload = { ...normalizedOrder, createdAt: nowIso };
 
         // A. Save to global orders collection
-        const orderRef = doc(db, "orders", newOrder.id);
+        const orderRef = doc(db, "orders", normalizedOrder.id);
         await setDoc(orderRef, payload, { merge: true });
-        console.log(`[OrderSync] Order #${newOrder.id} saved to Firestore orders collection.`);
+        console.log(`[OrderSync] Order #${normalizedOrder.id} saved to Firestore orders collection.`);
 
         // B. Save to user profile by UID if logged in
         if (userId) {
@@ -44,8 +49,8 @@ export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
         }
 
         // C. Save to user profile by Email for cross-device visibility
-        const email = (newOrder.customerEmail || "").toLowerCase();
-        if (email) {
+        const email = (normalizedOrder.customerEmail || "").toLowerCase();
+        if (email && email !== "guest@thedevam.com") {
           const { collection, query, where, getDocs } = await import("firebase/firestore");
           const q = query(collection(db, "users"), where("email", "==", email));
           const snap = await getDocs(q);
@@ -72,9 +77,9 @@ export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
     await fetch("/api/notifications/order-status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newOrder)
+      body: JSON.stringify(normalizedOrder)
     });
-    console.log(`[OrderSync] Email intimation sent for Order #${newOrder.id}`);
+    console.log(`[OrderSync] Email intimation sent for Order #${normalizedOrder.id}`);
   } catch (err) {
     console.warn("[OrderSync] Notification API error:", err);
   }
@@ -138,13 +143,17 @@ export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
       const channel = new BroadcastChannel('devam_orders_channel');
       channel.onmessage = (event) => {
         if (event.data?.type === 'NEW_ORDER' && event.data.order) {
-          const newOrder = event.data.order as Order;
+          const rawOrder = event.data.order as Order;
+          const newOrder = { ...rawOrder, status: normalizeOrderStatus(rawOrder.status) };
           const currentOrders = useOrderStore.getState().orders;
           if (!currentOrders.some(o => o.id === newOrder.id)) {
             useOrderStore.getState().addOrder(newOrder);
             playOrderAlertSound();
             if (onNewLiveOrder) onNewLiveOrder(newOrder);
           }
+        } else if (event.data?.type === 'UPDATE_ORDER' && event.data.orderId) {
+          const { orderId, updates } = event.data;
+          useOrderStore.getState().updateOrderStatus(orderId, normalizeOrderStatus(updates.status), updates);
         }
       };
       unsubscribes.push(() => channel.close());
@@ -158,7 +167,13 @@ export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
       const unsubscribeFirestore = onSnapshot(ordersColRef, (snapshot) => {
         const firestoreOrders: Order[] = [];
         snapshot.forEach((docSnap) => {
-          firestoreOrders.push(docSnap.data() as Order);
+          const raw = docSnap.data() as Order;
+          if (raw && raw.id) {
+            firestoreOrders.push({
+              ...raw,
+              status: normalizeOrderStatus(raw.status)
+            });
+          }
         });
 
         // Sort descending by date
