@@ -97,7 +97,7 @@ export default function AdminOrdersPage() {
     }));
   };
 
-  const handleApplyBatchDetails = (showToast: boolean = true) => {
+  const handleApplyBatchDetails = () => {
     if (!selectedOrder || !selectedOrder.items) return;
     const updatedItems = selectedOrder.items.map((item, idx) => {
       const key = item.id || `item-${idx}`;
@@ -121,17 +121,12 @@ export default function AdminOrdersPage() {
     setSelectedOrder(updatedOrder);
     updateOrderStatus(selectedOrder.id, selectedOrder.status, { items: updatedItems });
     setBatchSaved(true);
-    setTimeout(() => setBatchSaved(false), 3000);
-
-    if (showToast) {
-      toast.dismiss();
-      toast.success("Product batch details saved to order & label!");
-    }
+    setTimeout(() => setBatchSaved(false), 2500);
   };
 
   const handlePrintLabel = () => {
-    toast.dismiss(); // Dismiss any on-screen toast so it never overlaps the barcode or printed document
-    handleApplyBatchDetails(false); // Apply silently without firing a floating toast popup
+    toast.dismiss();
+    handleApplyBatchDetails();
     setTimeout(() => {
       window.print();
     }, 150);
@@ -810,7 +805,7 @@ export default function AdminOrdersPage() {
                           )}
                           <button
                             type="button"
-                            onClick={() => handleApplyBatchDetails(true)}
+                            onClick={handleApplyBatchDetails}
                             className="px-3.5 py-1.5 bg-[var(--color-devam-red)] text-white font-bold rounded-lg text-xs hover:bg-red-700 transition-colors shadow-xs cursor-pointer inline-flex items-center justify-center gap-1.5"
                           >
                             💾 Save Batch Details to Order

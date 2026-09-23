@@ -68,7 +68,7 @@ textarea:focus-visible {
     print-color-adjust: exact !important;
   }
 
-  nav, aside, header, footer, .no-print, .print-hide, [data-no-print], [data-sonner-toaster], [data-sonner-toast], [data-sonner-toaster] *, .toaster {
+  nav, aside, header, footer, .no-print, .print-hide, [data-no-print], section[aria-label="Notifications"], section[aria-label="Notifications"] *, [data-sonner-toaster], [data-sonner-toast], [data-sonner-toaster] *, .toaster {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
