@@ -9,6 +9,7 @@ import { useCartStore } from "@/store/cartStore";
 interface AuthContextType {
   user: User | null;
   userData: any | null;
+  setUserData: React.Dispatch<React.SetStateAction<any | null>>;
   loading: boolean;
   logout: () => Promise<void>;
 }
@@ -16,6 +17,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   userData: null,
+  setUserData: () => {},
   loading: true,
   logout: async () => {},
 });
@@ -24,6 +26,27 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Load cached user data from localStorage immediately on mount
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const savedAuth = localStorage.getItem("devam-auth-storage");
+        if (savedAuth) {
+          const parsedAuth = JSON.parse(savedAuth);
+          const storedUser = parsedAuth?.state?.user;
+          if (storedUser?.uid) {
+            const cachedUserData = localStorage.getItem(`devam_user_data_${storedUser.uid}`);
+            if (cachedUserData) {
+              setUserData(JSON.parse(cachedUserData));
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Error reading initial user cache:", e);
+    }
+  }, []);
 
   useEffect(() => {
     let unsubscribeSnapshot: () => void;
@@ -36,6 +59,14 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
       setUser(currentUser);
       
       if (currentUser) {
+        // Load local user data cache immediately if present
+        try {
+          const cached = localStorage.getItem(`devam_user_data_${currentUser.uid}`);
+          if (cached) {
+            setUserData(JSON.parse(cached));
+          }
+        } catch {}
+
         // Listen to Firestore for real-time updates
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
@@ -44,6 +75,10 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
             if (userDoc.exists()) {
               const data = userDoc.data();
               setUserData(data);
+
+              try {
+                localStorage.setItem(`devam_user_data_${currentUser.uid}`, JSON.stringify(data));
+              } catch {}
 
               // Cross-Device Real-Time Cloud Cart Sync
               if (Array.isArray(data?.cart)) {
@@ -71,6 +106,9 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
               };
               await setDoc(userDocRef, newUserData, { merge: true });
               setUserData(newUserData);
+              try {
+                localStorage.setItem(`devam_user_data_${currentUser.uid}`, JSON.stringify(newUserData));
+              } catch {}
             }
             setLoading(false);
           }, (err) => {
@@ -102,13 +140,14 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
   const logout = async () => {
     try {
       await signOut(auth);
+      setUserData(null);
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, logout }}>
+    <AuthContext.Provider value={{ user, userData, setUserData, loading, logout }}>
       {children}
     </AuthContext.Provider>
   );

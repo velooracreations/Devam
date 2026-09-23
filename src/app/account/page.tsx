@@ -11,6 +11,7 @@ import { doc, updateDoc, setDoc, arrayUnion, collection, query, where, onSnapsho
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 import OrderTimeline from "@/components/OrderTimeline";
+import { getSavedAddresses, saveUserAddress, deleteUserAddress } from "@/lib/addressStore";
 
 type Tab = "profile" | "addresses" | "orders" | "gift-cards" | "upi" | "cards" | "coupons" | "wishlist";
 
@@ -38,11 +39,14 @@ export default function AccountPage() {
   });
 
   const user = useAuthStore((state) => state.user);
-  const { userData, loading: isUserDataLoading } = useAuth();
+  const { userData, setUserData, loading: isUserDataLoading } = useAuth();
   const isLoading = useAuthStore((state) => state.isLoading);
   const logout = useAuthStore((state) => state.logout);
   const localOrders = useOrderStore((state) => state.orders);
   const router = useRouter();
+
+  // Unified persistent saved addresses
+  const savedAddresses = useMemo(() => getSavedAddresses(user, userData), [user, userData]);
 
   // Cross-device Firestore order listener for the current user
   useEffect(() => {
@@ -178,11 +182,8 @@ export default function AccountPage() {
   };
 
   const handleDeleteAddress = async (addressId: string) => {
-    if (!user || !userData?.addresses) return;
     try {
-      const userRef = doc(db, "users", user.uid);
-      const updatedAddresses = userData.addresses.filter((a: any) => a.id !== addressId);
-      await setDoc(userRef, { addresses: updatedAddresses }, { merge: true });
+      await deleteUserAddress(addressId, user, userData, setUserData);
       toast.success("Address deleted successfully!");
     } catch (error) {
       console.error("Error deleting address:", error);
@@ -192,11 +193,9 @@ export default function AccountPage() {
 
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
     
     // Check for duplicates
-    const existingAddresses = userData?.addresses || [];
-    const isDuplicate = existingAddresses.some((addr: any) => 
+    const isDuplicate = savedAddresses.some((addr: any) => 
       addr.pin === addressForm.pin &&
       (addr.houseNo || "").toLowerCase().trim() === addressForm.houseNo.toLowerCase().trim() &&
       (addr.street || "").toLowerCase().trim() === addressForm.street.toLowerCase().trim()
@@ -208,7 +207,6 @@ export default function AccountPage() {
     }
 
     try {
-      const userRef = doc(db, "users", user.uid);
       const finalType = addressForm.type === "OTHER" && addressForm.otherType.trim() !== "" 
         ? addressForm.otherType.trim().toUpperCase() 
         : (addressForm.type === "OTHER" ? "OTHER" : addressForm.type);
@@ -216,12 +214,10 @@ export default function AccountPage() {
       const newAddress = { 
         ...addressForm, 
         type: finalType,
-        id: Date.now().toString() 
       };
       delete (newAddress as any).otherType;
       
-      const updatedAddresses = [...existingAddresses, newAddress];
-      await setDoc(userRef, { addresses: updatedAddresses }, { merge: true });
+      await saveUserAddress(newAddress, user, userData, setUserData);
       
       toast.success("Address saved successfully!");
       resetAddressForm();
@@ -519,20 +515,20 @@ export default function AccountPage() {
                   </div>
                 )}
                 
-                {userData?.addresses && userData.addresses.length > 0 ? (
+                {savedAddresses.length > 0 ? (
                   <div className="space-y-4">
-                    {userData.addresses.map((addr: any) => (
-                      <div key={addr.id} className="border border-gray-200 rounded relative">
+                    {savedAddresses.map((addr: any) => (
+                      <div key={addr.id} className="border border-gray-200 rounded relative hover:border-gray-300 transition-colors bg-white">
                         <div className="absolute top-4 right-4 flex gap-4">
                           <button 
                             onClick={() => handleDeleteAddress(addr.id)} 
-                            className="text-[var(--color-devam-red)] font-medium text-sm hover:underline"
+                            className="text-[var(--color-devam-red)] font-medium text-sm hover:underline cursor-pointer"
                           >
                             Delete
                           </button>
                         </div>
                         <div className="p-6">
-                          <div className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded inline-block mb-4 uppercase tracking-wider">{addr.type}</div>
+                          <div className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded inline-block mb-4 uppercase tracking-wider">{addr.type || "HOME"}</div>
                           <div className="flex items-center gap-4 mb-2">
                             <span className="font-bold text-gray-900">{addr.name}</span>
                             <span className="font-bold text-gray-900">{addr.phone}</span>

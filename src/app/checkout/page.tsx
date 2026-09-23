@@ -7,6 +7,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useOrderStore, Order } from "@/store/orderStore";
 import { useAuth } from "@/context/AuthContext";
 import { useSettingsStore } from "@/store/settingsStore";
+import { getSavedAddresses, saveUserAddress } from "@/lib/addressStore";
 import { toast } from "sonner";
 import {
   ShieldCheck,
@@ -92,10 +93,13 @@ export default function CheckoutPage() {
   const clearCart   = useCartStore((s) => s.clearCart);
   const getNextId   = useOrderStore((s) => s.getNextOrderId);
   const addOrder    = useOrderStore((s) => s.addOrder);
-  const { user, userData, loading: authLoading } = useAuth();
+  const { user, userData, setUserData, loading: authLoading } = useAuth();
   const shippingRules = useSettingsStore((s) => s.shipping);
 
   const items = useMemo(() => (Array.isArray(rawItems) ? rawItems : []), [rawItems]);
+
+  // Unified persistent saved addresses
+  const savedAddresses = useMemo(() => getSavedAddresses(user, userData), [user, userData]);
 
   // ── UI state ───────────────────────────────────────────────────────────────
   const [hydrated, setHydrated]        = useState(false);
@@ -119,35 +123,31 @@ export default function CheckoutPage() {
   // ── Hydration ──────────────────────────────────────────────────────────────
   useEffect(() => { setHydrated(true); }, []);
 
-  // ── Restore address draft from localStorage (runs once after hydration) ────
-  // Also re-runs whenever userData loads (so cross-device Firebase addresses appear)
+  // ── Restore address draft or pre-fill default saved address ────────────────
   useEffect(() => {
     if (!hydrated) return;
 
-    // Always try to load Firebase saved addresses when they become available
-    const addrs: any[] = userData?.addresses ?? [];
+    const addrs = savedAddresses;
 
-    // If we have a localStorage draft on THIS device, restore it
+    // Check if we have a saved form draft
     const draft = lsGet(LS_ADDR);
     if (draft) {
       try {
         const parsed = JSON.parse(draft);
-        if (parsed?.name || parsed?.phone || parsed?.houseNo) {
+        if (parsed?.name && parsed?.phone && parsed?.houseNo && parsed?.street) {
           setForm((p) => ({ ...p, ...parsed }));
           const savedSel = lsGet(LS_SEL);
           if (savedSel) setSelId(savedSel);
           const savedStep = lsGet(LS_STEP);
           if (savedStep === "2") setStep(2);
-          // Do NOT return — still check if a Firebase default address should be shown
-          // Only override the draft with Firebase if form is still basically empty
           return;
         }
       } catch {}
     }
 
-    // No localStorage draft on this device — load from Firebase profile (cross-device sync)
+    // Otherwise auto-select default or first saved address
     if (addrs.length > 0) {
-      const def = addrs.find((a) => a.isDefault) ?? addrs[0];
+      const def = addrs.find((a: any) => a.isDefault) ?? addrs[0];
       fillForm(def);
     } else if (user || userData) {
       setForm((p) => ({
@@ -157,7 +157,7 @@ export default function CheckoutPage() {
       }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hydrated, userData]);
+  }, [hydrated, savedAddresses]);
 
   // ── Persist form changes to localStorage ──────────────────────────────────
   useEffect(() => {
@@ -229,18 +229,11 @@ export default function CheckoutPage() {
     if (form.phone.replace(/\D/g, "").length !== 10) { toast.error("Enter a valid 10-digit mobile number."); return; }
     if (form.pin.length !== 6) { toast.error("Enter a valid 6-digit PIN code."); return; }
 
-    // Save new address to Firebase if user logged in
-    if (selAddrId === "new" && user?.uid) {
-      try {
-        const { db } = await import("@/lib/firebase");
-        if (db) {
-          const { doc, setDoc, arrayUnion } = await import("firebase/firestore");
-          const newAddr = { id: `addr_${Date.now()}`, ...form, createdAt: new Date().toISOString() };
-          await setDoc(doc(db, "users", user.uid), { addresses: arrayUnion(newAddr) }, { merge: true });
-        }
-      } catch (e) {
-        console.warn("[Checkout] Could not save address:", e);
-      }
+    // Save new address to addressStore (handles React state, localStorage & Firestore)
+    try {
+      await saveUserAddress(form, user, userData, setUserData);
+    } catch (e) {
+      console.warn("[Checkout] Could not save address:", e);
     }
 
     setStep(2);
@@ -438,8 +431,6 @@ export default function CheckoutPage() {
   // ────────────────────────────────────────────────────────────────────────────
   // RENDER: Main checkout UI
   // ────────────────────────────────────────────────────────────────────────────
-  const savedAddresses: any[] = userData?.addresses ?? [];
-
   return (
     <div className="min-h-screen bg-[#faf8f5] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
