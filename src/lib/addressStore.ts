@@ -141,23 +141,36 @@ export async function saveUserAddress(
     }
   }
 
-  // 3. Persist to Firestore by UID & Email for cross-device sync
+  // 3. Persist to Firestore by UID, Email, and Phone for guaranteed cross-device sync
   const uid = user?.uid || userData?.uid;
-  const email = (user?.email || userData?.email || "").toLowerCase();
+  const email = (user?.email || userData?.email || address?.phone ? "" : "").toLowerCase().trim() || (user?.email || userData?.email || "").toLowerCase().trim();
+  const phone = (address?.phone || userData?.mobile || userData?.phone || user?.phoneNumber || "").replace(/\D/g, "");
 
   if (db) {
     try {
       const { doc, setDoc, collection, query, where, getDocs } = await import("firebase/firestore");
-      
+      const now = new Date().toISOString();
+      const payload = { addresses: updated, lastUpdated: now };
+
       if (uid) {
-        await setDoc(doc(db, "users", uid), { addresses: updated, email: email || undefined }, { merge: true });
+        await setDoc(doc(db, "users", uid), { ...payload, email: email || undefined, mobile: phone || undefined }, { merge: true });
       }
 
       if (email) {
-        const q = query(collection(db, "users"), where("email", "==", email));
-        const snap = await getDocs(q);
-        snap.forEach(async (dSnap) => {
-          await setDoc(doc(db, "users", dSnap.id), { addresses: updated }, { merge: true });
+        await setDoc(doc(db, "user_addresses", email), { ...payload, email }, { merge: true });
+        const qEmail = query(collection(db, "users"), where("email", "==", email));
+        const snapEmail = await getDocs(qEmail);
+        snapEmail.forEach(async (dSnap) => {
+          await setDoc(doc(db, "users", dSnap.id), payload, { merge: true });
+        });
+      }
+
+      if (phone && phone.length === 10) {
+        await setDoc(doc(db, "phone_addresses", phone), { ...payload, mobile: phone }, { merge: true });
+        const qPhone = query(collection(db, "users"), where("mobile", "==", phone));
+        const snapPhone = await getDocs(qPhone);
+        snapPhone.forEach(async (dSnap) => {
+          await setDoc(doc(db, "users", dSnap.id), payload, { merge: true });
         });
       }
     } catch (err) {
@@ -214,22 +227,31 @@ export async function deleteUserAddress(
     }
   }
 
-  // 3. Persist to Firestore by UID & Email
+  // 3. Persist to Firestore by UID, Email & Phone
   const uid = user?.uid || userData?.uid;
-  const email = (user?.email || userData?.email || "").toLowerCase();
+  const email = (user?.email || userData?.email || "").toLowerCase().trim();
+  const phone = (userData?.mobile || userData?.phone || user?.phoneNumber || "").replace(/\D/g, "");
 
   if (db) {
     try {
       const { doc, setDoc, collection, query, where, getDocs } = await import("firebase/firestore");
+      const payload = { addresses: updated, lastUpdated: new Date().toISOString() };
+
       if (uid) {
-        await setDoc(doc(db, "users", uid), { addresses: updated }, { merge: true });
+        await setDoc(doc(db, "users", uid), payload, { merge: true });
       }
+
       if (email) {
+        await setDoc(doc(db, "user_addresses", email), payload, { merge: true });
         const q = query(collection(db, "users"), where("email", "==", email));
         const snap = await getDocs(q);
         snap.forEach(async (dSnap) => {
-          await setDoc(doc(db, "users", dSnap.id), { addresses: updated }, { merge: true });
+          await setDoc(doc(db, "users", dSnap.id), payload, { merge: true });
         });
+      }
+
+      if (phone && phone.length === 10) {
+        await setDoc(doc(db, "phone_addresses", phone), payload, { merge: true });
       }
     } catch (err) {
       console.warn("[addressStore] Firestore address delete skipped:", err);

@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, onSnapshot, collection, query, where } from "firebase/firestore";
+import { doc, getDoc, getDocs, setDoc, onSnapshot, collection, query, where } from "firebase/firestore";
 import { useCartStore } from "@/store/cartStore";
 
 interface AuthContextType {
@@ -77,96 +77,120 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
           if (cached) setUserData((prev: any) => prev || JSON.parse(cached));
         } catch {}
 
-        // Listen to Firestore by EMAIL for cross-device sync (Laptop <-> Mobile)
+        // Listen to Firestore by EMAIL and UID for cross-device sync (Laptop <-> Mobile)
         try {
           const userDocRef = doc(db, "users", currentUser.uid);
+          const unsubs: (() => void)[] = [];
 
-          if (email) {
-            const q = query(collection(db, "users"), where("email", "==", email));
-            unsubscribeSnapshot = onSnapshot(q, async (snapshot) => {
-              if (!snapshot.empty) {
-                // Documents found matching this email address
-                let mergedAddresses: any[] = [];
-                let mergedOrders: any[] = [];
-                let bestName = "";
-                let bestMobile = "";
-                let baseData: any = {};
+          const dedupeAddrs = (addrs: any[]) => {
+            const map = new Map<string, any>();
+            (addrs || []).forEach(a => {
+              if (a && (a.id || a.houseNo || a.pin)) {
+                const pin = (a.pin || "").trim();
+                const houseNo = (a.houseNo || "").toLowerCase().trim();
+                const street = (a.street || "").toLowerCase().trim();
+                const sig = `${pin}_${houseNo}_${street}`;
+                if (!map.has(sig)) map.set(sig, { ...a, id: a.id || `addr_${sig}` });
+              }
+            });
+            return Array.from(map.values());
+          };
 
-                snapshot.docs.forEach((d) => {
+          const handleSync = async () => {
+            let mergedAddresses: any[] = [];
+            let mergedOrders: any[] = [];
+            let bestName = currentUser.displayName || "";
+            let bestMobile = currentUser.phoneNumber || "";
+            let baseData: any = {};
+
+            // A. Check userDocRef (UID doc)
+            try {
+              const uDoc = await getDoc(userDocRef);
+              if (uDoc.exists()) {
+                const uData = uDoc.data();
+                baseData = { ...baseData, ...uData };
+                if (uData.name) bestName = uData.name;
+                if (uData.mobile || uData.phone) bestMobile = uData.mobile || uData.phone;
+                if (Array.isArray(uData.addresses)) mergedAddresses.push(...uData.addresses);
+                if (Array.isArray(uData.orders)) mergedOrders.push(...uData.orders);
+              }
+            } catch {}
+
+            // B. Check user_addresses/{email} doc
+            if (email) {
+              try {
+                const addrDoc = await getDoc(doc(db, "user_addresses", email));
+                if (addrDoc.exists() && Array.isArray(addrDoc.data()?.addresses)) {
+                  mergedAddresses.push(...addrDoc.data().addresses);
+                }
+              } catch {}
+            }
+
+            // C. Query users collection by email
+            if (email) {
+              try {
+                const q = query(collection(db, "users"), where("email", "==", email));
+                const snap = await getDocs(q);
+                snap.docs.forEach((d) => {
                   const dData = d.data();
                   baseData = { ...baseData, ...dData };
-                  if (!bestName && dData?.name) bestName = dData.name;
-                  if (!bestMobile && (dData?.mobile || dData?.phone)) bestMobile = dData.mobile || dData.phone;
-                  if (Array.isArray(dData?.addresses)) {
-                    mergedAddresses = [...mergedAddresses, ...dData.addresses];
-                  }
-                  if (Array.isArray(dData?.orders)) {
-                    mergedOrders = [...mergedOrders, ...dData.orders];
-                  }
+                  if (dData.name && !bestName) bestName = dData.name;
+                  if ((dData.mobile || dData.phone) && !bestMobile) bestMobile = dData.mobile || dData.phone;
+                  if (Array.isArray(dData.addresses)) mergedAddresses.push(...dData.addresses);
+                  if (Array.isArray(dData.orders)) mergedOrders.push(...dData.orders);
                 });
+              } catch {}
+            }
 
-                const mergedUserData = {
-                  ...baseData,
-                  name: bestName || currentUser.displayName || baseData.name || "User",
-                  mobile: bestMobile || baseData.mobile || baseData.phone || "",
-                  phone: bestMobile || baseData.mobile || baseData.phone || "",
-                  addresses: mergedAddresses,
-                  orders: mergedOrders,
-                };
+            const cleanAddrs = dedupeAddrs(mergedAddresses);
 
-                setUserData(mergedUserData);
+            const mergedUserData = {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              ...baseData,
+              name: bestName || baseData.name || currentUser.displayName || "User",
+              mobile: bestMobile || baseData.mobile || baseData.phone || "",
+              phone: bestMobile || baseData.mobile || baseData.phone || "",
+              addresses: cleanAddrs,
+              orders: mergedOrders,
+            };
 
-                try {
-                  localStorage.setItem(`devam_user_data_${currentUser.uid}`, JSON.stringify(mergedUserData));
-                  localStorage.setItem(`devam_user_data_email_${email}`, JSON.stringify(mergedUserData));
-                } catch {}
+            setUserData(mergedUserData);
 
-                // Cloud Cart Sync
-                if (Array.isArray(baseData?.cart)) {
-                  const localItems = useCartStore.getState().items;
-                  if (JSON.stringify(baseData.cart) !== JSON.stringify(localItems)) {
-                    if (localItems.length > 0 && baseData.cart.length === 0) {
-                      useCartStore.getState().setCart(localItems, false);
-                    } else {
-                      useCartStore.getState().setCart(baseData.cart, true);
-                    }
-                  }
+            try {
+              localStorage.setItem(`devam_user_data_${currentUser.uid}`, JSON.stringify(mergedUserData));
+              if (email) localStorage.setItem(`devam_user_data_email_${email}`, JSON.stringify(mergedUserData));
+            } catch {}
+
+            // Cloud Cart Sync
+            if (Array.isArray(baseData?.cart)) {
+              const localItems = useCartStore.getState().items;
+              if (JSON.stringify(baseData.cart) !== JSON.stringify(localItems)) {
+                if (localItems.length > 0 && baseData.cart.length === 0) {
+                  useCartStore.getState().setCart(localItems, false);
+                } else {
+                  useCartStore.getState().setCart(baseData.cart, true);
                 }
-                setLoading(false);
-                return;
               }
+            }
 
-              // Fallback if query by email was empty
-              const userDoc = await getDoc(userDocRef);
-              if (userDoc.exists()) {
-                const data = userDoc.data();
-                setUserData(data);
-              } else {
-                const newUserData = {
-                  uid: currentUser.uid,
-                  email: currentUser.email,
-                  name: currentUser.displayName || "User",
-                  role: "customer",
-                  cart: useCartStore.getState().items || [],
-                  createdAt: new Date().toISOString()
-                };
-                await setDoc(userDocRef, newUserData, { merge: true });
-                setUserData(newUserData);
-              }
-              setLoading(false);
-            }, (err) => {
-              console.error("Firestore user email query error:", err);
-              setLoading(false);
-            });
-          } else {
-            // No email on auth user -> direct UID fallback
-            unsubscribeSnapshot = onSnapshot(userDocRef, async (userDoc) => {
-              if (userDoc.exists()) {
-                setUserData(userDoc.data());
-              }
-              setLoading(false);
-            });
+            setLoading(false);
+          };
+
+          handleSync();
+
+          // Real-time snapshot listeners for cross-device sync
+          if (email) {
+            const q = query(collection(db, "users"), where("email", "==", email));
+            const unsubQ = onSnapshot(q, () => handleSync(), () => {});
+            unsubs.push(unsubQ);
+            const unsubAddr = onSnapshot(doc(db, "user_addresses", email), () => handleSync(), () => {});
+            unsubs.push(unsubAddr);
           }
+          const unsubUID = onSnapshot(userDocRef, () => handleSync(), () => {});
+          unsubs.push(unsubUID);
+
+          unsubscribeSnapshot = () => unsubs.forEach(fn => fn());
         } catch (error) {
           console.error("Error fetching user data:", error);
           setLoading(false);
