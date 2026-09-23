@@ -40,8 +40,9 @@ export default function AdminOrdersPage() {
   const [shippingModalOrder, setShippingModalOrder] = useState<Order | null>(null);
   const [trackingInput, setTrackingInput] = useState({ number: "", courier: "SpeedPost" });
 
-  // A5 Label Delivery QR Option
+  // A5 Label Delivery QR Option (Direct UPI: GPay, PhonePe, Paytm)
   const [includeDeliveryQr, setIncludeDeliveryQr] = useState<boolean>(true);
+  const [merchantUpiId, setMerchantUpiId] = useState<string>("thedevam@okhdfcbank");
 
   // A5 Label Batch Details Option
   const [showBatchEditor, setShowBatchEditor] = useState<boolean>(true);
@@ -665,25 +666,43 @@ export default function AdminOrdersPage() {
 
             {modalTab === 'label' ? (
               <div className="p-4 bg-gray-100 overflow-y-auto flex-1 flex flex-col items-center">
-                {/* 1. Razorpay Delivery QR Option Toolbar */}
-                <div className="w-full max-w-[138mm] mb-2.5 flex items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs text-xs">
-                  <label className="flex items-center gap-2 cursor-pointer select-none font-semibold text-gray-800">
-                    <input
-                      type="checkbox"
-                      checked={includeDeliveryQr}
-                      onChange={(e) => setIncludeDeliveryQr(e.target.checked)}
-                      className="rounded text-[var(--color-devam-red)] focus:ring-[var(--color-devam-red)] w-4 h-4 cursor-pointer"
-                    />
-                    <span>
-                      Scan &amp; Pay QR at Delivery (Razorpay: ₹{selectedOrder.totalAmount})
+                {/* 1. Delivery Payment Section: QR scan option only for COD orders; disabled/hidden for Prepaid */}
+                {selectedOrder.paymentMethod?.toLowerCase().includes("cash") || selectedOrder.paymentMethod?.toLowerCase().includes("cod") ? (
+                  <div className="w-full max-w-[138mm] mb-2.5 flex flex-col sm:flex-row sm:items-center justify-between bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-xs text-xs gap-2">
+                    <label className="flex items-center gap-2 cursor-pointer select-none font-semibold text-gray-800">
+                      <input
+                        type="checkbox"
+                        checked={includeDeliveryQr}
+                        onChange={(e) => setIncludeDeliveryQr(e.target.checked)}
+                        className="rounded text-[var(--color-devam-red)] focus:ring-[var(--color-devam-red)] w-4 h-4 cursor-pointer"
+                      />
+                      <span>
+                        Direct UPI QR at Delivery (GPay • PhonePe • Paytm: ₹{selectedOrder.totalAmount})
+                      </span>
+                    </label>
+                    <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                      <span className="text-[10px] text-gray-500 font-bold uppercase">UPI ID:</span>
+                      <input
+                        type="text"
+                        value={merchantUpiId}
+                        onChange={(e) => setMerchantUpiId(e.target.value)}
+                        placeholder="thedevam@okhdfcbank"
+                        className="px-2 py-0.5 border border-gray-300 rounded text-xs font-mono font-bold text-gray-800 focus:ring-1 focus:ring-[var(--color-devam-red)] outline-none w-44"
+                        title="Direct UPI ID for receiving delivery payments via GPay, PhonePe, Paytm"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-[138mm] mb-2.5 flex items-center justify-between bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 text-xs">
+                    <div className="flex items-center gap-2 text-emerald-900 font-semibold">
+                      <span className="text-sm">✅</span>
+                      <span>Prepaid Order ({selectedOrder.paymentMethod || 'Online'}) — No QR scan required</span>
+                    </div>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-950 font-mono">
+                      PREPAID
                     </span>
-                  </label>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    includeDeliveryQr ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {includeDeliveryQr ? 'QR Included' : 'QR Excluded'}
-                  </span>
-                </div>
+                  </div>
+                )}
 
                 {/* 2. Product Batch Details Entry Card (Before generating label) */}
                 <div className="w-full max-w-[138mm] mb-3 bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden text-xs">
@@ -798,7 +817,11 @@ export default function AdminOrdersPage() {
 
                 {/* 3. A5 Shipping Label Live Preview */}
                 <div className="bg-white p-3 rounded-2xl shadow-md border border-gray-300 w-full max-w-[138mm]">
-                  <ShippingLabelA5 order={orderForLabel || selectedOrder} includePaymentQr={includeDeliveryQr} />
+                  <ShippingLabelA5 
+                    order={orderForLabel || selectedOrder} 
+                    includePaymentQr={includeDeliveryQr} 
+                    merchantUpiId={merchantUpiId}
+                  />
                 </div>
               </div>
             ) : (
@@ -969,7 +992,11 @@ export default function AdminOrdersPage() {
 
           {/* Printable A5 Shipping Label View (Active only during browser print) */}
           <div className="shipping-label-a5-print-wrapper hidden print:!block">
-            <ShippingLabelA5 order={orderForLabel || selectedOrder} includePaymentQr={includeDeliveryQr} />
+            <ShippingLabelA5 
+              order={orderForLabel || selectedOrder} 
+              includePaymentQr={includeDeliveryQr} 
+              merchantUpiId={merchantUpiId}
+            />
           </div>
 
         </div>
