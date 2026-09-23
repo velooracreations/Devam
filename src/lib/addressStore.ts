@@ -238,3 +238,67 @@ export async function deleteUserAddress(
 
   return updated;
 }
+
+/**
+ * Updates user profile (name & mobile) across React state, localStorage cache, and Firestore (synced by Email & UID).
+ */
+export async function saveUserProfile(
+  profileData: { name?: string; mobile?: string; phone?: string },
+  user: any,
+  userData: any,
+  setUserData?: (updater: any) => void
+) {
+  const email = (user?.email || userData?.email || "").toLowerCase();
+  const uid = user?.uid || userData?.uid;
+
+  const nameVal = profileData.name || userData?.name || user?.displayName || "";
+  const phoneVal = profileData.mobile || profileData.phone || userData?.mobile || userData?.phone || "";
+
+  const updatedProfile = {
+    ...(userData || {}),
+    name: nameVal,
+    mobile: phoneVal,
+    phone: phoneVal,
+    email: email || userData?.email || user?.email || "",
+  };
+
+  // 1. Immediately update React state in AuthContext if provided
+  if (setUserData) {
+    setUserData(updatedProfile);
+  }
+
+  // 2. Immediately persist to localStorage cache (both UID and Email)
+  if (typeof window !== "undefined") {
+    try {
+      if (uid) {
+        localStorage.setItem(`devam_user_data_${uid}`, JSON.stringify(updatedProfile));
+      }
+      if (email) {
+        localStorage.setItem(`devam_user_data_email_${email}`, JSON.stringify(updatedProfile));
+      }
+    } catch (e) {
+      console.warn("[addressStore] Could not update local profile cache:", e);
+    }
+  }
+
+  // 3. Persist to Firestore by UID & Email for cross-device sync
+  if (db) {
+    try {
+      const { doc, setDoc, collection, query, where, getDocs } = await import("firebase/firestore");
+      if (uid) {
+        await setDoc(doc(db, "users", uid), updatedProfile, { merge: true });
+      }
+      if (email) {
+        const q = query(collection(db, "users"), where("email", "==", email));
+        const snap = await getDocs(q);
+        snap.forEach(async (dSnap) => {
+          await setDoc(doc(db, "users", dSnap.id), updatedProfile, { merge: true });
+        });
+      }
+    } catch (err) {
+      console.warn("[addressStore] Firestore profile update skipped:", err);
+    }
+  }
+
+  return updatedProfile;
+}

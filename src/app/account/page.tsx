@@ -11,7 +11,7 @@ import { doc, updateDoc, setDoc, arrayUnion, collection, query, where, onSnapsho
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 import OrderTimeline from "@/components/OrderTimeline";
-import { getSavedAddresses, saveUserAddress, deleteUserAddress } from "@/lib/addressStore";
+import { getSavedAddresses, saveUserAddress, deleteUserAddress, saveUserProfile } from "@/lib/addressStore";
 
 type Tab = "profile" | "addresses" | "orders" | "gift-cards" | "upi" | "cards" | "coupons" | "wishlist";
 
@@ -20,6 +20,11 @@ export default function AccountPage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [expandedTimelines, setExpandedTimelines] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Profile Edit State
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editMobile, setEditMobile] = useState("");
   
   // Address State
   const [isAddingAddress, setIsAddingAddress] = useState(false);
@@ -47,6 +52,24 @@ export default function AccountPage() {
 
   // Unified persistent saved addresses
   const savedAddresses = useMemo(() => getSavedAddresses(user, userData), [user, userData]);
+
+  // Sync profile edit form state whenever userData / user updates
+  useEffect(() => {
+    setEditName(userData?.name || user?.displayName || "");
+    setEditMobile(userData?.mobile || userData?.phone || user?.phoneNumber || "");
+  }, [userData, user]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await saveUserProfile({ name: editName, mobile: editMobile }, user, userData, setUserData);
+      toast.success("Profile updated successfully across your devices!");
+      setIsEditingProfile(false);
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      toast.error("Failed to update profile.");
+    }
+  };
 
   // Cross-device Firestore order listener for the current user
   useEffect(() => {
@@ -379,31 +402,88 @@ export default function AccountPage() {
             {/* PROFILE INFO */}
             {activeTab === "profile" && (
               <div className="animate-in fade-in">
-                <div className="flex items-center gap-4 mb-6">
+                <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-100">
                   <h2 className="text-lg font-bold text-gray-900">Personal Information</h2>
-                  <button className="text-sm font-medium text-[var(--color-devam-red)]">Edit</button>
+                  {!isEditingProfile && (
+                    <button
+                      onClick={() => setIsEditingProfile(true)}
+                      className="text-sm font-bold text-[var(--color-devam-red)] hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Edit2 className="w-4 h-4" /> Edit Profile
+                    </button>
+                  )}
                 </div>
-                <div className="flex gap-4 mb-10">
-                  <input type="text" value={(userData?.name || user.displayName || "").split(" ")[0] || ""} readOnly className="bg-gray-50 border border-gray-200 rounded px-4 py-3 w-64 focus:outline-none text-gray-700" />
-                  <input type="text" value={(userData?.name || user.displayName || "").split(" ")[1] || ""} readOnly className="bg-gray-50 border border-gray-200 rounded px-4 py-3 w-64 focus:outline-none text-gray-700" />
-                </div>
-                
-                <div className="flex gap-4 mb-8">
-                  <div className="flex-1 border border-gray-200 rounded p-4 bg-gray-50 flex items-center justify-between">
+
+                {isEditingProfile ? (
+                  <form onSubmit={handleSaveProfile} className="space-y-4 max-w-lg bg-orange-50/20 p-6 border border-amber-200 rounded-xl">
                     <div>
-                      <p className="text-xs text-gray-500 font-bold tracking-wider mb-1">EMAIL ADDRESS</p>
-                      <p className="text-gray-900">{user.email}</p>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        required
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[var(--color-devam-red)] outline-none"
+                        placeholder="Jaydeep Patel"
+                      />
                     </div>
-                    <button className="text-[var(--color-devam-red)] text-sm font-bold hover:underline">Edit</button>
-                  </div>
-                  <div className="flex-1 border border-gray-200 rounded p-4 bg-gray-50 flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-500 font-bold tracking-wider mb-1">PHONE NUMBER</p>
-                      <p className="text-gray-900">{user.phoneNumber || "+91 - Add Phone"}</p>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Mobile Number</label>
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        value={editMobile}
+                        onChange={(e) => setEditMobile(e.target.value.replace(/\D/g, ""))}
+                        className="w-full border border-gray-300 rounded-lg px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[var(--color-devam-red)] outline-none"
+                        placeholder="10-digit mobile number"
+                      />
                     </div>
-                    <button className="text-[var(--color-devam-red)] text-sm font-bold hover:underline">Edit</button>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Email Address (Read Only)</label>
+                      <input
+                        type="email"
+                        readOnly
+                        value={userData?.email || user?.email || ""}
+                        className="w-full bg-gray-100 border border-gray-200 rounded-lg px-3.5 py-2.5 text-sm text-gray-600 outline-none"
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <button
+                        type="submit"
+                        className="bg-[var(--color-devam-red)] text-white font-bold text-xs px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all cursor-pointer"
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingProfile(false)}
+                        className="bg-gray-100 text-gray-700 font-bold text-xs px-6 py-2.5 rounded-lg hover:bg-gray-200 transition-all cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/70">
+                        <p className="text-xs text-gray-500 font-bold tracking-wider mb-1">FULL NAME</p>
+                        <p className="font-bold text-gray-900 text-base">{userData?.name || user?.displayName || "Devam Customer"}</p>
+                      </div>
+                      <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/70">
+                        <p className="text-xs text-gray-500 font-bold tracking-wider mb-1">EMAIL ADDRESS</p>
+                        <p className="font-bold text-gray-900 text-base">{userData?.email || user?.email || ""}</p>
+                      </div>
+                    </div>
+
+                    <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/70">
+                      <p className="text-xs text-gray-500 font-bold tracking-wider mb-1">MOBILE NUMBER</p>
+                      <p className="font-bold text-gray-900 text-base">
+                        {userData?.mobile || userData?.phone || user?.phoneNumber || "+91 - Add Phone Number"}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 

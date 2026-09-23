@@ -56,15 +56,31 @@ async function saveOrderToFirestore(order: Order, userId?: string): Promise<void
   try {
     const { db } = await import("@/lib/firebase");
     if (!db) return;
-    const { doc, setDoc, arrayUnion } = await import("firebase/firestore");
-    await setDoc(doc(db, "orders", order.id), {
-      ...order,
-      createdAt: new Date().toISOString(),
-    }, { merge: true });
+    const { doc, setDoc, collection, query, where, getDocs, arrayUnion } = await import("firebase/firestore");
+    
+    const nowIso = new Date().toISOString();
+    const orderPayload = { ...order, createdAt: nowIso };
+
+    // 1. Save to central 'orders' collection
+    await setDoc(doc(db, "orders", order.id), orderPayload, { merge: true });
+
+    // 2. Save to user document by UID if available
     if (userId) {
       await setDoc(doc(db, "users", userId), {
-        orders: arrayUnion({ ...order, createdAt: new Date().toISOString() }),
+        orders: arrayUnion(orderPayload),
       }, { merge: true });
+    }
+
+    // 3. Save to user documents matching customer email for cross-device visibility
+    const email = (order.customerEmail || "").toLowerCase();
+    if (email) {
+      const q = query(collection(db, "users"), where("email", "==", email));
+      const snap = await getDocs(q);
+      snap.forEach(async (dSnap) => {
+        await setDoc(doc(db, "users", dSnap.id), {
+          orders: arrayUnion(orderPayload),
+        }, { merge: true });
+      });
     }
   } catch (e) {
     console.warn("[Checkout] Firestore save skipped:", e);

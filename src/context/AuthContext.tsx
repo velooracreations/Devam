@@ -86,21 +86,32 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
             unsubscribeSnapshot = onSnapshot(q, async (snapshot) => {
               if (!snapshot.empty) {
                 // Documents found matching this email address
-                const mainDoc = snapshot.docs[0];
-                const data = mainDoc.data();
+                let mergedAddresses: any[] = [];
+                let mergedOrders: any[] = [];
+                let bestName = "";
+                let bestMobile = "";
+                let baseData: any = {};
 
-                // Merge addresses across all matching documents
-                let allAddresses: any[] = [];
                 snapshot.docs.forEach((d) => {
                   const dData = d.data();
+                  baseData = { ...baseData, ...dData };
+                  if (!bestName && dData?.name) bestName = dData.name;
+                  if (!bestMobile && (dData?.mobile || dData?.phone)) bestMobile = dData.mobile || dData.phone;
                   if (Array.isArray(dData?.addresses)) {
-                    allAddresses = [...allAddresses, ...dData.addresses];
+                    mergedAddresses = [...mergedAddresses, ...dData.addresses];
+                  }
+                  if (Array.isArray(dData?.orders)) {
+                    mergedOrders = [...mergedOrders, ...dData.orders];
                   }
                 });
 
                 const mergedUserData = {
-                  ...data,
-                  addresses: allAddresses,
+                  ...baseData,
+                  name: bestName || currentUser.displayName || baseData.name || "User",
+                  mobile: bestMobile || baseData.mobile || baseData.phone || "",
+                  phone: bestMobile || baseData.mobile || baseData.phone || "",
+                  addresses: mergedAddresses,
+                  orders: mergedOrders,
                 };
 
                 setUserData(mergedUserData);
@@ -111,13 +122,13 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
                 } catch {}
 
                 // Cloud Cart Sync
-                if (Array.isArray(data?.cart)) {
+                if (Array.isArray(baseData?.cart)) {
                   const localItems = useCartStore.getState().items;
-                  if (JSON.stringify(data.cart) !== JSON.stringify(localItems)) {
-                    if (localItems.length > 0 && data.cart.length === 0) {
+                  if (JSON.stringify(baseData.cart) !== JSON.stringify(localItems)) {
+                    if (localItems.length > 0 && baseData.cart.length === 0) {
                       useCartStore.getState().setCart(localItems, false);
                     } else {
-                      useCartStore.getState().setCart(data.cart, true);
+                      useCartStore.getState().setCart(baseData.cart, true);
                     }
                   }
                 }
