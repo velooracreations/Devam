@@ -7,7 +7,7 @@ import { useCartStore } from "@/store/cartStore";
 import { useOrderStore, Order } from "@/store/orderStore";
 import { useAuth } from "@/context/AuthContext";
 import { useSettingsStore } from "@/store/settingsStore";
-import { getSavedAddresses, saveUserAddress } from "@/lib/addressStore";
+import { Address, getSavedAddresses, saveUserAddress, fetchServerAddresses, dedupeAddressesList } from "@/lib/addressStore";
 import { saveOrderAndNotify } from "@/lib/orderSync";
 import { toast } from "sonner";
 import {
@@ -69,8 +69,21 @@ export default function CheckoutPage() {
 
   const items = useMemo(() => (Array.isArray(rawItems) ? rawItems : []), [rawItems]);
 
-  // Unified persistent saved addresses
-  const savedAddresses = useMemo(() => getSavedAddresses(user, userData), [user, userData]);
+  // Unified persistent saved addresses (Cloud Firestore + Local)
+  const [cloudAddrs, setCloudAddrs] = useState<Address[]>([]);
+
+  useEffect(() => {
+    fetchServerAddresses(user, userData).then((addrs) => {
+      if (addrs && addrs.length > 0) {
+        setCloudAddrs(addrs);
+      }
+    });
+  }, [user, userData]);
+
+  const savedAddresses = useMemo(() => {
+    const local = getSavedAddresses(user, userData);
+    return dedupeAddressesList([...cloudAddrs, ...local]);
+  }, [user, userData, cloudAddrs]);
 
   // ── UI state ───────────────────────────────────────────────────────────────
   const [hydrated, setHydrated]        = useState(false);

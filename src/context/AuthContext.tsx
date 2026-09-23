@@ -5,6 +5,7 @@ import { User, onAuthStateChanged, signOut } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, getDocs, setDoc, onSnapshot, collection, query, where } from "firebase/firestore";
 import { useCartStore } from "@/store/cartStore";
+import { syncLocalAddressesToCloud } from "@/lib/addressStore";
 
 interface AuthContextType {
   user: User | null;
@@ -142,6 +143,26 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
               } catch {}
             }
 
+            // D. Fetch from Cloud Firestore via Server API for guaranteed cross-device sync
+            try {
+              const params = new URLSearchParams();
+              if (email) params.set("email", email);
+              if (bestMobile) params.set("phone", bestMobile.replace(/\D/g, ""));
+              if (currentUser.uid) params.set("userId", currentUser.uid);
+
+              const res = await fetch(`/api/addresses?${params.toString()}`, { cache: "no-store" });
+              if (res.ok) {
+                const cloudData = await res.json();
+                if (cloudData.success && Array.isArray(cloudData.addresses)) {
+                  mergedAddresses.push(...cloudData.addresses);
+                  if (cloudData.profile?.name && !bestName) bestName = cloudData.profile.name;
+                  if (cloudData.profile?.mobile && !bestMobile) bestMobile = cloudData.profile.mobile;
+                }
+              }
+            } catch (cloudErr) {
+              console.warn("[AuthContext] Cloud addresses fetch notice:", cloudErr);
+            }
+
             const cleanAddrs = dedupeAddrs(mergedAddresses);
 
             const mergedUserData = {
@@ -161,6 +182,8 @@ export const AuthContextProvider = ({ children }: { children: React.ReactNode })
               localStorage.setItem(`devam_user_data_${currentUser.uid}`, JSON.stringify(mergedUserData));
               if (email) localStorage.setItem(`devam_user_data_email_${email}`, JSON.stringify(mergedUserData));
             } catch {}
+
+            syncLocalAddressesToCloud(currentUser, mergedUserData);
 
             // Cloud Cart Sync
             if (Array.isArray(baseData?.cart)) {

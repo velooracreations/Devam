@@ -10,6 +10,7 @@ import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { syncExistingLocalOrdersToCloud } from "@/lib/orderSync";
+import { syncLocalAddressesToCloud } from "@/lib/addressStore";
 
 export function StoreLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,6 +18,7 @@ export function StoreLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const unsubscribe = useAuthStore.getState().initialize();
     syncExistingLocalOrdersToCloud();
+    syncLocalAddressesToCloud();
     return () => {
       if (unsubscribe) unsubscribe();
     };

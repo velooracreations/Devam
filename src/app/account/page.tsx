@@ -11,7 +11,7 @@ import { doc, updateDoc, setDoc, arrayUnion, collection, query, where, onSnapsho
 import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 import OrderTimeline from "@/components/OrderTimeline";
-import { getSavedAddresses, saveUserAddress, deleteUserAddress, saveUserProfile } from "@/lib/addressStore";
+import { Address, getSavedAddresses, saveUserAddress, deleteUserAddress, saveUserProfile, fetchServerAddresses, dedupeAddressesList } from "@/lib/addressStore";
 import { cancelOrderAndNotify } from "@/lib/orderSync";
 
 type Tab = "profile" | "addresses" | "orders" | "gift-cards" | "upi" | "cards" | "coupons" | "wishlist";
@@ -56,8 +56,24 @@ export default function AccountPage() {
   const localOrders = useOrderStore((state) => state.orders);
   const router = useRouter();
 
-  // Unified persistent saved addresses
-  const savedAddresses = useMemo(() => getSavedAddresses(user, userData), [user, userData]);
+  // Unified persistent saved addresses (Cloud Firestore + Local)
+  const [cloudAddrs, setCloudAddrs] = useState<Address[]>([]);
+
+  const refreshCloudAddresses = useCallback(async () => {
+    const addrs = await fetchServerAddresses(user, userData);
+    if (addrs && addrs.length > 0) {
+      setCloudAddrs(addrs);
+    }
+  }, [user, userData]);
+
+  useEffect(() => {
+    refreshCloudAddresses();
+  }, [refreshCloudAddresses]);
+
+  const savedAddresses = useMemo(() => {
+    const local = getSavedAddresses(user, userData);
+    return dedupeAddressesList([...cloudAddrs, ...local]);
+  }, [user, userData, cloudAddrs]);
 
   // Sync profile edit form state whenever userData / user updates
   useEffect(() => {
@@ -260,8 +276,10 @@ export default function AccountPage() {
   };
 
   const handleDeleteAddress = async (addressId: string) => {
+    if (!window.confirm("Are you sure you want to delete this address?")) return;
     try {
       await deleteUserAddress(addressId, user, userData, setUserData);
+      await refreshCloudAddresses();
       toast.success("Address deleted successfully!");
     } catch (error) {
       console.error("Error deleting address:", error);
@@ -296,8 +314,9 @@ export default function AccountPage() {
       delete (newAddress as any).otherType;
       
       await saveUserAddress(newAddress, user, userData, setUserData);
+      await refreshCloudAddresses();
       
-      toast.success("Address saved successfully!");
+      toast.success("Address saved successfully across all devices!");
       resetAddressForm();
       setIsAddingAddress(false);
     } catch (error) {
