@@ -9,12 +9,14 @@ import { CustomCursor } from "@/components/ui/CustomCursor";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
+import { syncExistingLocalOrdersToCloud } from "@/lib/orderSync";
 
 export function StoreLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   
   useEffect(() => {
     const unsubscribe = useAuthStore.getState().initialize();
+    syncExistingLocalOrdersToCloud();
     return () => {
       if (unsubscribe) unsubscribe();
     };

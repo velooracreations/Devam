@@ -158,6 +158,17 @@ export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
             if (!mergedMap.has(o.id)) mergedMap.set(o.id, o);
           });
 
+          // Auto-backfill: if there are any local orders that are NOT yet on the server, upload them
+          prevOrders.forEach(localOrder => {
+            if (localOrder && localOrder.id && !serverOrders.some(s => s.id === localOrder.id)) {
+              fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order: localOrder }),
+              }).catch(() => {});
+            }
+          });
+
           const finalList = Array.from(mergedMap.values()).sort(
             (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
           );
@@ -188,6 +199,35 @@ export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
   return () => {
     unsubscribes.forEach(fn => fn());
   };
+}
+
+/**
+ * Automatically backfill any old orders sitting in the user's browser localStorage to Cloud Firestore
+ */
+export async function syncExistingLocalOrdersToCloud() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const rawLocal = localStorage.getItem('devam-orders-storage');
+    if (!rawLocal) return;
+
+    const parsed = JSON.parse(rawLocal);
+    const localOrders: Order[] = parsed?.state?.orders || [];
+    if (!Array.isArray(localOrders) || localOrders.length === 0) return;
+
+    for (const order of localOrders) {
+      if (order && order.id) {
+        await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order }),
+        }).catch(() => {});
+      }
+    }
+    console.log(`[OrderSync] Checked and backfilled ${localOrders.length} local orders to Cloud Firestore.`);
+  } catch (err) {
+    console.warn('[OrderSync] Auto-backfill notice:', err);
+  }
 }
 
 /**
