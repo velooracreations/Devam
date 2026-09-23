@@ -31,11 +31,22 @@ export async function POST(req: Request) {
       ? new Date(date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
       : new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
 
+    const isCancelled = orderStatus === 'Cancelled';
+    const emailSubject = isCancelled 
+      ? `❌ Order #${orderId} CANCELLED — ₹${totalAmount} | ${customerName || 'Customer'}`
+      : `🚨 Order #${orderId} Update [${orderStatus}] — ₹${totalAmount} | ${customerName || 'Guest'}`;
+
+    const adminHeader = isCancelled
+      ? `❌ *ORDER CANCELLED BY CUSTOMER — DEVAM*`
+      : `🚨 *NEW ORDER RECEIVED — DEVAM*`;
+
     const adminMsg = [
-      `🚨 *NEW ORDER RECEIVED — DEVAM*`,
+      adminHeader,
       ``,
       `📦 *Order ID:* ${orderId}`,
       `📅 *Date:* ${orderDate}`,
+      `📊 *Status:* ${orderStatus.toUpperCase()}`,
+      ...(isCancelled ? [`⚠️ *Cancellation Reason:* ${payload.cancellationReason || 'Cancelled by customer in My Account'}`] : []),
       ``,
       `👤 *Customer Details*`,
       `  Name: ${customerName || 'Guest'}`,
@@ -58,11 +69,21 @@ export async function POST(req: Request) {
     const customerWhatsappPhone = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`;
 
     const adminWhatsappUrl    = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(adminMsg)}`;
-    const customerMsg         = [
+    const customerMsg         = isCancelled ? [
+      `❌ *Order Cancelled — Devam Atta & Spices*`,
+      ``,
+      `Hi ${customerName || 'Valued Customer'},`,
+      `Your order #${orderId} (₹${totalAmount}) has been cancelled.`,
+      ``,
+      `If you have paid online, your refund will be processed within 3-5 business days.`,
+      `Track account: https://thedevam.com/account`,
+      ``,
+      `Thank you for reaching out to Devam! 🙏`,
+    ].join('\n') : [
       `✅ *Order Confirmed — Devam Atta & Spices*`,
       ``,
       `Hi ${customerName || 'Valued Customer'},`,
-      `Your order has been received! 🎉`,
+      `Your order status: ${orderStatus}! 🎉`,
       ``,
       `📦 *Order ID:* ${orderId}`,
       `💰 *Amount:* ₹${totalAmount}`,
@@ -71,7 +92,6 @@ export async function POST(req: Request) {
       `📍 *Delivering To:*`,
       `${shippingAddress || 'Your registered address'}`,
       ``,
-      `We will notify you once your order is shipped.`,
       `Track your order: https://thedevam.com/account`,
       ``,
       `Thank you for choosing Devam! 🙏`,
@@ -97,9 +117,9 @@ export async function POST(req: Request) {
 
         const plainText = adminMsg.replace(/\*/g, '');
         await transporter.sendMail({
-          from:    process.env.SMTP_FROM || '"Devam Order Alert" <thedevam2024@gmail.com>',
+          from:    process.env.SMTP_FROM || '"Devam Order Notification" <thedevam2024@gmail.com>',
           to:      [...ADMIN_EMAILS, customerEmail].filter(Boolean).join(', '),
-          subject: `🚨 New Order #${orderId} — ₹${totalAmount} | ${customerName || 'Guest'}`,
+          subject: emailSubject,
           text:    plainText,
         });
         results.email = `sent to admins + ${customerEmail || 'customer'}`;

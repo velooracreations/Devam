@@ -230,3 +230,78 @@ export async function updateOrderInFirestore(orderId: string, updates: Partial<O
     console.warn("[OrderSync] Failed to update order in Firestore:", err);
   }
 }
+
+/**
+ * Cancel an order, update Firestore, sync with local store, broadcast to tabs, and trigger email notification
+ */
+export async function cancelOrderAndNotify(targetOrder: Order, reason?: string, userId?: string) {
+  const nowIso = new Date().toISOString();
+  const updates: Partial<Order> = {
+    status: 'Cancelled',
+    timeline: {
+      ...(targetOrder.timeline || {}),
+      cancelled: nowIso
+    }
+  };
+
+  // 1. Update local Zustand store
+  useOrderStore.getState().updateOrderStatus(targetOrder.id, 'Cancelled', updates);
+
+  // 2. Broadcast local CustomEvent & BroadcastChannel
+  if (typeof window !== 'undefined') {
+    try {
+      window.dispatchEvent(new CustomEvent('devam_order_cancelled', { detail: { orderId: targetOrder.id, reason } }));
+      if ('BroadcastChannel' in window) {
+        const channel = new BroadcastChannel('devam_orders_channel');
+        channel.postMessage({ type: 'UPDATE_ORDER', orderId: targetOrder.id, updates });
+        channel.close();
+      }
+    } catch (e) {}
+  }
+
+  // 3. Update Firestore
+  if (db) {
+    try {
+      const orderRef = doc(db, "orders", targetOrder.id);
+      await setDoc(orderRef, updates, { merge: true });
+
+      if (userId) {
+        const userRef = doc(db, "users", userId);
+        await setDoc(userRef, {
+          orders: arrayUnion({ ...targetOrder, ...updates })
+        }, { merge: true });
+      }
+
+      const email = (targetOrder.customerEmail || "").toLowerCase();
+      if (email && email !== "guest@thedevam.com") {
+        const { collection, query, where, getDocs } = await import("firebase/firestore");
+        const q = query(collection(db, "users"), where("email", "==", email));
+        const snap = await getDocs(q);
+        snap.forEach(async (dSnap) => {
+          await setDoc(doc(db, "users", dSnap.id), {
+            orders: arrayUnion({ ...targetOrder, ...updates })
+          }, { merge: true });
+        });
+      }
+    } catch (err) {
+      console.warn("[OrderSync] Cancel order Firestore error:", err);
+    }
+  }
+
+  // 4. Trigger Email & Notification API
+  try {
+    await fetch("/api/notifications/order-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...targetOrder,
+        ...updates,
+        status: 'Cancelled',
+        cancellationReason: reason || 'Cancelled by Customer'
+      })
+    });
+    console.log(`[OrderSync] Cancellation notification sent for Order #${targetOrder.id}`);
+  } catch (err) {
+    console.warn("[OrderSync] Cancel notification error:", err);
+  }
+}

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { CartItem } from './cartStore';
 
-export type OrderStatus = 'Order Placed' | 'Confirmed' | 'Shipped' | 'Out for Dispatch' | 'Delivered';
+export type OrderStatus = 'Order Placed' | 'Confirmed' | 'Shipped' | 'Out for Dispatch' | 'Delivered' | 'Cancelled';
 
 export interface OrderTimeline {
   orderPlaced?: string;
@@ -10,6 +10,7 @@ export interface OrderTimeline {
   shipped?: string;
   outForDispatch?: string;
   delivered?: string;
+  cancelled?: string;
 }
 
 export interface Order {
@@ -26,6 +27,7 @@ export interface Order {
   shippingAddress?: string;
   trackingNumber?: string;
   courierPartner?: string;
+  cancellationReason?: string;
   gstNumber?: string;
 }
 

@@ -67,6 +67,7 @@ export default function AdminOrdersPage() {
       case 'Shipped': return 'bg-indigo-100 text-indigo-800 border-indigo-300';
       case 'Out for Dispatch': return 'bg-purple-100 text-purple-800 border-purple-300';
       case 'Delivered': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'Cancelled': return 'bg-red-100 text-red-800 border-red-300';
       default: return 'bg-amber-100 text-amber-800 border-amber-300';
     }
   };
@@ -229,7 +230,7 @@ export default function AdminOrdersPage() {
               />
             </div>
             <div className="flex gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
-              {['All', 'Order Placed', 'Confirmed', 'Shipped', 'Out for Dispatch', 'Delivered'].map(status => (
+              {['All', 'Order Placed', 'Confirmed', 'Shipped', 'Out for Dispatch', 'Delivered', 'Cancelled'].map(status => (
                 <button 
                   key={status}
                   onClick={() => setFilterStatus(status)}
@@ -297,6 +298,7 @@ export default function AdminOrdersPage() {
                               <option value="Shipped">Shipped</option>
                               <option value="Out for Dispatch">Out for Dispatch</option>
                               <option value="Delivered">Delivered</option>
+                              <option value="Cancelled">Cancelled</option>
                             </select>
                             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2">
                               <ChevronDown className="w-3 h-3 opacity-60" />
@@ -406,39 +408,60 @@ export default function AdminOrdersPage() {
 
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               
-              {/* Order Status Timeline Bar */}
-              <div className="bg-amber-50/60 border border-amber-200/80 rounded-xl p-4">
-                <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">Order Status Progress</p>
-                <div className="flex items-center justify-between text-xs font-bold gap-2 overflow-x-auto pb-1">
-                  {[
-                    { key: 'orderPlaced', label: 'Order Placed' },
-                    { key: 'confirmed', label: 'Confirmed' },
-                    { key: 'shipped', label: 'Shipped' },
-                    { key: 'outForDispatch', label: 'Out for Dispatch' },
-                    { key: 'delivered', label: 'Delivered' }
-                  ].map((step, i) => {
-                    const currentIdx = getStatusStepIndex(selectedOrder.status);
-                    const isPassed = (i + 1) <= currentIdx;
-                    const timestamp = (selectedOrder.timeline as any)?.[step.key];
-                    return (
-                      <div key={step.key} className="flex flex-col items-center gap-1 text-center min-w-[76px]">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isPassed ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                          {isPassed ? '✓' : i + 1}
-                        </div>
-                        <span className={`text-[11px] leading-tight ${isPassed ? 'text-emerald-900 font-bold' : 'text-gray-400'}`}>{step.label}</span>
-                        {timestamp ? (
-                          <span className="text-[10px] text-gray-500 font-normal leading-tight">
-                            {new Date(timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}<br/>
-                            {new Date(timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        ) : (
-                          <span className="text-[9px] text-gray-400 italic">Pending</span>
-                        )}
-                      </div>
-                    );
-                  })}
+              {/* Order Status Timeline Bar or Cancellation Banner */}
+              {selectedOrder.status === 'Cancelled' ? (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-900 shadow-xs">
+                  <div className="flex items-center justify-between font-bold">
+                    <span className="flex items-center gap-2 text-sm text-red-700">
+                      ❌ Order Cancelled
+                    </span>
+                    {selectedOrder.timeline?.cancelled && (
+                      <span className="text-xs text-red-600 font-normal">
+                        Cancelled on: {new Date(selectedOrder.timeline.cancelled).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                  </div>
+                  {selectedOrder.cancellationReason && (
+                    <div className="mt-2.5 bg-white/80 p-3 rounded-lg border border-red-100 text-xs">
+                      <span className="font-bold text-red-900 block mb-0.5">Reason for Cancellation:</span>
+                      <p className="text-red-800 italic">{selectedOrder.cancellationReason}</p>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="bg-amber-50/60 border border-amber-200/80 rounded-xl p-4">
+                  <p className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-3">Order Status Progress</p>
+                  <div className="flex items-center justify-between text-xs font-bold gap-2 overflow-x-auto pb-1">
+                    {[
+                      { key: 'orderPlaced', label: 'Order Placed' },
+                      { key: 'confirmed', label: 'Confirmed' },
+                      { key: 'shipped', label: 'Shipped' },
+                      { key: 'outForDispatch', label: 'Out for Dispatch' },
+                      { key: 'delivered', label: 'Delivered' }
+                    ].map((step, i) => {
+                      const currentIdx = getStatusStepIndex(selectedOrder.status);
+                      const isPassed = (i + 1) <= currentIdx;
+                      const timestamp = (selectedOrder.timeline as any)?.[step.key];
+                      return (
+                        <div key={step.key} className="flex flex-col items-center gap-1 text-center min-w-[76px]">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isPassed ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                            {isPassed ? '✓' : i + 1}
+                          </div>
+                          <span className={`text-[11px] leading-tight ${isPassed ? 'text-emerald-900 font-bold' : 'text-gray-400'}`}>{step.label}</span>
+                          {timestamp ? (
+                            <span className="text-[10px] text-gray-500 font-normal leading-tight">
+                              {new Date(timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}<br/>
+                              {new Date(timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] text-gray-400 italic">Pending</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>

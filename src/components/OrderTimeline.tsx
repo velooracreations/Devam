@@ -13,7 +13,8 @@ import {
   ExternalLink, 
   Copy, 
   CheckCheck,
-  MapPin
+  MapPin,
+  XCircle
 } from "lucide-react";
 
 interface OrderTimelineProps {
@@ -70,6 +71,8 @@ function getStatusIndex(status: OrderStatus): number {
       return 4;
     case "Delivered":
       return 5;
+    case "Cancelled":
+      return 0;
     default:
       return 1;
   }
@@ -108,6 +111,22 @@ export default function OrderTimeline({ order }: OrderTimelineProps) {
       setTimeout(() => setCopiedTracking(false), 2000);
     }
   };
+
+  if (order.status === "Cancelled") {
+    const cancelledTime = formatTimestamp(order.timeline?.cancelled || order.date);
+    return (
+      <div className="w-full bg-red-50 border border-red-200 rounded-xl p-4 sm:p-5 mt-4 text-left">
+        <div className="flex items-center gap-2 mb-2">
+          <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+          <h4 className="text-sm font-extrabold text-red-900">Order Cancelled</h4>
+          <span className="text-[10px] font-bold bg-red-200 text-red-900 px-2 py-0.5 rounded-full uppercase">Cancelled</span>
+        </div>
+        <p className="text-xs text-red-700 leading-relaxed">
+          This order was cancelled {cancelledTime ? `on ${cancelledTime.dateStr} at ${cancelledTime.timeStr}` : ""}. An automated email intimation has been delivered to the seller &amp; customer.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-stone-50/80 border border-stone-200/90 rounded-xl p-4 sm:p-5 mt-4">

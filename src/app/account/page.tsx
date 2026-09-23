@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { User, Package, MapPin, LogOut, CreditCard, Gift, Heart, Star, Bell, ChevronRight, Edit2, Plus, Settings, Camera, Loader2, ChevronDown, ChevronUp, Clock } from "lucide-react";
-import { useOrderStore, Order } from "@/store/orderStore";
+import { User, Package, MapPin, LogOut, CreditCard, Gift, Heart, Star, Bell, ChevronRight, Edit2, Plus, Settings, Camera, Loader2, ChevronDown, ChevronUp, Clock, XCircle, X } from "lucide-react";
+import { useOrderStore, Order, normalizeOrderStatus } from "@/store/orderStore";
 import { useAuthStore } from "@/store/authStore";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import { db } from "@/lib/firebase";
 import { toast } from "sonner";
 import OrderTimeline from "@/components/OrderTimeline";
 import { getSavedAddresses, saveUserAddress, deleteUserAddress, saveUserProfile } from "@/lib/addressStore";
+import { cancelOrderAndNotify } from "@/lib/orderSync";
 
 type Tab = "profile" | "addresses" | "orders" | "gift-cards" | "upi" | "cards" | "coupons" | "wishlist";
 
@@ -25,6 +26,11 @@ export default function AccountPage() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editName, setEditName] = useState("");
   const [editMobile, setEditMobile] = useState("");
+  
+  // Cancel Order State
+  const [cancellingOrder, setCancellingOrder] = useState<Order | null>(null);
+  const [cancelReason, setCancelReason] = useState("Changed my mind");
+  const [isCancelling, setIsCancelling] = useState(false);
   
   // Address State
   const [isAddingAddress, setIsAddingAddress] = useState(false);
@@ -656,6 +662,9 @@ export default function AccountPage() {
                   <div className="space-y-6">
                     {orders.map((order) => {
                       const isTimelineOpen = expandedTimelines[order.id] !== false; // Open by default
+                      const normStatus = normalizeOrderStatus(order.status);
+                      const canCancel = normStatus === "Order Placed" || normStatus === "Confirmed";
+
                       return (
                         <div key={order.id} className="border border-gray-200 rounded-xl p-4 sm:p-6 shadow-sm bg-white hover:border-stone-300 transition-all">
                           {/* Header: ID, Date, Status & Total */}
@@ -666,17 +675,19 @@ export default function AccountPage() {
                                   #{order.id}
                                 </span>
                                 <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider border ${
-                                  order.status === "Delivered"
+                                  normStatus === "Delivered"
                                     ? "bg-emerald-50 text-emerald-800 border-emerald-300"
-                                    : order.status === "Out for Dispatch"
+                                    : normStatus === "Out for Dispatch"
                                     ? "bg-purple-50 text-purple-800 border-purple-300"
-                                    : order.status === "Shipped"
+                                    : normStatus === "Shipped"
                                     ? "bg-indigo-50 text-indigo-800 border-indigo-300"
-                                    : order.status === "Confirmed"
+                                    : normStatus === "Confirmed"
                                     ? "bg-blue-50 text-blue-800 border-blue-300"
+                                    : normStatus === "Cancelled"
+                                    ? "bg-red-50 text-red-800 border-red-300"
                                     : "bg-amber-50 text-amber-800 border-amber-300"
                                 }`}>
-                                  {order.status}
+                                  {normStatus}
                                 </span>
                               </div>
                               <p className="text-xs text-gray-500 mt-1">
@@ -688,7 +699,7 @@ export default function AccountPage() {
                                 </p>
                               )}
                             </div>
-                            <div className="text-right">
+                            <div className="text-right flex flex-col items-end">
                               <span className="text-[11px] text-gray-500 block">Total Amount</span>
                               <span className="font-extrabold text-base sm:text-lg text-[var(--color-devam-red)]">
                                 ₹{order.totalAmount.toFixed(2)}
@@ -696,6 +707,19 @@ export default function AccountPage() {
                               <span className="text-[10px] text-gray-400 block mt-0.5">
                                 {order.paymentMethod}
                               </span>
+
+                              {canCancel && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCancellingOrder(order);
+                                    setCancelReason("Changed my mind");
+                                  }}
+                                  className="mt-2 text-xs font-bold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                >
+                                  <XCircle className="w-3.5 h-3.5" /> Cancel Order
+                                </button>
+                              )}
                             </div>
                           </div>
                           
@@ -768,6 +792,71 @@ export default function AccountPage() {
           </div>
         </div>
       </div>
+
+      {/* Cancel Order Modal */}
+      {cancellingOrder && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+              <h3 className="text-base font-bold text-gray-900">Cancel Order #{cancellingOrder.id}</h3>
+              <button onClick={() => setCancellingOrder(null)} className="p-1 text-gray-400 hover:text-gray-700 rounded-full transition-colors cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-600 leading-relaxed">
+              Are you sure you want to cancel order <strong className="text-gray-900 font-mono">#{cancellingOrder.id}</strong> (₹{cancellingOrder.totalAmount})? An instant email intimation will be delivered to the seller &amp; customer.
+            </p>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Select Reason for Cancellation</label>
+              <select
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-red-500 bg-white cursor-pointer font-medium"
+              >
+                <option value="Changed my mind">Changed my mind</option>
+                <option value="Ordered by mistake">Ordered by mistake</option>
+                <option value="Selected wrong items">Selected wrong items</option>
+                <option value="Incorrect shipping address">Incorrect shipping address</option>
+                <option value="Found better alternative">Found better alternative</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setCancellingOrder(null)}
+                className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 transition-colors cursor-pointer"
+              >
+                Nevermind
+              </button>
+              <button
+                type="button"
+                disabled={isCancelling}
+                onClick={async () => {
+                  setIsCancelling(true);
+                  try {
+                    await cancelOrderAndNotify(cancellingOrder, cancelReason, user?.uid);
+                    toast.success(`Order #${cancellingOrder.id} has been cancelled.`);
+                    setCancellingOrder(null);
+                  } catch (err) {
+                    console.error("Cancellation error:", err);
+                    toast.error("Failed to cancel order. Please try again.");
+                  } finally {
+                    setIsCancelling(false);
+                  }
+                }}
+                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              >
+                {isCancelling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Confirm Cancellation"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
