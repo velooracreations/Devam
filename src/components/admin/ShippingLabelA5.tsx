@@ -325,12 +325,11 @@ export function ShippingLabelA5({ order, className = "", includePaymentQr = true
                 style={{
                   fontSize: "17px",
                   fontWeight: "900",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.5px",
+                  letterSpacing: "0.3px",
                   lineHeight: "1.15",
                 }}
               >
-                DEVAM ATTA &amp; SPICES
+                Devam Atta &amp; Masala Hub
               </div>
               <div
                 style={{
