@@ -8,6 +8,7 @@ import { useOrderStore, Order } from "@/store/orderStore";
 import { useAuth } from "@/context/AuthContext";
 import { useSettingsStore } from "@/store/settingsStore";
 import { getSavedAddresses, saveUserAddress } from "@/lib/addressStore";
+import { saveOrderAndNotify } from "@/lib/orderSync";
 import { toast } from "sonner";
 import {
   ShieldCheck,
@@ -51,54 +52,8 @@ function lsRemove(...keys: string[]) {
   try { keys.forEach(k => localStorage.removeItem(k)); } catch {}
 }
 
-// ── Firestore order saver (totally self-contained, never throws) ─────────────
-async function saveOrderToFirestore(order: Order, userId?: string): Promise<void> {
-  try {
-    const { db } = await import("@/lib/firebase");
-    if (!db) return;
-    const { doc, setDoc, collection, query, where, getDocs, arrayUnion } = await import("firebase/firestore");
-    
-    const nowIso = new Date().toISOString();
-    const orderPayload = { ...order, createdAt: nowIso };
 
-    // 1. Save to central 'orders' collection
-    await setDoc(doc(db, "orders", order.id), orderPayload, { merge: true });
-
-    // 2. Save to user document by UID if available
-    if (userId) {
-      await setDoc(doc(db, "users", userId), {
-        orders: arrayUnion(orderPayload),
-      }, { merge: true });
-    }
-
-    // 3. Save to user documents matching customer email for cross-device visibility
-    const email = (order.customerEmail || "").toLowerCase();
-    if (email) {
-      const q = query(collection(db, "users"), where("email", "==", email));
-      const snap = await getDocs(q);
-      snap.forEach(async (dSnap) => {
-        await setDoc(doc(db, "users", dSnap.id), {
-          orders: arrayUnion(orderPayload),
-        }, { merge: true });
-      });
-    }
-  } catch (e) {
-    console.warn("[Checkout] Firestore save skipped:", e);
-  }
-}
-
-// ── Local broadcast helper ───────────────────────────────────────────────────
-function broadcastOrder(order: Order) {
-  try {
-    if (typeof window === "undefined") return;
-    window.dispatchEvent(new CustomEvent("devam_new_order", { detail: order }));
-    if ("BroadcastChannel" in window) {
-      const ch = new BroadcastChannel("devam_orders_channel");
-      ch.postMessage({ type: "NEW_ORDER", order });
-      ch.close();
-    }
-  } catch {}
-}
+// ════════════════════════════════════════════════════════════════════════════
 
 // ════════════════════════════════════════════════════════════════════════════
 export default function CheckoutPage() {
@@ -286,19 +241,14 @@ export default function CheckoutPage() {
         shippingAddress: fullAddr,
       };
 
-      // ── Finalize helper (always runs even if Razorpay/Firestore fails) ──
+      // ── Finalize helper (saves order to Firestore, notifies Admin, sends Email) ──
       const finalize = async () => {
-        addOrder(orderData);                              // local Zustand store
-        broadcastOrder(orderData);                       // real-time admin tab
         clearCart();                                     // empty cart
         lsRemove(LS_ADDR, LS_SEL, LS_STEP);             // clear draft
-        // Fire-and-forget Firestore save (3s cap)
-        Promise.race([
-          saveOrderToFirestore(orderData, user?.uid),
-          new Promise<void>((res) => setTimeout(res, 3000)),
-        ]);
         setPlacedOrder(orderData);
         setPlacing(false);
+        // Save to Firestore, update user profile, broadcast real-time to Admin, and trigger mail notification
+        await saveOrderAndNotify(orderData, user?.uid);
       };
 
       // ── COD path ────────────────────────────────────────────────────────
