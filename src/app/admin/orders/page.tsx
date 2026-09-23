@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useOrderStore, Order, computeTimeline, normalizeOrderStatus } from "@/store/orderStore";
 import { subscribeToLiveOrders, updateOrderInFirestore } from "@/lib/orderSync";
+import { ShippingLabelA5, cleanShippingAddress, formatIndianPhone } from "@/components/admin/ShippingLabelA5";
 import { 
   Search, 
   ChevronDown, 
@@ -19,7 +20,8 @@ import {
   Mail, 
   ExternalLink,
   MessageSquare,
-  Radio
+  Radio,
+  FileText
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,6 +33,7 @@ export default function AdminOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [modalTab, setModalTab] = useState<"details" | "label">("details");
   const [latestLiveAlert, setLatestLiveAlert] = useState<Order | null>(null);
 
   // Tracking modal state
@@ -393,19 +396,57 @@ export default function AdminOrdersPage() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200 print:static print:bg-white print:p-0 print:backdrop-blur-none">
           
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] print:hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <div className="p-5 border-b border-gray-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-gray-50">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 font-heading">Order #{selectedOrder.id}</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Placed on {new Date(selectedOrder.date).toLocaleString()}</p>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-gray-900 font-heading">Order #{selectedOrder.id}</h3>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusColor(selectedOrder.status)}`}>
+                    {normalizeOrderStatus(selectedOrder.status)}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">Placed on {new Date(selectedOrder.date).toLocaleString('en-IN')}</p>
               </div>
-              <button 
-                onClick={() => setSelectedOrder(null)}
-                className="p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-full transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              {/* Tabs & Close button */}
+              <div className="flex items-center gap-2">
+                <div className="bg-gray-200 p-0.5 rounded-xl flex items-center">
+                  <button
+                    onClick={() => setModalTab('details')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      modalTab === 'details'
+                        ? 'bg-white text-gray-900 shadow-xs'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    📋 Details
+                  </button>
+                  <button
+                    onClick={() => setModalTab('label')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      modalTab === 'label'
+                        ? 'bg-[var(--color-devam-red)] text-white shadow-xs'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    🏷️ A5 Label Preview
+                  </button>
+                </div>
+                <button 
+                  onClick={() => setSelectedOrder(null)}
+                  className="p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-full transition-colors ml-1 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
+            {modalTab === 'label' ? (
+              <div className="p-6 bg-gray-100 overflow-y-auto flex-1 flex justify-center">
+                <div className="bg-white p-3 rounded-2xl shadow-md border border-gray-300 w-full max-w-[138mm]">
+                  <ShippingLabelA5 order={selectedOrder} />
+                </div>
+              </div>
+            ) : (
             <div className="p-6 overflow-y-auto flex-1 space-y-6">
               
               {/* Order Status Timeline Bar or Cancellation Banner */}
@@ -463,127 +504,93 @@ export default function AdminOrdersPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 border-b pb-1">Customer Information</h4>
-                  <p className="font-bold text-sm text-gray-900">{selectedOrder.customerName || 'Online Customer'}</p>
-                  <p className="text-xs text-gray-600 mt-0.5">📧 {selectedOrder.customerEmail || 'customer@thedevam.com'}</p>
-                  <p className="text-xs text-gray-600">📞 {selectedOrder.customerPhone || 'N/A'}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 border-b pb-1">Shipping Address</h4>
-                  <p className="text-xs text-gray-800 leading-relaxed font-medium">
-                    {selectedOrder.shippingAddress || 'Address on file'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Items List */}
-              <div>
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 border-b pb-1">Purchased Products</h4>
-                <div className="space-y-2">
-                  {selectedOrder.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-1">
-                          <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900">{item.name}</p>
-                          <p className="text-gray-500">Qty: {item.quantity} × ₹{item.price}</p>
-                        </div>
-                      </div>
-                      <span className="font-bold text-gray-900">₹{item.price * item.quantity}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Payment Summary */}
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs space-y-2">
-                <div className="flex justify-between text-gray-600">
-                  <span>Payment Method</span>
-                  <span className="font-bold text-gray-900">{selectedOrder.paymentMethod}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
-                  <span>Courier Partner</span>
-                  <span className="font-bold text-gray-900">{selectedOrder.courierPartner || 'SpeedPost'}</span>
-                </div>
-                {selectedOrder.trackingNumber && (
-                  <div className="flex justify-between text-gray-600">
-                    <span>Tracking Number</span>
-                    <span className="font-bold font-mono text-gray-900">{selectedOrder.trackingNumber}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 border-b pb-1">Customer Information</h4>
+                    <p className="font-bold text-sm text-gray-900">{selectedOrder.customerName || 'Online Customer'}</p>
+                    <p className="text-xs text-gray-600 mt-0.5">📧 {selectedOrder.customerEmail || 'customer@thedevam.com'}</p>
+                    <p className="text-xs text-gray-600">📞 {formatIndianPhone(selectedOrder.customerPhone)}</p>
                   </div>
-                )}
-                <div className="flex justify-between items-center pt-2 border-t border-gray-200 text-sm">
-                  <span className="font-bold text-gray-900">Total Paid</span>
-                  <span className="font-bold text-[var(--color-devam-red)] text-base">₹{selectedOrder.totalAmount}</span>
+
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 border-b pb-1">Shipping Address</h4>
+                    <p className="text-xs text-gray-800 leading-relaxed font-medium">
+                      {cleanShippingAddress(selectedOrder.shippingAddress, selectedOrder.customerName, selectedOrder.customerPhone)}
+                    </p>
+                  </div>
                 </div>
+
+                {/* Items List */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 border-b pb-1">Purchased Products</h4>
+                  <div className="space-y-2">
+                    {selectedOrder.items.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white rounded-lg border border-gray-200 flex items-center justify-center p-1">
+                            <img src={item.image} alt={item.name} className="w-full h-full object-contain" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900">{item.name}</p>
+                            <p className="text-gray-500">Qty: {item.quantity} {item.weight ? `(${item.weight})` : ''} × ₹{item.price}</p>
+                          </div>
+                        </div>
+                        <span className="font-bold text-gray-900">₹{item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Payment Summary */}
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs space-y-2">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Payment Method</span>
+                    <span className="font-bold text-gray-900">{selectedOrder.paymentMethod}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Courier Partner</span>
+                    <span className="font-bold text-gray-900">{selectedOrder.courierPartner || 'SpeedPost'}</span>
+                  </div>
+                  {selectedOrder.trackingNumber && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Tracking Number</span>
+                      <span className="font-bold font-mono text-gray-900">{selectedOrder.trackingNumber}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-200 text-sm">
+                    <span className="font-bold text-gray-900">Total Paid</span>
+                    <span className="font-bold text-[var(--color-devam-red)] text-base">₹{selectedOrder.totalAmount}</span>
+                  </div>
+                </div>
+
               </div>
+            )}
 
-            </div>
-
-            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
-              <button 
-                onClick={() => window.print()}
-                className="px-4 py-2 bg-[var(--color-devam-red)] text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                Print Shipping Label
-              </button>
-              <button 
-                onClick={() => setSelectedOrder(null)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 font-bold rounded-xl text-xs hover:bg-gray-300 transition-colors cursor-pointer"
-              >
-                Close
-              </button>
+            <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+              <div className="text-xs text-gray-500 hidden sm:block">
+                Print Format: <strong>A5 Portrait</strong> (Devam Standard)
+              </div>
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                <button 
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-[var(--color-devam-red)] text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Print A5 Shipping Label
+                </button>
+                <button 
+                  onClick={() => setSelectedOrder(null)}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 font-bold rounded-xl text-xs hover:bg-gray-300 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Printable Shipping Label View */}
-          <div className="print:!block" style={{ display: 'none', fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#000', width: '100%' }}>
-            <div style={{ border: '2px solid #000', padding: '0', width: '100%' }}>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #000', padding: '8px 12px' }}>
-                <div>
-                  <div style={{ fontSize: '18px', fontWeight: '900', textTransform: 'uppercase' }}>DEVAM ATTA &amp; SPICES</div>
-                  <div style={{ fontSize: '9px', color: '#555' }}>Shreeji Gruh Udhyog, Jhalod, Gujarat | www.thedevam.com</div>
-                </div>
-                <div style={{ border: '2px solid #000', padding: '4px 12px', fontSize: '16px', fontWeight: '900', textTransform: 'uppercase' }}>
-                  {selectedOrder.paymentMethod.includes('Cash') ? 'C.O.D' : 'PREPAID'}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', borderBottom: '2px solid #000', background: '#f9f9f9', padding: '8px 12px' }}>
-                <div style={{ flex: 1 }}><strong>Order ID:</strong> {selectedOrder.id}</div>
-                <div style={{ flex: 1 }}><strong>Date:</strong> {new Date(selectedOrder.date).toLocaleDateString('en-IN')}</div>
-                <div style={{ flex: 1 }}><strong>Amount:</strong> ₹{selectedOrder.totalAmount}</div>
-              </div>
-
-              <div style={{ display: 'flex', borderBottom: '2px solid #000', padding: '12px' }}>
-                <div style={{ flex: 1, borderRight: '2px solid #000', paddingRight: '12px' }}>
-                  <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>SHIP TO:</div>
-                  <div style={{ fontSize: '14px', fontWeight: 'bold' }}>{selectedOrder.customerName || 'Customer'}</div>
-                  <div style={{ marginTop: '4px' }}>{selectedOrder.shippingAddress}</div>
-                  <div style={{ marginTop: '4px', fontWeight: 'bold' }}>📞 {selectedOrder.customerPhone}</div>
-                </div>
-                <div style={{ flex: 1, paddingLeft: '12px' }}>
-                  <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>SHIP FROM:</div>
-                  <div style={{ fontSize: '12px', fontWeight: 'bold' }}>SHREEJI GRUH UDHYOG</div>
-                  <div>Godown Plot No. 5-6, City Survey No. 3354,</div>
-                  <div>Block 1/12, Nr. Market Yard, Jhalod,</div>
-                  <div>Dahod, Gujarat-389170, India</div>
-                  <div style={{ marginTop: '4px' }}>📞 +91 99796 40900</div>
-                </div>
-              </div>
-
-              <div style={{ padding: '12px', textAlign: 'center' }}>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', fontFamily: 'monospace', letterSpacing: '4px' }}>{selectedOrder.id}</div>
-                <div style={{ fontSize: '8px', color: '#777', marginTop: '4px' }}>System Generated Shipping Label | Devam © {new Date().getFullYear()}</div>
-              </div>
-
-            </div>
+          {/* Printable A5 Shipping Label View (Active only during browser print) */}
+          <div className="shipping-label-a5-print-wrapper hidden print:!block">
+            <ShippingLabelA5 order={selectedOrder} />
           </div>
 
         </div>

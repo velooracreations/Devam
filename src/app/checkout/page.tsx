@@ -222,7 +222,7 @@ export default function CheckoutPage() {
     try {
       const orderId = getNextId();
       const addr = form;
-      const fullAddr = `${addr.name} (${addr.phone}) — ${addr.houseNo}${addr.buildingName ? " " + addr.buildingName : ""}, ${addr.street}, ${addr.area}${addr.landmark ? ", " + addr.landmark : ""}, ${addr.cityDistrict}, ${addr.state} — ${addr.pin}`;
+      const fullAddr = `${addr.houseNo}${addr.buildingName ? " " + addr.buildingName : ""}, ${addr.street}, ${addr.area}${addr.landmark ? ", " + addr.landmark : ""}, ${addr.cityDistrict}, ${addr.state} — ${addr.pin}`;
 
       const now = new Date().toISOString();
       const orderData: Order = {
