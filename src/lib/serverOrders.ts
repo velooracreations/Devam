@@ -244,3 +244,25 @@ export async function updateServerOrder(orderId: string, updates: Partial<Order>
 
   return updated;
 }
+
+/**
+ * Delete an order from Cloud Firestore, disk backup, and memory
+ */
+export async function deleteServerOrder(orderId: string): Promise<boolean> {
+  // 1. Remove from memory cache & disk
+  inMemoryOrders = inMemoryOrders.filter(o => o.id !== orderId);
+  writeDiskOrders(inMemoryOrders);
+
+  // 2. Delete from Cloud Firestore
+  try {
+    const firestore = getServerFirestore();
+    if (firestore) {
+      await firestore.collection('orders').doc(orderId).delete();
+      console.log(`[ServerOrders] Deleted Order #${orderId} from Cloud Firestore.`);
+    }
+    return true;
+  } catch (err) {
+    console.error(`[ServerOrders] Failed to delete Order #${orderId} from Firestore:`, err);
+    return false;
+  }
+}

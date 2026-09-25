@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { saveServerOrder, getAllServerOrders, getCustomerServerOrders, updateServerOrder } from '@/lib/serverOrders';
+import { saveServerOrder, getAllServerOrders, getCustomerServerOrders, updateServerOrder, deleteServerOrder } from '@/lib/serverOrders';
 import { sendOrderNotificationEmail, NotificationPayload } from '@/lib/notifications';
 import { Order } from '@/store/orderStore';
 
@@ -128,5 +128,22 @@ export async function PATCH(request: Request) {
   } catch (error: any) {
     console.error('[API/orders] PATCH error:', error);
     return NextResponse.json({ error: error.message || 'Failed to update order' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const orderId = searchParams.get('orderId');
+
+    if (!orderId) {
+      return NextResponse.json({ error: 'Missing orderId parameter' }, { status: 400 });
+    }
+
+    const deleted = await deleteServerOrder(orderId);
+    return NextResponse.json({ success: deleted, orderId });
+  } catch (error: any) {
+    console.error('[API/orders] DELETE error:', error);
+    return NextResponse.json({ error: error.message || 'Failed to delete order' }, { status: 500 });
   }
 }
