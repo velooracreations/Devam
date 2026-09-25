@@ -95,7 +95,7 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
     ? new Date(payload.date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
     : new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
 
-  const headerBg = isCancelled ? '#991b1b' : '#14532d';
+  const headerBg = isCancelled ? '#7f1d1d' : '#c51e24';
   const headerTitle = isCancelled ? '❌ ORDER CANCELLED BY CUSTOMER' : '🛒 NEW ORDER RECEIVED';
   const headerSubtitle = isCancelled ? 'Customer has cancelled this order. Review details below.' : 'A new order has been placed on the Devam online store.';
 
@@ -112,19 +112,19 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
       <tr>
         <td align="center">
           <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-            <!-- Header -->
+            <!-- Header with Official Devam Logo Badge -->
             <tr>
-              <td style="background-color: ${headerBg}; padding: 28px 24px; text-align: center;">
-                <div style="font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">
-                  DEVAM
+              <td style="background-color: ${headerBg}; padding: 24px 24px 28px 24px; text-align: center; border-bottom: 4px solid #f59e0b;">
+                <div style="margin-bottom: 12px;">
+                  <img src="https://thedevam.com/logo-crop.jpg" alt="Devam Logo" width="140" style="display: block; margin: 0 auto; max-width: 150px; height: auto; border-radius: 10px; border: 2px solid #fef08a; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" />
                 </div>
-                <div style="font-size: 11px; letter-spacing: 3px; color: #fef08a; text-transform: uppercase; margin-top: 2px;">
-                  Pure &amp; Authentic Chakki Atta &amp; Spices
+                <div style="font-size: 11px; letter-spacing: 2px; color: #fef08a; text-transform: uppercase; font-weight: 700;">
+                  Freshness, Taste &amp; Quality You Can Trust
                 </div>
-                <div style="display: inline-block; background-color: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 9999px; padding: 6px 16px; margin-top: 14px; color: #ffffff; font-size: 13px; font-weight: 700;">
+                <div style="display: inline-block; background-color: rgba(0,0,0,0.25); border: 1px solid rgba(254,240,138,0.5); border-radius: 9999px; padding: 6px 18px; margin-top: 14px; color: #ffffff; font-size: 13px; font-weight: 800; letter-spacing: 0.5px;">
                   ${headerTitle}
                 </div>
-                <p style="color: #f3f4f6; font-size: 13px; margin: 8px 0 0 0;">
+                <p style="color: #fef2f2; font-size: 13px; margin: 8px 0 0 0; font-weight: 500;">
                   ${headerSubtitle}
                 </p>
               </td>
@@ -134,24 +134,24 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
             <tr>
               <td style="padding: 24px;">
                 <!-- Order Quick Glance Box -->
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fffbf5; border: 1.5px solid #fde68a; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
                   <tr>
                     <td width="50%" style="vertical-align: top; padding: 4px 8px;">
-                      <span style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Order ID</span>
+                      <span style="font-size: 11px; color: #92400e; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Order ID</span>
                       <div style="font-size: 16px; font-weight: 800; color: #111827; font-family: monospace;">#${payload.orderId}</div>
                     </td>
                     <td width="50%" style="vertical-align: top; padding: 4px 8px; text-align: right;">
-                      <span style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Date &amp; Time</span>
+                      <span style="font-size: 11px; color: #92400e; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Date &amp; Time</span>
                       <div style="font-size: 13px; font-weight: 600; color: #374151;">${orderDate}</div>
                     </td>
                   </tr>
                   <tr>
                     <td width="50%" style="vertical-align: top; padding: 8px 8px 4px 8px;">
-                      <span style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Total Amount</span>
-                      <div style="font-size: 20px; font-weight: 900; color: ${isCancelled ? '#b91c1c' : '#15803d'};">₹${payload.totalAmount}</div>
+                      <span style="font-size: 11px; color: #92400e; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Total Amount</span>
+                      <div style="font-size: 20px; font-weight: 900; color: #c51e24;">₹${payload.totalAmount}</div>
                     </td>
                     <td width="50%" style="vertical-align: top; padding: 8px 8px 4px 8px; text-align: right;">
-                      <span style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Payment Method</span>
+                      <span style="font-size: 11px; color: #92400e; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Payment Method</span>
                       <div style="font-size: 13px; font-weight: 700; color: #1f2937;">${payload.paymentMethod || 'Online / COD'}</div>
                     </td>
                   </tr>
@@ -171,7 +171,7 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
 
                 <!-- Customer Details -->
                 <div style="margin-bottom: 20px;">
-                  <h3 style="font-size: 14px; font-weight: 800; color: #111827; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; border-bottom: 2px solid #f3f4f6; padding-bottom: 6px;">
+                  <h3 style="font-size: 14px; font-weight: 800; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; border-bottom: 2px solid #fee2e2; padding-bottom: 6px;">
                     👤 Customer Information
                   </h3>
                   <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 13px; line-height: 1.6;">
@@ -182,7 +182,7 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
                     <tr>
                       <td style="color: #6b7280; font-weight: 600; padding: 4px 0;">Contact Phone:</td>
                       <td style="color: #111827; font-weight: 700; padding: 4px 0;">
-                        <a href="tel:${payload.customerPhone}" style="color: #15803d; text-decoration: none;">${payload.customerPhone || 'N/A'}</a>
+                        <a href="tel:${payload.customerPhone}" style="color: #c51e24; text-decoration: none;">${payload.customerPhone || 'N/A'}</a>
                         ${payload.customerPhone ? `&nbsp;(<a href="https://wa.me/91${(payload.customerPhone || '').replace(/\D/g, '').replace(/^91/, '')}" style="color: #25d366; text-decoration: underline; font-size: 11px;">Chat on WhatsApp</a>)` : ''}
                       </td>
                     </tr>
@@ -201,14 +201,14 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
 
                 <!-- Items Table -->
                 <div style="margin-bottom: 24px;">
-                  <h3 style="font-size: 14px; font-weight: 800; color: #111827; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; border-bottom: 2px solid #f3f4f6; padding-bottom: 6px;">
+                  <h3 style="font-size: 14px; font-weight: 800; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 10px 0; border-bottom: 2px solid #fee2e2; padding-bottom: 6px;">
                     🛍️ Ordered Products
                   </h3>
                   <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; background-color: #ffffff; border: 1px solid #f3f4f6; border-radius: 8px; overflow: hidden;">
                     <thead>
-                      <tr style="background-color: #f9fafb; border-bottom: 1.5px solid #e5e7eb;">
-                        <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #4b5563; text-transform: uppercase; text-align: left;">Product</th>
-                        <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #4b5563; text-transform: uppercase; text-align: center;">Qty</th>
+                      <tr style="background-color: #fffbf5; border-bottom: 1.5px solid #fde68a;">
+                        <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase; text-align: left;">Product</th>
+                        <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase; text-align: center;">Qty</th>
                         <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #4b5563; text-transform: uppercase; text-align: right;">Unit Price</th>
                         <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #4b5563; text-transform: uppercase; text-align: right;">Total</th>
                       </tr>
@@ -217,9 +217,9 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
                       ${itemsHtml || '<tr><td colspan="4" style="padding: 12px; text-align: center; color: #6b7280;">No item details available</td></tr>'}
                     </tbody>
                     <tfoot>
-                      <tr style="background-color: #f9fafb; border-top: 1.5px solid #e5e7eb;">
+                      <tr style="background-color: #fffbf5; border-top: 1.5px solid #fde68a;">
                         <td colspan="3" style="padding: 10px 12px; font-size: 13px; font-weight: 800; color: #111827; text-align: right;">Grand Total:</td>
-                        <td style="padding: 10px 12px; font-size: 15px; font-weight: 900; color: ${isCancelled ? '#b91c1c' : '#15803d'}; text-align: right;">₹${payload.totalAmount}</td>
+                        <td style="padding: 10px 12px; font-size: 15px; font-weight: 900; color: #c51e24; text-align: right;">₹${payload.totalAmount}</td>
                       </tr>
                     </tfoot>
                   </table>
@@ -227,7 +227,7 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
 
                 <!-- Admin Action Button -->
                 <div style="text-align: center; padding-top: 8px;">
-                  <a href="https://thedevam.com/admin/orders" style="display: inline-block; background-color: #15803d; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 800; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                  <a href="https://thedevam.com/admin/orders" style="display: inline-block; background-color: #c51e24; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 800; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(197, 30, 36, 0.25);">
                     Open in Devam Admin Dashboard &rarr;
                   </a>
                 </div>
@@ -236,10 +236,10 @@ function renderAdminEmailHtml(payload: NotificationPayload, isCancelled: boolean
 
             <!-- Footer -->
             <tr>
-              <td style="background-color: #f9fafb; padding: 18px 24px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
-                <div style="font-weight: 700; color: #374151;">Shreeji Foods &amp; Spices (The Devam)</div>
+              <td style="background-color: #fffbf5; padding: 18px 24px; text-align: center; border-top: 1px solid #fde68a; font-size: 12px; color: #6b7280;">
+                <div style="font-weight: 700; color: #991b1b;">Shreeji Foods &amp; Spices (The Devam)</div>
                 <div>A-28, Sardar Patel Industrial Estate, Bileshwarpura, Chhatral, Gandhinagar - 382729</div>
-                <div style="margin-top: 4px;">Phone: +91 99796 40900 | Email: info@thedevam.com | Website: thedevam.com</div>
+                <div style="margin-top: 4px;">Phone: +91 99796 40900 | Email: info@thedevam.com | Website: <a href="https://thedevam.com" style="color: #c51e24; text-decoration: none; font-weight: 700;">thedevam.com</a></div>
               </td>
             </tr>
           </table>
@@ -270,6 +270,8 @@ function renderCustomerEmailHtml(payload: NotificationPayload, isCancelled: bool
     ? `We've processed the cancellation of your order <strong>#${payload.orderId}</strong> as requested. If you paid online via UPI, NetBanking, or Credit/Debit Card, your refund of <strong>₹${payload.totalAmount}</strong> has been initiated and will reflect in your account within 3 to 5 business days.`
     : `Thank you for your order! We are freshly preparing your freshly milled Chakki Atta and premium spices. We will notify you as soon as your shipment is dispatched.`;
 
+  const headerBg = isCancelled ? '#7f1d1d' : '#c51e24';
+
   return `
   <!DOCTYPE html>
   <html>
@@ -283,16 +285,16 @@ function renderCustomerEmailHtml(payload: NotificationPayload, isCancelled: bool
       <tr>
         <td align="center">
           <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-            <!-- Header -->
+            <!-- Header with Official Devam Logo Badge -->
             <tr>
-              <td style="background-color: ${isCancelled ? '#991b1b' : '#14532d'}; padding: 28px 24px; text-align: center;">
-                <div style="font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #ffffff; text-transform: uppercase;">
-                  DEVAM
+              <td style="background-color: ${headerBg}; padding: 24px 24px 28px 24px; text-align: center; border-bottom: 4px solid #f59e0b;">
+                <div style="margin-bottom: 12px;">
+                  <img src="https://thedevam.com/logo-crop.jpg" alt="Devam Logo" width="140" style="display: block; margin: 0 auto; max-width: 150px; height: auto; border-radius: 10px; border: 2px solid #fef08a; box-shadow: 0 4px 12px rgba(0,0,0,0.25);" />
                 </div>
-                <div style="font-size: 11px; letter-spacing: 3px; color: #fef08a; text-transform: uppercase; margin-top: 2px;">
-                  100% Pure Traditional Chakki Atta
+                <div style="font-size: 11px; letter-spacing: 2px; color: #fef08a; text-transform: uppercase; font-weight: 700;">
+                  100% Pure Traditional Chakki Atta &amp; Spices
                 </div>
-                <h1 style="color: #ffffff; font-size: 20px; font-weight: 800; margin: 16px 0 0 0;">
+                <h1 style="color: #ffffff; font-size: 20px; font-weight: 800; margin: 14px 0 0 0; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
                   ${title}
                 </h1>
               </td>
@@ -316,20 +318,20 @@ function renderCustomerEmailHtml(payload: NotificationPayload, isCancelled: bool
                 ` : ''}
 
                 <!-- Order Info Box -->
-                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fffbf5; border: 1.5px solid #fde68a; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
                   <tr>
                     <td width="50%" style="vertical-align: top; padding: 4px 8px;">
-                      <span style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: bold;">Order Reference</span>
+                      <span style="font-size: 11px; color: #92400e; text-transform: uppercase; font-weight: bold;">Order Reference</span>
                       <div style="font-size: 15px; font-weight: 800; color: #111827; font-family: monospace;">#${payload.orderId}</div>
                     </td>
                     <td width="50%" style="vertical-align: top; padding: 4px 8px; text-align: right;">
-                      <span style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: bold;">Amount</span>
-                      <div style="font-size: 18px; font-weight: 800; color: #111827;">₹${payload.totalAmount}</div>
+                      <span style="font-size: 11px; color: #92400e; text-transform: uppercase; font-weight: bold;">Amount</span>
+                      <div style="font-size: 18px; font-weight: 900; color: #c51e24;">₹${payload.totalAmount}</div>
                     </td>
                   </tr>
                   <tr>
-                    <td colspan="2" style="padding: 10px 8px 4px 8px; border-top: 1px solid #e5e7eb; margin-top: 8px;">
-                      <span style="font-size: 11px; color: #6b7280; text-transform: uppercase; font-weight: bold;">Delivery Address</span>
+                    <td colspan="2" style="padding: 10px 8px 4px 8px; border-top: 1px solid #fde68a; margin-top: 8px;">
+                      <span style="font-size: 11px; color: #92400e; text-transform: uppercase; font-weight: bold;">Delivery Address</span>
                       <div style="font-size: 13px; color: #374151; font-weight: 600; margin-top: 2px;">${payload.shippingAddress || 'Your saved address'}</div>
                     </td>
                   </tr>
@@ -339,9 +341,9 @@ function renderCustomerEmailHtml(payload: NotificationPayload, isCancelled: bool
                 <div style="margin-bottom: 24px;">
                   <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; background-color: #ffffff; border: 1px solid #f3f4f6; border-radius: 8px; overflow: hidden;">
                     <thead>
-                      <tr style="background-color: #f9fafb; border-bottom: 1.5px solid #e5e7eb;">
-                        <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #4b5563; text-transform: uppercase; text-align: left;">Item</th>
-                        <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #4b5563; text-transform: uppercase; text-align: center;">Qty</th>
+                      <tr style="background-color: #fffbf5; border-bottom: 1.5px solid #fde68a;">
+                        <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase; text-align: left;">Item</th>
+                        <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #92400e; text-transform: uppercase; text-align: center;">Qty</th>
                         <th style="padding: 8px 12px; font-size: 11px; font-weight: 800; color: #4b5563; text-transform: uppercase; text-align: right;">Amount</th>
                       </tr>
                     </thead>
@@ -353,7 +355,7 @@ function renderCustomerEmailHtml(payload: NotificationPayload, isCancelled: bool
 
                 <!-- Customer Account Button -->
                 <div style="text-align: center; padding-top: 8px;">
-                  <a href="https://thedevam.com/account" style="display: inline-block; background-color: #15803d; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 800; letter-spacing: 0.5px;">
+                  <a href="https://thedevam.com/account" style="display: inline-block; background-color: #c51e24; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 800; letter-spacing: 0.5px; box-shadow: 0 4px 6px rgba(197, 30, 36, 0.25);">
                     View Order in My Account &rarr;
                   </a>
                 </div>
@@ -366,10 +368,10 @@ function renderCustomerEmailHtml(payload: NotificationPayload, isCancelled: bool
 
             <!-- Footer -->
             <tr>
-              <td style="background-color: #f9fafb; padding: 18px 24px; text-align: center; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
-                <div style="font-weight: 700; color: #374151;">Devam Atta &amp; Spices (Shreeji Foods)</div>
+              <td style="background-color: #fffbf5; padding: 18px 24px; text-align: center; border-top: 1px solid #fde68a; font-size: 12px; color: #6b7280;">
+                <div style="font-weight: 700; color: #991b1b;">Devam Atta &amp; Spices (Shreeji Foods)</div>
                 <div>Freshness &amp; Purity Delivered to Your Kitchen</div>
-                <div style="margin-top: 4px;">Website: <a href="https://thedevam.com" style="color: #15803d; text-decoration: none;">thedevam.com</a></div>
+                <div style="margin-top: 4px;">Website: <a href="https://thedevam.com" style="color: #c51e24; text-decoration: none; font-weight: 700;">thedevam.com</a></div>
               </td>
             </tr>
           </table>
