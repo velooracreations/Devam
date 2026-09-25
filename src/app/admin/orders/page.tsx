@@ -251,6 +251,7 @@ export default function AdminOrdersPage() {
         })
       });
 
+      const data = await res.json();
       if (data?.email?.success) {
         toast.success(`Intimation email delivered for order #${targetOrder.id}`);
       } else {
