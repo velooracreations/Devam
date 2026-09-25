@@ -251,12 +251,12 @@ export default function AdminOrdersPage() {
         })
       });
 
-      const data = await res.json();
       if (data?.email?.success) {
         toast.success(`Intimation email delivered for order #${targetOrder.id}`);
-      } else if (data?.email?.diagnostic) {
-        toast.info(data.email.diagnostic);
       } else {
+        if (data?.email?.diagnostic) {
+          console.log('[Notification Diagnostic]', data.email.diagnostic);
+        }
         toast.success(`Order #${targetOrder.id} status updated to ${newStatus}`);
       }
     } catch (err) {
