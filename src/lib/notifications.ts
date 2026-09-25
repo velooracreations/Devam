@@ -454,6 +454,7 @@ async function sendRawEmail({
         tls: {
           rejectUnauthorized: false
         },
+        family: 4,
         connectionTimeout: 10000,
         greetingTimeout: 10000,
       });
