@@ -27,6 +27,7 @@ export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
   }
 
   // 3. Persist to Server & Cloud Firestore via /api/orders (Works seamlessly on Mobile and Laptop)
+  let finalSavedOrder = normalizedOrder;
   try {
     const res = await fetch('/api/orders', {
       method: 'POST',
@@ -37,6 +38,7 @@ export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
       const data = await res.json();
       console.log(`[OrderSync] Order #${normalizedOrder.id} successfully saved to server & Cloud Firestore.`);
       if (data?.order) {
+        finalSavedOrder = data.order;
         useOrderStore.getState().addOrder(data.order);
       }
     } else {
@@ -45,6 +47,8 @@ export async function saveOrderAndNotify(newOrder: Order, userId?: string) {
   } catch (err) {
     console.warn('[OrderSync] Failed to post order to /api/orders:', err);
   }
+
+  return finalSavedOrder;
 }
 
 /**
@@ -173,7 +177,18 @@ export function subscribeToLiveOrders(onNewLiveOrder?: (order: Order) => void) {
             (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
           );
 
-          useOrderStore.setState({ orders: finalList });
+          let maxNum = 10000;
+          finalList.forEach(o => {
+            if (o && o.id) {
+              const match = o.id.match(/ORD-(\d+)/i) || o.id.match(/(\d+)/);
+              if (match) {
+                const num = parseInt(match[1], 10);
+                if (!isNaN(num) && num > maxNum) maxNum = num;
+              }
+            }
+          });
+
+          useOrderStore.setState({ orders: finalList, nextOrderId: maxNum + 1 });
         }
       }
     } catch (err) {

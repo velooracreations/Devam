@@ -236,7 +236,20 @@ export default function CheckoutPage() {
     setPlacing(true);
 
     try {
-      const orderId = getNextId();
+      // 1. Fetch server-authoritative next sequential order ID to prevent client collisions
+      let orderId = getNextId();
+      try {
+        const resId = await fetch('/api/orders/next-id', { cache: 'no-store' });
+        if (resId.ok) {
+          const dataId = await resId.json();
+          if (dataId?.nextOrderId) {
+            orderId = dataId.nextOrderId;
+          }
+        }
+      } catch (err) {
+        console.warn('[Checkout] Could not fetch server next-id, using local fallback:', err);
+      }
+
       const addr = form;
       const fullAddr = `${addr.houseNo}${addr.buildingName ? " " + addr.buildingName : ""}, ${addr.street}, ${addr.area}${addr.landmark ? ", " + addr.landmark : ""}, ${addr.cityDistrict}, ${addr.state} — ${addr.pin}`;
 
@@ -265,11 +278,11 @@ export default function CheckoutPage() {
       const finalize = async () => {
         clearCart();                                     // empty cart
         lsRemove(LS_ADDR, LS_SEL, LS_STEP);             // clear draft
-        setPlacedOrder(orderData);
-        setPlacing(false);
         // Save to Cloud Firestore + Server cache, update user profile, broadcast real-time to Admin, and trigger mail notification
         const activeUid = user?.uid || userData?.uid || (typeof window !== 'undefined' ? (localStorage.getItem('devam_user_uid') || undefined) : undefined);
-        await saveOrderAndNotify(orderData, activeUid);
+        const savedOrder = await saveOrderAndNotify(orderData, activeUid);
+        setPlacedOrder(savedOrder || orderData);
+        setPlacing(false);
       };
 
       // ── COD path ────────────────────────────────────────────────────────

@@ -106,9 +106,20 @@ export const useOrderStore = create<OrderState>()(
         });
       },
       getNextOrderId: () => {
-        const id = get().nextOrderId;
-        set({ nextOrderId: id + 1 });
-        return `ORD-${id}`;
+        const currentOrders = get().orders;
+        let maxNum = Math.max(10000, (get().nextOrderId || 10001) - 1);
+        currentOrders.forEach(o => {
+          if (o && o.id) {
+            const match = o.id.match(/ORD-(\d+)/i) || o.id.match(/(\d+)/);
+            if (match) {
+              const num = parseInt(match[1], 10);
+              if (!isNaN(num) && num > maxNum) maxNum = num;
+            }
+          }
+        });
+        const nextId = maxNum + 1;
+        set({ nextOrderId: nextId + 1 });
+        return `ORD-${nextId}`;
       },
       updateOrderStatus: (id, status, extra) => set((state) => ({
         orders: state.orders.map(order => {

@@ -42,11 +42,50 @@ function writeDiskOrders(orders: Order[]): void {
 }
 
 /**
- * Save an order to Cloud Firestore AND disk backup
+ * Compute the next available sequential Order ID from Cloud Firestore & local memory
+ */
+export async function getNextServerOrderId(): Promise<string> {
+  const allOrders = await getAllServerOrders();
+  let maxNum = 10000;
+  for (const order of allOrders) {
+    if (order && order.id) {
+      const match = order.id.match(/ORD-(\d+)/i) || order.id.match(/(\d+)/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    }
+  }
+  return `ORD-${maxNum + 1}`;
+}
+
+/**
+ * Save an order to Cloud Firestore AND disk backup with anti-collision protection
  */
 export async function saveServerOrder(newOrder: Order, userId?: string): Promise<Order> {
+  const allOrders = await getAllServerOrders();
+  let finalId = newOrder.id;
+
+  // Collision detection: Check if an order with this ID already exists
+  const existingOrder = allOrders.find(o => o.id === finalId);
+  const isNewOrderCreation = !existingOrder || (
+    existingOrder.customerPhone !== newOrder.customerPhone &&
+    existingOrder.customerName !== newOrder.customerName &&
+    existingOrder.date !== newOrder.date
+  );
+
+  if (existingOrder && isNewOrderCreation) {
+    // Client generated an ID (e.g. ORD-10001) that ALREADY exists for a different customer!
+    // Assign next available sequential ID automatically to prevent overwriting existing orders.
+    finalId = await getNextServerOrderId();
+    console.warn(`[ServerOrders] Collision prevented! Re-assigned Order ID from "${newOrder.id}" to unique "${finalId}".`);
+  }
+
   const normalized: Order = {
     ...newOrder,
+    id: finalId,
     status: normalizeOrderStatus(newOrder.status),
     timeline: newOrder.timeline || { orderPlaced: newOrder.date || new Date().toISOString() },
   };
