@@ -121,15 +121,6 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
                   </h3>
                 </div>
 
-                <div className="relative h-48 bg-[var(--color-devam-cream)] rounded-xl mb-6 overflow-hidden p-4 group">
-                  <Image 
-                    src={featuredProduct.image} 
-                    alt={featuredProduct.name} 
-                    fill 
-                    className="object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-
                 <div className="text-center mb-6">
                   <h4 className="font-bold text-[var(--color-devam-brown)] text-lg mb-1">{featuredProduct.name}</h4>
                   <p className="text-[var(--color-devam-brown)]/60 text-sm">{featuredProduct.category}</p>
