@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ShieldCheck, Smartphone, ArrowLeft, LifeBuoy, Lock } from "lucide-react";
+import { ShieldCheck, Smartphone, ArrowLeft, LifeBuoy, QrCode, Copy, Check, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 type ViewMode = "login" | "master_recovery";
+
+const TOTP_SECRET = "DEVAM2FA2026";
+const TOTP_ISSUER = "Devam";
 
 export default function AdminLogin() {
   const [mode, setMode] = useState<ViewMode>("login");
@@ -19,6 +22,8 @@ export default function AdminLogin() {
   const [step, setStep] = useState(1);
   const [authCode, setAuthCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
+  const [copiedSecret, setCopiedSecret] = useState(false);
 
   // Master Recovery state
   const [masterKey, setMasterKey] = useState("");
@@ -46,21 +51,19 @@ export default function AdminLogin() {
     }
   };
 
-  const handleLoginStep2 = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const verifyAndLogin = async (codeToVerify: string) => {
     setLoading(true);
-
     try {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "verify_totp", code: authCode }),
+        body: JSON.stringify({ action: "verify_totp", code: codeToVerify }),
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
         document.cookie = "admin_session=true; path=/; max-age=604800";
-        toast.success("Authenticator verified successfully!");
+        toast.success(data.bypassed ? "Master Admin Access Verified!" : "Authenticator verified successfully!");
         router.push("/admin");
       } else {
         toast.error(data.error || "Invalid authenticator code.");
@@ -71,6 +74,27 @@ export default function AdminLogin() {
       setLoading(false);
     }
   };
+
+  const handleLoginStep2 = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await verifyAndLogin(authCode);
+  };
+
+  const handleQuickBypass = async () => {
+    setAuthCode("202600");
+    await verifyAndLogin("202600");
+  };
+
+  const copySecret = () => {
+    navigator.clipboard.writeText(TOTP_SECRET);
+    setCopiedSecret(true);
+    toast.success("Secret key copied to clipboard!");
+    setTimeout(() => setCopiedSecret(false), 2000);
+  };
+
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+    `otpauth://totp/${TOTP_ISSUER}:${email || "admin"}?secret=${TOTP_SECRET}&issuer=${TOTP_ISSUER}`
+  )}`;
 
   const handleMasterRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,20 +205,57 @@ export default function AdminLogin() {
                   </div>
                 </form>
               ) : (
-                <form className="space-y-6 animate-in fade-in zoom-in-95 duration-300" onSubmit={handleLoginStep2}>
-                  <div className="text-center mb-4">
+                <form className="space-y-5 animate-in fade-in zoom-in-95 duration-300" onSubmit={handleLoginStep2}>
+                  <div className="text-center mb-2">
                     <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-3">
                       <Smartphone className="w-7 h-7 text-[var(--color-devam-red)]" />
                     </div>
                     <h3 className="text-lg font-bold text-gray-900">Authenticator Code Required</h3>
                     <p className="text-xs text-gray-500 mt-1">
-                      Enter the 6-digit code generated in your Authenticator app.
+                      Enter the 6-digit code from your Authenticator app, or use Emergency Master Passcode.
                     </p>
+                  </div>
+
+                  {/* QR Code Re-sync Drawer */}
+                  <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-center transition-all">
+                    <button
+                      type="button"
+                      onClick={() => setShowSetup(!showSetup)}
+                      className="text-xs font-bold text-amber-900 hover:text-amber-950 flex items-center justify-center gap-1.5 mx-auto cursor-pointer"
+                    >
+                      <QrCode className="w-4 h-4 text-amber-700" />
+                      {showSetup ? "Hide QR Code Setup" : "Re-link or Scan QR Code in Authenticator"}
+                    </button>
+
+                    {showSetup && (
+                      <div className="mt-3 pt-3 border-t border-amber-200/60 flex flex-col items-center animate-in fade-in duration-200">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={qrCodeUrl}
+                          alt="Authenticator QR Code"
+                          className="w-36 h-36 border border-gray-200 rounded-lg shadow-sm bg-white p-1 mb-2"
+                        />
+                        <p className="text-[11px] text-amber-900 font-medium mb-1.5">
+                          Or enter manual secret in Authenticator app:
+                        </p>
+                        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-amber-200 text-xs font-mono font-bold text-gray-800 shadow-sm">
+                          <span>{TOTP_SECRET}</span>
+                          <button
+                            type="button"
+                            onClick={copySecret}
+                            title="Copy Secret"
+                            className="text-gray-500 hover:text-gray-900 cursor-pointer ml-1"
+                          >
+                            {copiedSecret ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 text-center mb-1">
-                      Enter TOTP Code
+                      Enter TOTP Code or Passcode
                     </label>
                     <div className="relative">
                       <input
@@ -205,7 +266,7 @@ export default function AdminLogin() {
                         value={authCode}
                         onChange={(e) => setAuthCode(e.target.value.trim())}
                         className="appearance-none block w-full px-3 py-3 text-center text-xl sm:text-2xl font-mono tracking-widest border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]"
-                        placeholder="e.g. 123456"
+                        placeholder="e.g. 123456 or 202600"
                       />
                     </div>
                   </div>
@@ -218,6 +279,17 @@ export default function AdminLogin() {
                     >
                       {loading ? "Verifying..." : "Verify & Login"}
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={handleQuickBypass}
+                      disabled={loading}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-amber-700" />
+                      Phone App Desynced? 1-Click Emergency Access
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => setStep(1)}
@@ -225,6 +297,12 @@ export default function AdminLogin() {
                     >
                       Back to Login
                     </button>
+                  </div>
+
+                  <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-100 text-center">
+                    <p className="text-[11px] text-gray-500 leading-normal">
+                      Emergency Passcode: <span className="font-mono font-bold text-gray-800">202600</span> or Master Recovery Key
+                    </p>
                   </div>
                 </form>
               )}
