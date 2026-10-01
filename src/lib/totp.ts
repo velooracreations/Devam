@@ -3,8 +3,6 @@
  * Compatible with Google Authenticator, Microsoft Authenticator, 1Password, Authy
  */
 
-import { MASTER_RECOVERY_KEY } from "./adminAuth";
-
 // Base32 decoder for secret key with RFC 4648 normalization
 function base32ToHex(base32: string, normalize = true): string {
   let s = base32.toUpperCase().replace(/\s+/g, "");
@@ -62,38 +60,22 @@ export async function generateTOTP(secretBase32: string, timeOffsetSeconds = 0, 
   return otp;
 }
 
-// Verify 6-digit user input code against wide time windows and secret representations
+// Verify 6-digit user input code against time windows (±120 seconds)
 export async function verifyTOTP(token: string, secretBase32: string): Promise<boolean> {
   const cleanedToken = token.trim();
-  if (!cleanedToken) return false;
-
-  // 1. Check Master Recovery Key or Emergency Bypass Codes
-  if (
-    cleanedToken === MASTER_RECOVERY_KEY ||
-    cleanedToken === "DEVAM-MASTER-RECOVERY-2026" ||
-    cleanedToken === "202600" ||
-    cleanedToken === "999999" ||
-    cleanedToken === "888888" ||
-    cleanedToken === secretBase32
-  ) {
-    return true;
+  if (!cleanedToken || cleanedToken.length !== 6 || isNaN(Number(cleanedToken))) {
+    return false;
   }
 
-  if (cleanedToken.length !== 6 || isNaN(Number(cleanedToken))) return false;
-
-  // 2. Multi-window offsets to handle clock drift between phone and machine (±120 seconds)
   const timeOffsets = [0, -30, 30, -60, 60, -90, 90, -120, 120];
 
   for (const offset of timeOffsets) {
-    // Check normalized Base32 (what Google Authenticator produces for DEVAM2FA2026)
     const codeNorm = await generateTOTP(secretBase32, offset, true);
     if (cleanedToken === codeNorm) return true;
 
-    // Check raw Base32 (fallback)
     const codeRaw = await generateTOTP(secretBase32, offset, false);
     if (cleanedToken === codeRaw) return true;
   }
 
   return false;
 }
-

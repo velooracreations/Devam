@@ -178,16 +178,16 @@ export function HeroSection() {
                   <div className="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-4 w-full sm:w-auto">
                     <Link
                       href="/product/chakki-fresh-atta-5kg"
-                      className="w-full sm:w-auto group inline-flex items-center justify-center px-8 py-3.5 bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider text-sm rounded-sm transition-all hover:bg-white shadow-xl hover:shadow-2xl hover:scale-105"
+                      className="w-full sm:w-auto group inline-flex items-center justify-center px-8 py-3.5 bg-[var(--color-devam-gold)] text-gray-950 font-extrabold uppercase tracking-wider text-sm rounded-lg transition-all hover:bg-white shadow-xl hover:shadow-2xl hover:scale-105"
                     >
                       Order 5 Kg Pack
                       <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
                     <Link
-                      href="/shop?category=flours"
-                      className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-black/40 hover:bg-black/60 text-white font-semibold uppercase tracking-wider text-sm rounded-sm border border-white/30 backdrop-blur-sm transition-all"
+                      href="/shop"
+                      className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 bg-black/40 hover:bg-black/60 text-white font-semibold uppercase tracking-wider text-sm rounded-lg border border-white/30 backdrop-blur-sm transition-all"
                     >
-                      Explore All Flours
+                      Explore All Products
                     </Link>
                   </div>
                 </div>
@@ -269,7 +269,7 @@ export function HeroSection() {
                 {storyFrames[currentIndex].cta && (
                   <Link
                     href={storyFrames[currentIndex].cta.href}
-                    className="group inline-flex items-center px-8 py-3.5 bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider text-sm rounded-sm transition-all hover:bg-white shadow-lg hover:shadow-xl hover:scale-105"
+                    className="group inline-flex items-center px-8 py-3.5 bg-[var(--color-devam-gold)] text-gray-950 font-extrabold uppercase tracking-wider text-sm rounded-lg transition-all hover:bg-white shadow-lg hover:shadow-xl hover:scale-105"
                   >
                     {storyFrames[currentIndex].cta.label}
                     <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -352,23 +352,18 @@ export function HeroSection() {
               />
             </div>
 
-            <p className="font-body text-sm md:text-base mb-8 text-[var(--color-devam-brown)] font-medium max-w-xl mx-auto leading-relaxed relative z-20 px-4">
+            <p className="font-body text-sm md:text-base mb-8 text-amber-100 font-medium max-w-xl mx-auto leading-relaxed relative z-20 px-4 drop-shadow-md">
               Premium Chakki Atta &amp; Authentic Indian Spices - Rooted in
               Gujarat, Crafted for Every Indian Kitchen.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 w-full px-8 sm:px-0 sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-4 w-full px-8 sm:px-0 sm:w-auto items-center justify-center">
               <Link
-                href="/shop?category=flours"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider rounded-sm hover:bg-white transition-all shadow-[0_0_30px_rgba(230,184,0,0.3)] hover:scale-105"
+                href="/shop"
+                className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 bg-[var(--color-devam-gold)] text-gray-950 font-bold uppercase tracking-wider rounded-lg hover:bg-white transition-all shadow-[0_0_30px_rgba(246,161,11,0.4)] hover:scale-105 text-sm sm:text-base"
               >
-                Shop Flour
-              </Link>
-              <Link
-                href="/shop?category=spice-powders"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-10 py-4 border-2 border-[var(--color-devam-brown)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider rounded-sm hover:bg-[var(--color-devam-brown)] hover:text-[var(--color-devam-cream)] transition-all"
-              >
-                Shop Spices
+                Shop Pure Atta &amp; Spices
+                <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </div>
           </motion.div>

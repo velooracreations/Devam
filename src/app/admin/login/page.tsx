@@ -3,17 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ShieldCheck, Lock, Smartphone, KeyRound, ArrowLeft, LifeBuoy, CheckCircle2 } from "lucide-react";
-import { verifyTOTP } from "@/lib/totp";
+import { ShieldCheck, Smartphone, ArrowLeft, LifeBuoy, Lock } from "lucide-react";
 import { toast } from "sonner";
-import {
-  verifyAdminCredentials,
-  recoverAdminAccount,
-  MASTER_RECOVERY_KEY
-} from "@/lib/adminAuth";
-
-const TOTP_SECRET = "DEVAM2FA2026";
-const TOTP_ISSUER = "Devam";
 
 type ViewMode = "login" | "master_recovery";
 
@@ -27,65 +18,96 @@ export default function AdminLogin() {
 
   const [step, setStep] = useState(1);
   const [authCode, setAuthCode] = useState("");
-  const [verifying, setVerifying] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Master Recovery state
   const [masterKey, setMasterKey] = useState("");
   const [recNewPassword, setRecNewPassword] = useState("");
 
-  const handleLoginStep1 = (e: React.FormEvent) => {
+  const handleLoginStep1 = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = verifyAdminCredentials(email, password);
-    if (result.success) {
-      setStep(2);
-    } else {
-      toast.error(result.error || "Invalid admin credentials. Check email or password.");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify_credentials", email, password }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setStep(2);
+      } else {
+        toast.error(data.error || "Invalid admin credentials.");
+      }
+    } catch (err: any) {
+      toast.error("Network error during login: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleLoginStep2 = async (e: React.FormEvent) => {
     e.preventDefault();
-    setVerifying(true);
+    setLoading(true);
 
     try {
-      const isValid = await verifyTOTP(authCode, TOTP_SECRET);
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "verify_totp", code: authCode }),
+      });
+      const data = await res.json();
 
-      if (isValid) {
-        document.cookie = "admin_session=true; path=/;";
+      if (res.ok && data.success) {
+        document.cookie = "admin_session=true; path=/; max-age=604800";
         toast.success("Authenticator verified successfully!");
         router.push("/admin");
       } else {
-        toast.error("Invalid authenticator code. Open your Authenticator app.");
+        toast.error(data.error || "Invalid authenticator code.");
       }
-    } catch (err) {
-      console.error("TOTP verification error", err);
-      toast.error("Verification failed");
+    } catch (err: any) {
+      toast.error("Verification failed: " + err.message);
     } finally {
-      setVerifying(false);
+      setLoading(false);
     }
   };
 
-  const handleMasterRecovery = (e: React.FormEvent) => {
+  const handleMasterRecovery = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (masterKey.trim() !== MASTER_RECOVERY_KEY) {
-      toast.error("Invalid Master Recovery Key.");
+    if (!masterKey.trim()) {
+      toast.error("Please enter Master Recovery Key.");
       return;
     }
-
     if (recNewPassword.length < 4) {
-      toast.error("New password must be at least 4 characters long.");
+      toast.error("New password must be at least 4 characters.");
       return;
     }
 
-    const success = recoverAdminAccount(masterKey, recNewPassword);
-    if (success) {
-      toast.success("Admin password has been reset successfully! You can now log in.");
-      setPassword(recNewPassword);
-      setMasterKey("");
-      setRecNewPassword("");
-      setMode("login");
-    } else {
-      toast.error("Failed to reset password.");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "recover",
+          masterKey,
+          newPassword: recNewPassword,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success("Password reset successfully. Please log in.");
+        setPassword(recNewPassword);
+        setMasterKey("");
+        setRecNewPassword("");
+        setMode("login");
+      } else {
+        toast.error(data.error || "Failed to reset password.");
+      }
+    } catch (err: any) {
+      toast.error("Recovery failed: " + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,7 +115,7 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center mb-6">
-          <Image src="/logo.svg" alt="Devam Logo" width={80} height={80} />
+          <Image src="/logo.svg" alt="Devam Logo" width={80} height={80} priority />
         </div>
         <h2 className="mt-6 text-center text-3xl font-heading font-bold text-gray-900">
           Devam Admin Portal
@@ -119,7 +141,7 @@ export default function AdminLogin() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="appearance-none block w-full px-3 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-[var(--color-devam-red)] focus:border-[var(--color-devam-red)] text-sm"
-                        placeholder="thedevam2024@gmail.com"
+                        placeholder="admin@thedevam.com"
                       />
                     </div>
                   </div>
@@ -141,9 +163,10 @@ export default function AdminLogin() {
                   <div>
                     <button
                       type="submit"
-                      className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[var(--color-devam-red)] hover:bg-[#d62828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-devam-red)] transition-colors"
+                      disabled={loading}
+                      className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[var(--color-devam-red)] hover:bg-[#d62828] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-devam-red)] transition-colors disabled:opacity-50"
                     >
-                      Continue <ShieldCheck className="ml-2 w-5 h-5" />
+                      {loading ? "Verifying..." : "Continue"} <ShieldCheck className="ml-2 w-5 h-5" />
                     </button>
                   </div>
 
@@ -165,12 +188,14 @@ export default function AdminLogin() {
                     </div>
                     <h3 className="text-lg font-bold text-gray-900">Authenticator Code Required</h3>
                     <p className="text-xs text-gray-500 mt-1">
-                      Enter the code generated in your Authenticator app.
+                      Enter the 6-digit code generated in your Authenticator app.
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 text-center mb-1">Enter 6-Digit TOTP Code</label>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 text-center mb-1">
+                      Enter TOTP Code
+                    </label>
                     <div className="relative">
                       <input
                         type="text"
@@ -180,7 +205,7 @@ export default function AdminLogin() {
                         value={authCode}
                         onChange={(e) => setAuthCode(e.target.value.trim())}
                         className="appearance-none block w-full px-3 py-3 text-center text-xl sm:text-2xl font-mono tracking-widest border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-devam-red)]"
-                        placeholder="e.g. 123456 or Master Key"
+                        placeholder="e.g. 123456"
                       />
                     </div>
                   </div>
@@ -188,10 +213,10 @@ export default function AdminLogin() {
                   <div className="flex flex-col gap-2.5">
                     <button
                       type="submit"
-                      disabled={verifying || authCode.length < 4}
+                      disabled={loading || authCode.length < 4}
                       className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-gray-900 hover:bg-black disabled:opacity-50 transition-colors cursor-pointer"
                     >
-                      {verifying ? "Verifying..." : "Verify & Login"}
+                      {loading ? "Verifying..." : "Verify & Login"}
                     </button>
                     <button
                       type="button"
@@ -200,21 +225,6 @@ export default function AdminLogin() {
                     >
                       Back to Login
                     </button>
-                    
-                    <div className="pt-2 border-t border-gray-100 flex flex-col items-center">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthCode("202600");
-                          document.cookie = "admin_session=true; path=/;";
-                          toast.success("Master Admin Access Verified!");
-                          router.push("/admin");
-                        }}
-                        className="text-xs text-amber-700 hover:text-amber-900 font-semibold underline cursor-pointer"
-                      >
-                        🔑 Authenticator App Out of Sync? Click Here with Master Key
-                      </button>
-                    </div>
                   </div>
                 </form>
               )}
@@ -229,7 +239,7 @@ export default function AdminLogin() {
               </div>
 
               <p className="text-xs text-gray-600 leading-relaxed">
-                If the client forgets their admin password, enter the system Master Recovery Key below to reset the password.
+                Enter your authorized system Master Recovery Key to reset the admin password securely.
               </p>
 
               <div>
@@ -239,7 +249,7 @@ export default function AdminLogin() {
                   required
                   value={masterKey}
                   onChange={(e) => setMasterKey(e.target.value)}
-                  placeholder="DEVAM-MASTER-RECOVERY-2026"
+                  placeholder="Enter Master Recovery Key"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono"
                 />
               </div>
@@ -259,9 +269,10 @@ export default function AdminLogin() {
               <div className="flex items-center gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-lg transition-colors shadow-sm"
+                  disabled={loading}
+                  className="flex-1 py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-lg transition-colors shadow-sm disabled:opacity-50"
                 >
-                  Reset Admin Password
+                  {loading ? "Resetting..." : "Reset Admin Password"}
                 </button>
                 <button
                   type="button"
@@ -275,11 +286,10 @@ export default function AdminLogin() {
           )}
 
           <div className="mt-6 flex items-center justify-center gap-2 text-xs text-gray-500 font-bold uppercase tracking-wide">
-            <ShieldCheck className="w-4 h-4 text-green-600" /> End-to-End Encrypted
+            <ShieldCheck className="w-4 h-4 text-green-600" /> End-to-End Encrypted Authentication
           </div>
         </div>
       </div>
     </div>
   );
 }
-

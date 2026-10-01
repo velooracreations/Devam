@@ -12,7 +12,8 @@ export default function ContactPage() {
     lastName: "",
     email: "",
     phone: "",
-    message: ""
+    message: "",
+    botField: "" // Honeypot field
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -21,23 +22,46 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    // Client-side email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      setError("Please enter a valid email address (e.g. name@domain.com).");
+      return;
+    }
+
+    // Client-side phone validation (if provided)
+    if (formData.phone.trim()) {
+      const cleanPhone = formData.phone.replace(/[\s\-\(\)\+]/g, '');
+      if (cleanPhone.length < 10) {
+        setError("Please enter a valid 10-digit phone number.");
+        return;
+      }
+    }
+
+    if (!formData.message.trim() || formData.message.trim().length < 5) {
+      setError("Please write a brief message of at least 5 characters.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const response = await fetch('/api/distributors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
           businessName: "Direct Contact Form",
-          email: formData.email,
-          phone: formData.phone || "N/A",
+          email: formData.email.trim(),
+          phone: formData.phone.trim() || "N/A",
           city: "Contact Us",
           state: "Website Inquiry",
           productsOfInterest: "General Inquiry",
-          message: formData.message
+          message: formData.message.trim(),
+          botField: formData.botField // Honeypot
         })
       });
 
@@ -149,8 +173,22 @@ export default function ContactPage() {
               </div>
             ) : (
               <form className="space-y-6" onSubmit={handleSubmit}>
+                {/* Honeypot anti-spam field (hidden from genuine users) */}
+                <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+                  <label htmlFor="contact_botField">Leave this field blank</label>
+                  <input
+                    type="text"
+                    id="contact_botField"
+                    name="botField"
+                    value={formData.botField}
+                    onChange={handleInputChange}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
+
                 {error && (
-                  <div className="bg-red-50 text-red-700 p-4 rounded-lg text-sm font-medium">
+                  <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm font-medium">
                     {error}
                   </div>
                 )}

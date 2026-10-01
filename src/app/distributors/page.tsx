@@ -17,7 +17,8 @@ export default function DistributorsPage() {
     city: "",
     state: "",
     productsOfInterest: "All Products",
-    message: ""
+    message: "",
+    botField: "" // Honeypot field
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -26,14 +27,38 @@ export default function DistributorsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    // Client-side email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      setError("Please enter a valid email address (e.g. name@domain.com).");
+      return;
+    }
+
+    // Client-side phone validation
+    const cleanPhone = formData.phone.replace(/[\s\-\(\)\+]/g, '');
+    if (cleanPhone.length < 10) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const response = await fetch('/api/distributors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          businessName: formData.businessName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+        })
       });
       
       const data = await response.json();
@@ -41,7 +66,7 @@ export default function DistributorsPage() {
       
       setSubmitted(true);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to submit application");
     } finally {
       setLoading(false);
     }
@@ -193,6 +218,20 @@ export default function DistributorsPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {/* Honeypot spam bot trap */}
+                  <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+                    <label htmlFor="dist_botField">Do not fill this field</label>
+                    <input
+                      type="text"
+                      id="dist_botField"
+                      name="botField"
+                      value={formData.botField}
+                      onChange={handleInputChange}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
+
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                       {error}

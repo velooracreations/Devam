@@ -1,5 +1,20 @@
 import Image from "next/image";
 import { CheckCircle2, Heart, ShieldCheck, Leaf } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Us - Shreeji Gruh Udhyog | Devam",
+  description: "Learn about Devam (Shreeji Gruh Udhyog) in Jhalod, Dahod, Gujarat. Heritage stone ground Chakki Fresh Atta, 100% pure whole spices, and Indian food grains.",
+  alternates: {
+    canonical: "https://thedevam.com/about",
+  },
+  openGraph: {
+    title: "About Us | Devam (Shreeji Gruh Udhyog)",
+    description: "Bringing authentic stone-ground flour and pure Gujarati spices to kitchens worldwide.",
+    url: "https://thedevam.com/about",
+    siteName: "Devam",
+  },
+};
 
 export default function AboutPage() {
   return (

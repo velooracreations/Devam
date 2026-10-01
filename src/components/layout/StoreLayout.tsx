@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { syncExistingLocalOrdersToCloud } from "@/lib/orderSync";
 import { syncLocalAddressesToCloud } from "@/lib/addressStore";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
 
 export function StoreLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -45,6 +46,7 @@ export function StoreLayout({ children }: { children: React.ReactNode }) {
       </main>
       <Footer />
       <WhatsAppButton />
+      <CookieConsentBanner />
       <Toaster position="bottom-right" richColors />
     </>
   );

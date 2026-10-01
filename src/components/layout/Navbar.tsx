@@ -212,11 +212,19 @@ export function Navbar() {
               </Link>
             ))}
             <div className="flex items-center space-x-6 pt-4">
-              <button className="flex items-center text-[var(--color-devam-brown)]">
+              <Link 
+                href="/shop" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center text-[var(--color-devam-brown)] hover:text-[var(--color-devam-red)]"
+              >
                 <Search className="w-5 h-5 mr-2" />
                 <span className="text-sm font-medium uppercase">Search</span>
-              </button>
-              <Link href="/account" className="flex items-center text-[var(--color-devam-brown)]">
+              </Link>
+              <Link 
+                href="/account" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center text-[var(--color-devam-brown)] hover:text-[var(--color-devam-red)]"
+              >
                 <User className="w-5 h-5 mr-2" />
                 <span className="text-sm font-medium uppercase">Account</span>
               </Link>

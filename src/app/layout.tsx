@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { AuthContextProvider } from "@/context/AuthContext";
+import { Analytics } from "@/components/Analytics";
 import Script from "next/script";
 import "./globals.css";
 
@@ -78,6 +79,16 @@ export const metadata: Metadata = {
     title: "Devam Atta & Masala Hub - Premium Chakki Atta, Spices & Grains",
     description: "Authentic 100% pure Chakki Atta, whole spices, and food grains direct from Shreeji Gruh Udhyog, Jhalod, Gujarat.",
     images: ["https://thedevam.com/whatsapp-preview.jpg"],
+  },
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/logo.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: ['/icon.svg'],
+    apple: [
+      { url: '/logo.svg', type: 'image/svg+xml' },
+    ],
   },
   robots: {
     index: true,
@@ -210,6 +221,7 @@ export default function RootLayout({
           }}
         />
         <AuthContextProvider>
+          <Analytics />
           <StoreLayout>
             {children}
           </StoreLayout>

@@ -7,9 +7,6 @@ import {
   getAdminEmails,
   addAdminEmail,
   removeAdminEmail,
-  setAdminPassword,
-  getAdminPassword,
-  MASTER_RECOVERY_KEY
 } from "@/lib/adminAuth";
 
 const TOTP_SECRET = "DEVAM2FA2026";
@@ -99,13 +96,8 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    const actualPass = getAdminPassword();
-    if (currentPass !== actualPass) {
-      toast.error("Current password is incorrect.");
-      return;
-    }
     if (newPass.length < 4) {
       toast.error("New password must be at least 4 characters.");
       return;
@@ -115,14 +107,27 @@ export default function AdminSettingsPage() {
       return;
     }
 
-    const ok = setAdminPassword(newPass);
-    if (ok) {
-      toast.success("Admin password changed successfully!");
-      setCurrentPass("");
-      setNewPass("");
-      setConfirmPass("");
-    } else {
-      toast.error("Failed to change password.");
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "recover",
+          masterKey: currentPass,
+          newPassword: newPass,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success("Admin password updated successfully!");
+        setCurrentPass("");
+        setNewPass("");
+        setConfirmPass("");
+      } else {
+        toast.error(data.error || "Failed to update password. Verify current password / key.");
+      }
+    } catch (err: any) {
+      toast.error("Error updating password: " + err.message);
     }
   };
 
@@ -389,13 +394,13 @@ export default function AdminSettingsPage() {
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
         <h3 className="font-bold text-amber-900 flex items-center gap-2 mb-2">
           <LifeBuoy className="w-5 h-5 text-amber-700" />
-          Master Account Recovery Key Information
+          Master Account Recovery Information
         </h3>
         <p className="text-xs text-amber-800 leading-relaxed mb-3">
-          If the client forgets their password or loses access to their login ID, use the system Master Recovery Key on the login page to reset their credentials:
+          If administrators lose access to their Authenticator device or password, the Master Recovery Key configured in the server environment (<code>ADMIN_MASTER_RECOVERY_KEY</code>) can be used on the login page to securely reset access.
         </p>
-        <div className="inline-flex items-center gap-3 bg-white px-3.5 py-2 rounded-lg border border-amber-300 text-xs font-mono font-bold text-gray-900 shadow-sm">
-          <span>Master Key: {MASTER_RECOVERY_KEY}</span>
+        <div className="inline-flex items-center gap-2 bg-white px-3.5 py-2 rounded-lg border border-amber-300 text-xs font-mono font-bold text-gray-800 shadow-sm">
+          <span>Protected via Server-Side Environment Variables</span>
         </div>
       </div>
 

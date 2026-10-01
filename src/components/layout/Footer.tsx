@@ -202,14 +202,20 @@ export function Footer() {
             &copy; {new Date().getFullYear()} Devam (Shreeji Gruh Udhyog). All rights reserved.
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm flex-1">
-            <Link href="/data-policy" className="text-white/60 hover:text-[var(--color-devam-gold)] font-body transition-colors">
-              Data Policy
+            <Link href="/privacy-policy" className="text-white/80 hover:text-[var(--color-devam-gold)] font-body transition-colors">
+              Privacy Policy
             </Link>
-            <Link href="/payment-policy" className="text-white/60 hover:text-[var(--color-devam-gold)] font-body transition-colors">
+            <Link href="/terms" className="text-white/80 hover:text-[var(--color-devam-gold)] font-body transition-colors">
+              Terms &amp; Conditions
+            </Link>
+            <Link href="/payment-policy" className="text-white/80 hover:text-[var(--color-devam-gold)] font-body transition-colors">
               Payment Policy
             </Link>
-            <Link href="/terms" className="text-white/60 hover:text-[var(--color-devam-gold)] font-body transition-colors">
-              Terms of Service
+            <Link href="/shipping" className="text-white/80 hover:text-[var(--color-devam-gold)] font-body transition-colors">
+              Shipping Policy
+            </Link>
+            <Link href="/return-policy" className="text-white/80 hover:text-[var(--color-devam-gold)] font-body transition-colors">
+              Returns &amp; Refunds
             </Link>
           </div>
           <div className="text-white/70 text-xs sm:text-sm font-body text-center md:text-right flex-1">

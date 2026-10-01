@@ -18,6 +18,7 @@ Allow: /faq
 Allow: /shipping
 Allow: /return-policy
 Allow: /terms
+Allow: /privacy-policy
 Allow: /data-policy
 Allow: /payment-policy
 
