@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import { AuthContextProvider } from "@/context/AuthContext";
 import { Analytics } from "@/components/Analytics";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import Script from "next/script";
 import "./globals.css";
 
@@ -90,6 +91,12 @@ export const metadata: Metadata = {
       { url: '/logo.svg', type: 'image/svg+xml' },
     ],
   },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "google-site-verification-devam",
+    other: {
+      "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "8E3875DB92095C851F72BA419B4C480E",
+    },
+  },
   robots: {
     index: true,
     follow: true,
@@ -125,6 +132,12 @@ export default function RootLayout({
         <meta name="marketing" content="Veloora Creation" />
         <meta name="web-author" content="Veloora Creation (https://velooracreations.in)" />
         <link rel="author" href="https://velooracreations.in" />
+
+        {/* Bing Webmaster Tools Site Verification Tag */}
+        <meta
+          name="msvalidate.01"
+          content={process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "8E3875DB92095C851F72BA419B4C480E"}
+        />
 
         {/* WhatsApp & Social Media Rich Link Preview Tags */}
         <meta property="og:image" content="https://thedevam.com/whatsapp-preview.jpg" />
@@ -220,6 +233,7 @@ export default function RootLayout({
             })
           }}
         />
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID || "G-DEVAM2026IN"} />
         <AuthContextProvider>
           <Analytics />
           <StoreLayout>

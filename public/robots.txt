@@ -21,6 +21,7 @@ Allow: /terms
 Allow: /privacy-policy
 Allow: /data-policy
 Allow: /payment-policy
+Allow: /BingSiteAuth.xml
 
 # Disallow Private, Authentication, Checkout & Internal Endpoints
 Disallow: /admin
