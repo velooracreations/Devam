@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock, ChefHat, ShoppingCart, CheckCircle2, ArrowLeft } from "lucide-react";
@@ -25,25 +24,18 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
   return (
     <div className="bg-[var(--color-devam-cream)] min-h-screen pb-20">
       
-      {/* Hero Image Section */}
-      <div className="relative h-[50vh] min-h-[400px] w-full bg-[var(--color-devam-brown)]">
-        <Image
-          src={recipe.image}
-          alt={recipe.title}
-          fill
-          className="object-cover opacity-80"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        
-        <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+      {/* Header Section */}
+      <div className="bg-[var(--color-devam-brown)] py-12 md:py-16 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/recipes" className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-colors text-sm font-bold uppercase tracking-wider">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Recipes
           </Link>
-          <div className="inline-block bg-[var(--color-devam-red)] text-white text-xs font-bold uppercase tracking-wider py-1.5 px-4 rounded-full mb-4">
-            {recipe.category}
+          <div>
+            <span className="inline-block bg-[var(--color-devam-red)] text-white text-xs font-bold uppercase tracking-wider py-1.5 px-4 rounded-full mb-4">
+              {recipe.category}
+            </span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-heading font-bold text-white mb-4">
+          <h1 className="text-4xl md:text-5xl font-heading font-bold text-white mb-4">
             {recipe.title}
           </h1>
           <div className="flex items-center gap-8 text-white/90 font-medium">

@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Clock, ChefHat, ArrowRight } from "lucide-react";
@@ -19,14 +18,6 @@ export default function RecipesPage() {
       
       {/* Hero Section */}
       <section className="relative bg-[var(--color-devam-brown)] py-20 text-center text-white overflow-hidden">
-        <div className="absolute inset-0 z-0 opacity-20">
-          <Image 
-            src="/hero_spices_masala.png" 
-            alt="Spices background" 
-            fill 
-            className="object-cover"
-          />
-        </div>
         <div className="relative z-10 max-w-4xl mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">Cook with Devam</h1>
           <p className="text-lg text-white/80 font-body max-w-2xl mx-auto">
@@ -59,19 +50,13 @@ export default function RecipesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredRecipes.map(recipe => (
             <div key={recipe.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col group">
-              <div className="relative h-64 overflow-hidden">
-                <span className="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur text-[var(--color-devam-brown)] text-xs font-bold uppercase tracking-wider py-1.5 px-3 rounded-full shadow-sm">
-                  {recipe.category}
-                </span>
-                <Image
-                  src={recipe.image}
-                  alt={recipe.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-              
               <div className="p-6 flex flex-col flex-grow">
+                <div className="mb-3">
+                  <span className="inline-block bg-[var(--color-devam-cream)] text-[var(--color-devam-brown)] text-xs font-bold uppercase tracking-wider py-1.5 px-3 rounded-full border border-gray-200">
+                    {recipe.category}
+                  </span>
+                </div>
+                
                 <h3 className="text-2xl font-heading font-bold text-[var(--color-devam-brown)] mb-3 group-hover:text-[var(--color-devam-red)] transition-colors">
                   {recipe.title}
                 </h3>
@@ -87,13 +72,13 @@ export default function RecipesPage() {
                   </div>
                 </div>
                 
-                <p className="text-[var(--color-devam-brown)]/80 text-sm line-clamp-2 mb-6 flex-grow">
+                <p className="text-[var(--color-devam-brown)]/80 text-sm line-clamp-3 mb-6 flex-grow">
                   {recipe.description}
                 </p>
                 
                 <Link 
                   href={`/recipes/${recipe.id}`}
-                  className="inline-flex items-center text-[var(--color-devam-red)] font-bold text-sm uppercase tracking-wider hover:text-red-800 transition-colors"
+                  className="inline-flex items-center text-[var(--color-devam-red)] font-bold text-sm uppercase tracking-wider hover:text-red-800 transition-colors mt-auto pt-2"
                 >
                   View Recipe <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Link>
