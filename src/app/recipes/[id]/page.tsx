@@ -94,21 +94,19 @@ export default async function RecipeDetailPage({ params }: { params: Promise<{ i
 
             {/* Instructions */}
             <section className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-stone-200/50">
-              <h2 className="text-2xl font-heading font-bold text-[var(--color-devam-brown)] mb-6">
+              <h2 className="text-2xl font-heading font-bold text-[var(--color-devam-brown)] mb-4">
                 Instructions
               </h2>
-              <div className="space-y-6">
+              <ul className="space-y-2.5 sm:space-y-3">
                 {recipe.instructions.map((step, idx) => (
-                  <div key={idx} className="flex gap-4 sm:gap-6">
-                    <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[var(--color-devam-green)] text-white flex items-center justify-center font-bold text-base sm:text-lg shadow-sm">
-                      {idx + 1}
-                    </div>
-                    <p className="pt-1.5 text-[var(--color-devam-brown)]/85 leading-relaxed font-body text-base">
+                  <li key={idx} className="flex items-start gap-3">
+                    <span className="w-2 h-2 rounded-full bg-[var(--color-devam-green)] mt-2 shrink-0 shadow-2xs" />
+                    <p className="text-[var(--color-devam-brown)]/85 leading-relaxed font-body text-sm sm:text-base">
                       {step}
                     </p>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
 
           </div>
