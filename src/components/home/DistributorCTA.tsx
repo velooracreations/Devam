@@ -87,7 +87,7 @@ export function DistributorCTA() {
               return (
                 <div 
                   key={index} 
-                  className="bg-white border border-gray-100 p-8 rounded-2xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 shadow-lg flex flex-col justify-start"
+                  className="bg-white border border-gray-100 p-7 sm:p-8 rounded-2xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 shadow-md flex flex-col justify-start h-full"
                 >
                   <div className="w-14 h-14 bg-[var(--color-devam-red)]/20 rounded-xl flex items-center justify-center mb-6 border border-[var(--color-devam-red)]/30">
                     <Icon className="w-7 h-7 text-[var(--color-devam-gold)]" />
