@@ -2,8 +2,22 @@ import { NextResponse } from 'next/server';
 import Product from '@/models/Product';
 import { generateBarcode } from '@/lib/erp/barcodeUtils';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    // Strictly prevent accidental or malicious database deletion in production
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: 'Database seeding is permanently disabled in production.' },
+        { status: 403 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const secret = searchParams.get('secret');
+    if (secret !== process.env.ADMIN_PORTAL_PASSWORD && secret !== 'devam-local-dev-seed') {
+      return NextResponse.json({ error: 'Unauthorized: Seed key required' }, { status: 401 });
+    }
+
     // Clear existing products
     await Product.deleteMany({});
 

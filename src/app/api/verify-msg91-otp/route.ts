@@ -11,7 +11,15 @@ export async function POST(req: Request) {
 
     const cleanMobile = mobile.replace(/[^0-9]/g, "").slice(-10);
     const formattedMobile = `91${cleanMobile}`;
-    const authKey = process.env.MSG91_AUTH_KEY || "571955Tlo4FjQXyN6aaaba7cP1";
+    const authKey = process.env.MSG91_AUTH_KEY;
+
+    if (!authKey) {
+      console.error("[MSG91 OTP Verify] Missing MSG91_AUTH_KEY");
+      return NextResponse.json(
+        { success: false, error: "Authentication service misconfigured" },
+        { status: 500 }
+      );
+    }
 
     // Call MSG91 direct OTP verification API
     const response = await fetch(
@@ -25,7 +33,6 @@ export async function POST(req: Request) {
     );
 
     const data = await response.json();
-    console.log("MSG91 Direct OTP Verification Response:", data);
 
     if (
       response.ok &&

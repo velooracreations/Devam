@@ -57,12 +57,11 @@ export default function AdminLogin() {
       const res = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "verify_totp", code: codeToVerify }),
+        body: JSON.stringify({ action: "verify_totp", code: codeToVerify, email }),
       });
       const data = await res.json();
 
       if (res.ok && data.success) {
-        document.cookie = "admin_session=true; path=/; max-age=604800";
         toast.success(data.bypassed ? "Master Admin Access Verified!" : "Authenticator verified successfully!");
         router.push("/admin");
       } else {
@@ -78,11 +77,6 @@ export default function AdminLogin() {
   const handleLoginStep2 = async (e: React.FormEvent) => {
     e.preventDefault();
     await verifyAndLogin(authCode);
-  };
-
-  const handleQuickBypass = async () => {
-    setAuthCode("202600");
-    await verifyAndLogin("202600");
   };
 
   const copySecret = () => {
@@ -282,12 +276,11 @@ export default function AdminLogin() {
 
                     <button
                       type="button"
-                      onClick={handleQuickBypass}
-                      disabled={loading}
-                      className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-lg transition-colors cursor-pointer"
+                      onClick={() => setMode("master_recovery")}
+                      className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg transition-colors cursor-pointer"
                     >
-                      <KeyRound className="w-3.5 h-3.5 text-amber-700" />
-                      Phone App Desynced? 1-Click Emergency Access
+                      <KeyRound className="w-3.5 h-3.5 text-gray-600" />
+                      Use Master Recovery Key
                     </button>
 
                     <button
@@ -297,12 +290,6 @@ export default function AdminLogin() {
                     >
                       Back to Login
                     </button>
-                  </div>
-
-                  <div className="p-2.5 bg-gray-50 rounded-lg border border-gray-100 text-center">
-                    <p className="text-[11px] text-gray-500 leading-normal">
-                      Emergency Passcode: <span className="font-mono font-bold text-gray-800">202600</span> or Master Recovery Key
-                    </p>
                   </div>
                 </form>
               )}

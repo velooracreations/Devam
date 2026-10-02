@@ -13,18 +13,26 @@ export async function POST(request: Request) {
       );
     }
 
-    const keySecret = (process.env.RAZORPAY_KEY_SECRET || "avf5fQdWx9QcW08CweaXMK3x") as string;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keySecret) {
+      console.error("[Verify Payment] RAZORPAY_KEY_SECRET is not configured");
+      return NextResponse.json({ error: "Payment verification service misconfigured" }, { status: 500 });
+    }
     const bodyString = razorpay_order_id + '|' + razorpay_payment_id;
 
     const expectedSignature = crypto
       .createHmac('sha256', keySecret)
-      .update(bodyString.toString())
+      .update(bodyString)
       .digest('hex');
 
-    const isAuthentic = expectedSignature === razorpay_signature;
+    const expectedBuf = Buffer.from(expectedSignature, 'utf-8');
+    const actualBuf = Buffer.from(razorpay_signature, 'utf-8');
+
+    const isAuthentic =
+      expectedBuf.length === actualBuf.length &&
+      crypto.timingSafeEqual(expectedBuf, actualBuf);
 
     if (isAuthentic) {
-      // Here you would typically update the database to mark the order as paid
       return NextResponse.json({ success: true, message: 'Payment verified successfully' });
     } else {
       return NextResponse.json(

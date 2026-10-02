@@ -9,7 +9,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Access token is required" }, { status: 400 });
     }
 
-    const authKey = process.env.MSG91_AUTH_KEY || "571955Tlo4FjQXyN6aaaba7cP1";
+    const authKey = process.env.MSG91_AUTH_KEY;
+    if (!authKey) {
+      console.error("[MSG91 Token Verify] Missing MSG91_AUTH_KEY");
+      return NextResponse.json({ success: false, error: "Authentication service misconfigured" }, { status: 500 });
+    }
 
     const response = await fetch("https://control.msg91.com/api/v5/widget/verifyAccessToken", {
       method: "POST",

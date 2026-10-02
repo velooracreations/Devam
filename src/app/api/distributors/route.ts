@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { sendQueryEmail } from '@/lib/notifications';
+import { verifyAdminToken } from '@/lib/adminToken';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -90,8 +91,17 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/admin_token=([^;]+)/);
+    const token = match ? decodeURIComponent(match[1]) : undefined;
+    const auth = await verifyAdminToken(token);
+
+    if (!auth.valid && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: "Unauthorized: Distributor leads access restricted to verified administrators" }, { status: 401 });
+    }
+
     const snapshot = await getDocs(collection(db, 'distributorLeads'));
     const leads = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
     leads.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());

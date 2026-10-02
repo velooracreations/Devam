@@ -9,8 +9,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Amount is required" }, { status: 400 });
     }
 
-    const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TcNI9ejHlDnlqC";
-    const key_secret = process.env.RAZORPAY_KEY_SECRET || "avf5fQdWx9QcW08CweaXMK3x";
+    const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!key_id || !key_secret) {
+      console.error("[Razorpay API] Missing payment gateway credentials");
+      return NextResponse.json({ error: "Payment gateway configuration error" }, { status: 500 });
+    }
 
     // Lazy-init Razorpay inside handler
     const Razorpay = (await import('razorpay')).default;

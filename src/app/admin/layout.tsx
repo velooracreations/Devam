@@ -11,13 +11,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Don't render the sidebar if we are on the login page
+  // Verify session securely with backend
   React.useEffect(() => {
     if (pathname !== "/admin/login") {
-      const hasSession = document.cookie.includes("admin_session=true");
-      if (!hasSession) {
-        router.push("/admin/login");
-      }
+      fetch("/api/admin/verify-session")
+        .then((res) => {
+          if (!res.ok) {
+            router.push("/admin/login");
+          }
+        })
+        .catch(() => {
+          router.push("/admin/login");
+        });
     }
   }, [pathname, router]);
 
@@ -25,9 +30,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  const handleLogout = () => {
-    document.cookie = "admin_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    router.push("/admin/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } catch (e) {
+      // Continue cleanup
+    } finally {
+      document.cookie = "admin_logged_in=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "admin_session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      router.push("/admin/login");
+    }
   };
 
   const navItems = [

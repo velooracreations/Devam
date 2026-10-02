@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateTOTP } from "@/lib/totp";
+import { signAdminToken } from "@/lib/adminToken";
 
 // Server-side admin credentials & secrets (NEVER exposed to frontend bundle)
 const SERVER_ADMIN_EMAILS = [
@@ -13,7 +14,7 @@ const DEFAULT_SERVER_ADMIN_PASS = process.env.ADMIN_PORTAL_PASSWORD || "Devam@#2
 const SERVER_MASTER_KEY = process.env.ADMIN_MASTER_RECOVERY_KEY || "DEVAM-MASTER-RECOVERY-2026";
 const SERVER_TOTP_SECRET = process.env.ADMIN_TOTP_SECRET || "DEVAM2FA2026";
 
-// Server-side in-memory lockout tracker
+// Server-side in-memory lockout tracker to stop brute force attacks
 interface LockoutTracker {
   attempts: number;
   lockUntil: number | null;
@@ -26,6 +27,43 @@ function getClientIp(req: Request): string {
   return "unknown-ip";
 }
 
+async function setAdminCookies(response: NextResponse, email: string) {
+  const token = await signAdminToken(email);
+  // 1. Cryptographic HTTP-Only Session Cookie (Cannot be stolen or forged via JS/XSS)
+  response.cookies.set("admin_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 86400 * 7, // 7 days
+  });
+
+  // 2. Client-readable UI flag (indicates logged-in state without exposing auth power)
+  response.cookies.set("admin_logged_in", "true", {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 86400 * 7,
+  });
+
+  // Backward compatibility alias (secured with httpOnly)
+  response.cookies.set("admin_session", "true", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 86400 * 7,
+  });
+}
+
+function clearAdminCookies(response: NextResponse) {
+  const opts = { path: "/", expires: new Date(0) };
+  response.cookies.set("admin_token", "", opts);
+  response.cookies.set("admin_logged_in", "", opts);
+  response.cookies.set("admin_session", "", opts);
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -33,12 +71,19 @@ export async function POST(req: Request) {
     const ip = getClientIp(req);
     const now = Date.now();
 
+    // Logout action
+    if (action === "logout") {
+      const response = NextResponse.json({ success: true, message: "Logged out successfully" });
+      clearAdminCookies(response);
+      return response;
+    }
+
     // Check lockout
     let tracker = ipLockoutMap.get(ip) || { attempts: 0, lockUntil: null };
     if (tracker.lockUntil && now < tracker.lockUntil) {
       const waitSec = Math.ceil((tracker.lockUntil - now) / 1000);
       return NextResponse.json(
-        { error: `Too many failed attempts. Locked for ${waitSec} seconds.` },
+        { error: `Too many failed attempts. Security lockout active for ${waitSec} seconds.` },
         { status: 429 }
       );
     }
@@ -71,36 +116,24 @@ export async function POST(req: Request) {
     }
 
     if (action === "verify_totp") {
-      const { code } = body;
+      const { code, email } = body;
       const cleanCode = (code || "").trim();
       const upperCode = cleanCode.toUpperCase();
+      const userEmail = email || "admin@thedevam.com";
 
-      // 1. Emergency Master Recovery & Bypass Codes
-      const isEmergencyCode =
-        upperCode === SERVER_MASTER_KEY ||
-        upperCode === SERVER_TOTP_SECRET ||
-        cleanCode === "202600" ||
-        cleanCode === "123456" ||
-        cleanCode === "999999" ||
-        cleanCode === "888888";
+      // 1. Emergency Master Recovery Key (Requires knowing the actual SERVER_MASTER_KEY secret)
+      const isMasterRecovery = upperCode === SERVER_MASTER_KEY || upperCode === SERVER_TOTP_SECRET;
 
-      if (isEmergencyCode) {
+      if (isMasterRecovery) {
         ipLockoutMap.delete(ip);
         const response = NextResponse.json({ success: true, bypassed: true });
-        response.cookies.set("admin_session", "true", {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 86400 * 7, // 7 days
-        });
+        await setAdminCookies(response, userEmail);
         return response;
       }
 
-      // 2. Check TOTP code against extended time windows (±300 seconds to tolerate clock drift)
+      // 2. Check TOTP code against extended time windows (±180 seconds to tolerate clock drift)
       const offsets = [
-        0, -30, 30, -60, 60, -90, 90, -120, 120,
-        -150, 150, -180, 180, -210, 210, -240, 240, -270, 270, -300, 300
+        0, -30, 30, -60, 60, -90, 90, -120, 120, -150, 150, -180, 180
       ];
       let valid = false;
 
@@ -123,19 +156,17 @@ export async function POST(req: Request) {
       if (valid) {
         ipLockoutMap.delete(ip);
         const response = NextResponse.json({ success: true });
-        response.cookies.set("admin_session", "true", {
-          httpOnly: false,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 86400 * 7,
-        });
+        await setAdminCookies(response, userEmail);
         return response;
       } else {
+        tracker.attempts += 1;
+        if (tracker.attempts >= 5) {
+          tracker.lockUntil = now + 60 * 1000;
+        }
+        ipLockoutMap.set(ip, tracker);
         return NextResponse.json(
           {
-            error:
-              "Invalid authenticator code. If your phone clock is out of sync, use emergency passcode 202600 or the Master Recovery Key.",
+            error: "Invalid authenticator code. Check your Google Authenticator app or use your Master Recovery Key.",
           },
           { status: 400 }
         );
@@ -147,8 +178,8 @@ export async function POST(req: Request) {
       if ((masterKey || "").trim() !== SERVER_MASTER_KEY) {
         return NextResponse.json({ error: "Invalid Master Recovery Key." }, { status: 403 });
       }
-      if (!newPassword || newPassword.length < 4) {
-        return NextResponse.json({ error: "Password must be at least 4 characters." }, { status: 400 });
+      if (!newPassword || newPassword.length < 8) {
+        return NextResponse.json({ error: "Password must be at least 8 characters." }, { status: 400 });
       }
 
       // Reset lockout

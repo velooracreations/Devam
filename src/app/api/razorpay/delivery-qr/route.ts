@@ -11,8 +11,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing orderId or amount' }, { status: 400 });
     }
 
-    const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_TcNI9ejHlDnlqC";
-    const key_secret = process.env.RAZORPAY_KEY_SECRET || "avf5fQdWx9QcW08CweaXMK3x";
+    const key_id = process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
 
     let cleanPhone = (customerPhone || '9979640900').replace(/\D/g, '');
     if (cleanPhone.length > 10) cleanPhone = cleanPhone.slice(-10);
@@ -22,50 +22,52 @@ export async function POST(req: Request) {
       ? customerEmail
       : 'orders@thedevam.com';
 
-    try {
-      const Razorpay = (await import('razorpay')).default;
-      const razorpay = new Razorpay({ key_id, key_secret });
+    if (key_id && key_secret) {
+      try {
+        const Razorpay = (await import('razorpay')).default;
+        const razorpay = new Razorpay({ key_id, key_secret });
 
-      // Create an official Razorpay Payment Link for the exact order amount with dashboard traceability
-      const paymentLink = await razorpay.paymentLink.create({
-        amount: Math.round(Number(amount) * 100),
-        currency: "INR",
-        accept_partial: false,
-        description: `Payment for Devam Order #${orderId}`,
-        customer: {
-          name: customerName || 'Customer',
-          contact: validContact,
-          email: validEmail,
-        },
-        notify: {
-          sms: false,
-          email: false,
-        },
-        reminder_enable: false,
-        notes: {
-          order_id: String(orderId),
-          type: 'delivery_qr_payment',
-          store: 'Devam Atta & Masala Hub',
-        },
-      });
-
-      if (paymentLink && paymentLink.short_url) {
-        // High-resolution QR code encoding the direct Razorpay payment link
-        const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=${encodeURIComponent(paymentLink.short_url)}`;
-        return NextResponse.json({
-          success: true,
-          provider: 'razorpay',
-          paymentUrl: paymentLink.short_url,
-          qrImageUrl,
-          orderId,
-          amount: Number(amount),
+        // Create an official Razorpay Payment Link for the exact order amount with dashboard traceability
+        const paymentLink = await razorpay.paymentLink.create({
+          amount: Math.round(Number(amount) * 100),
+          currency: "INR",
+          accept_partial: false,
+          description: `Payment for Devam Order #${orderId}`,
+          customer: {
+            name: customerName || 'Customer',
+            contact: validContact,
+            email: validEmail,
+          },
+          notify: {
+            sms: false,
+            email: false,
+          },
+          reminder_enable: false,
+          notes: {
+            order_id: String(orderId),
+            type: 'delivery_qr_payment',
+            store: 'Devam Atta & Masala Hub',
+          },
         });
+
+        if (paymentLink && paymentLink.short_url) {
+          // High-resolution QR code encoding the direct Razorpay payment link
+          const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=${encodeURIComponent(paymentLink.short_url)}`;
+          return NextResponse.json({
+            success: true,
+            provider: 'razorpay',
+            paymentUrl: paymentLink.short_url,
+            qrImageUrl,
+            orderId,
+            amount: Number(amount),
+          });
+        }
+      } catch (rzpErr: any) {
+        console.warn('[DeliveryQR] Razorpay link creation warning, using fallback payment link:', rzpErr.message);
       }
-    } catch (rzpErr: any) {
-      console.warn('[DeliveryQR] Razorpay link creation warning, using fallback payment link:', rzpErr.message);
     }
 
-    // Graceful fallback URL if Razorpay API encounters any temporary issue
+    // Graceful fallback URL if Razorpay API encounters any temporary issue or keys are missing
     const fallbackUrl = `https://thedevam.com/checkout?order=${encodeURIComponent(orderId)}`;
     const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=1&data=${encodeURIComponent(fallbackUrl)}`;
 

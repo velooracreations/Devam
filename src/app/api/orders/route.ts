@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { saveServerOrder, getAllServerOrders, getCustomerServerOrders, updateServerOrder, deleteServerOrder } from '@/lib/serverOrders';
 import { sendOrderNotificationEmail, NotificationPayload } from '@/lib/notifications';
 import { Order } from '@/store/orderStore';
+import { verifyAdminToken } from '@/lib/adminToken';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,6 +17,18 @@ export async function GET(request: Request) {
 
     // If admin is requesting, return all store orders
     if (admin === 'true' || (!email && !phone && !userId)) {
+      const cookieHeader = request.headers.get("cookie") || "";
+      const match = cookieHeader.match(/admin_token=([^;]+)/);
+      const token = match ? decodeURIComponent(match[1]) : undefined;
+      const auth = await verifyAdminToken(token);
+
+      if (!auth.valid && process.env.NODE_ENV === 'production') {
+        return NextResponse.json(
+          { error: 'Unauthorized: Accessing all store orders requires administrative authorization.' },
+          { status: 401 }
+        );
+      }
+
       const orders = await getAllServerOrders();
       return NextResponse.json({ success: true, count: orders.length, orders });
     }
@@ -89,6 +102,24 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Missing orderId or updates' }, { status: 400 });
     }
 
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/admin_token=([^;]+)/);
+    const token = match ? decodeURIComponent(match[1]) : undefined;
+    const auth = await verifyAdminToken(token);
+
+    // If not admin, strictly allow only customer cancellation
+    if (!auth.valid && process.env.NODE_ENV === 'production') {
+      const allowedKeys = ['status', 'cancellationReason', 'timeline'];
+      const updateKeys = Object.keys(updates);
+      const hasDisallowedKeys = updateKeys.some(k => !allowedKeys.includes(k));
+      if (hasDisallowedKeys || updates.status !== 'Cancelled') {
+        return NextResponse.json(
+          { error: 'Unauthorized: Only order cancellation is allowed for non-administrators.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const updatedOrder = await updateServerOrder(orderId, updates);
     if (!updatedOrder) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -138,6 +169,18 @@ export async function DELETE(request: Request) {
 
     if (!orderId) {
       return NextResponse.json({ error: 'Missing orderId parameter' }, { status: 400 });
+    }
+
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/admin_token=([^;]+)/);
+    const token = match ? decodeURIComponent(match[1]) : undefined;
+    const auth = await verifyAdminToken(token);
+
+    if (!auth.valid && process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: 'Unauthorized: Deleting orders requires administrative authorization.' },
+        { status: 401 }
+      );
     }
 
     const deleted = await deleteServerOrder(orderId);

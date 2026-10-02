@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerProducts, saveServerProducts } from '@/lib/serverProducts';
 import { Product } from '@/store/productStore';
+import { verifyAdminToken } from '@/lib/adminToken';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,6 +17,15 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/admin_token=([^;]+)/);
+    const token = match ? decodeURIComponent(match[1]) : undefined;
+    const auth = await verifyAdminToken(token);
+
+    if (!auth.valid && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: "Unauthorized: Modifying products requires administrative authorization" }, { status: 401 });
+    }
+
     const body = await request.json();
     if (body.action === 'sync') {
       const { products } = body;
@@ -39,6 +49,15 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/admin_token=([^;]+)/);
+    const token = match ? decodeURIComponent(match[1]) : undefined;
+    const auth = await verifyAdminToken(token);
+
+    if (!auth.valid && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: "Unauthorized: Deleting products requires administrative authorization" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const name = searchParams.get('name');

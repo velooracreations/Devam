@@ -6,6 +6,7 @@ import {
   ADMIN_NOTIFICATION_EMAILS,
   NotificationPayload 
 } from '@/lib/notifications';
+import { verifyAdminToken } from '@/lib/adminToken';
 
 const ADMIN_WHATSAPP = process.env.ADMIN_WHATSAPP_NUMBER || '919979640900';
 
@@ -19,6 +20,15 @@ export const revalidate = 0;
  */
 export async function GET(req: Request) {
   try {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(/admin_token=([^;]+)/);
+    const token = match ? decodeURIComponent(match[1]) : undefined;
+    const auth = await verifyAdminToken(token);
+
+    if (!auth.valid) {
+      return NextResponse.json({ error: "Unauthorized: Notification diagnostics restricted to administrators" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const action = searchParams.get('action');
     const to = searchParams.get('to');
