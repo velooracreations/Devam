@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, TrendingUp, Handshake, Truck } from "lucide-react";
+import { Building2, TrendingUp, Handshake, Truck, Megaphone } from "lucide-react";
 import { motion } from "framer-motion";
 
 const benefits = [
@@ -16,9 +16,14 @@ const benefits = [
     desc: "Consistent, uninterrupted supply directly from our advanced processing mills."
   },
   {
+    icon: Megaphone,
+    title: "Marketing Support",
+    desc: "Point-of-sale displays, promotional materials, and retail branding to drive turnover."
+  },
+  {
     icon: Handshake,
     title: "Dedicated Support",
-    desc: "A dedicated relationship manager for all your operational and marketing needs."
+    desc: "A dedicated relationship manager for all your operational and logistical needs."
   }
 ];
 
@@ -82,7 +87,7 @@ export function DistributorCTA() {
               return (
                 <div 
                   key={index} 
-                  className={`bg-white border border-gray-100 p-8 rounded-2xl hover:shadow-2xl transition-all duration-300 shadow-lg ${index === 2 ? 'sm:col-span-2 sm:w-[calc(50%-0.75rem)] sm:justify-self-center' : ''}`}
+                  className="bg-white border border-gray-100 p-8 rounded-2xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 shadow-lg flex flex-col justify-start"
                 >
                   <div className="w-14 h-14 bg-[var(--color-devam-red)]/20 rounded-xl flex items-center justify-center mb-6 border border-[var(--color-devam-red)]/30">
                     <Icon className="w-7 h-7 text-[var(--color-devam-gold)]" />
