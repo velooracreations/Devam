@@ -92,7 +92,7 @@ export function FeaturedProducts() {
                     {product.category}
                   </p>
                   <Link href={isChakkiAtta ? "/shop?category=flours" : `/product/${product.id}`} className="block mb-2 flex-grow">
-                    <h3 className="text-xl font-heading font-bold text-[var(--color-devam-brown)] group-hover:text-[var(--color-devam-red)] transition-colors line-clamp-2">
+                    <h3 className="text-xl font-heading font-bold text-[var(--color-devam-brown)] group-hover:text-[var(--color-devam-green)] transition-colors line-clamp-2">
                       {product.name}
                     </h3>
                   </Link>

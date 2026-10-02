@@ -5,7 +5,6 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { ScrollProgressBar } from "@/components/ui/ScrollProgressBar";
-import { CustomCursor } from "@/components/ui/CustomCursor";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
@@ -39,7 +38,6 @@ export function StoreLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ScrollProgressBar />
-      <CustomCursor />
       <Navbar />
       <main className="flex-grow pt-14 md:pt-16">
         {children}
