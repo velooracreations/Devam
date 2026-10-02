@@ -6,15 +6,15 @@
   --color-devam-cream: #FFF8E1;
   --color-devam-brown: #3E2723;
   --color-devam-green: #0A883A;
-  --font-heading: var(--font-playfair), 'Playfair Display', Georgia, serif;
-  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-heading: var(--font-outfit), 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-body: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 
 :root {
   --background: #FFF8E1;
   --foreground: #3E2723;
-  --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-playfair: 'Playfair Display', Georgia, serif;
+  --font-outfit: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-jakarta: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 html {
@@ -32,6 +32,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+  letter-spacing: -0.02em;
 }
 
 /* Accessibility Focus States */
