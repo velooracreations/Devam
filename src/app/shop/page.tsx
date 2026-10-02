@@ -419,7 +419,7 @@ export default function ShopPage() {
                   <div className="text-[9px] sm:text-[10px] font-bold text-[var(--color-devam-red)] uppercase tracking-[0.15em] mb-1.5">{product.category}</div>
 
                   {/* Name */}
-                  <h3 className="font-heading text-sm sm:text-base font-bold text-gray-900 mb-1 leading-snug group-hover:text-[var(--color-devam-red)] transition-colors line-clamp-2">
+                  <h3 className="font-heading text-sm sm:text-base font-bold text-gray-900 mb-1 leading-snug group-hover:text-[var(--color-devam-green)] transition-colors line-clamp-2">
                     {product.name}
                   </h3>
 
@@ -458,18 +458,18 @@ export default function ShopPage() {
 
       {/* ======= COMPACT BOTTOM CTA STRIP ======= */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-4">
-        <div className="relative overflow-hidden bg-gradient-to-r from-[var(--color-devam-red)] via-[#d62828] to-[#b91c1c] rounded-2xl px-6 py-6 sm:px-10 sm:py-7 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="absolute top-[-30px] right-[-30px] w-[150px] h-[150px] rounded-full bg-white opacity-5 blur-[40px]" />
+        <div className="relative overflow-hidden bg-gradient-to-r from-[#0E4A28] via-[#0A883A] to-[#07361B] rounded-2xl px-6 py-6 sm:px-10 sm:py-7 flex flex-col sm:flex-row items-center justify-between gap-4 border border-emerald-500/25 shadow-xl shadow-emerald-950/15">
+          <div className="absolute top-[-30px] right-[-30px] w-[150px] h-[150px] rounded-full bg-white opacity-10 blur-[40px]" />
           <div className="text-center sm:text-left">
             <h3 className="text-lg sm:text-xl font-heading font-bold text-white">Need Bulk Orders?</h3>
-            <p className="text-white/60 text-xs sm:text-sm mt-0.5">Special wholesale pricing for distributors, hotels & retail stores.</p>
+            <p className="text-emerald-100/90 text-xs sm:text-sm mt-0.5">Special wholesale pricing for distributors, hotels & retail stores.</p>
           </div>
           <Link
             href="/distributors"
-            className="inline-flex items-center gap-2 bg-white text-[var(--color-devam-red)] font-bold px-5 py-2.5 rounded-full text-sm hover:bg-white/90 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex-shrink-0"
+            className="inline-flex items-center gap-2 bg-white text-emerald-900 font-bold px-5 py-2.5 rounded-full text-sm hover:bg-emerald-50 hover:text-emerald-950 transition-all shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 flex-shrink-0"
           >
             Become a Distributor
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 text-emerald-700" />
           </Link>
         </div>
       </div>

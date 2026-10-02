@@ -15,7 +15,7 @@ const categories = [
     description: "Finely ground masalas for the perfect color and taste.",
     image: "/cat-spice-powder.png",
     href: "/shop?category=spice-powders",
-    color: "bg-[var(--color-devam-red)]/10",
+    color: "bg-amber-50",
   },
   {
     name: "Whole Grains",

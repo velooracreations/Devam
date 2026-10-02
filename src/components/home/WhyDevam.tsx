@@ -29,7 +29,7 @@ export function WhyDevam() {
             </div>
             
             {/* Floating badge */}
-            <div className="absolute -bottom-8 -right-8 bg-[var(--color-devam-red)] text-white p-8 rounded-full w-48 h-48 flex flex-col items-center justify-center shadow-xl hidden md:flex border-8 border-[var(--color-devam-brown)]">
+            <div className="absolute -bottom-8 -right-8 bg-[var(--color-devam-green)] text-white p-8 rounded-full w-48 h-48 flex flex-col items-center justify-center shadow-xl hidden md:flex border-8 border-[var(--color-devam-brown)]">
               <span className="text-4xl font-bold font-heading">100%</span>
               <span className="text-sm font-semibold uppercase tracking-widest text-center mt-1">Natural &<br/>Pure</span>
             </div>
@@ -54,7 +54,7 @@ export function WhyDevam() {
             
             <Link 
               href="/about" 
-              className="inline-block px-8 py-4 bg-[var(--color-devam-red)] text-white font-semibold uppercase tracking-wider hover:bg-white hover:text-[var(--color-devam-red)] transition-colors rounded-sm shadow-lg text-xl"
+              className="inline-block px-8 py-4 bg-[var(--color-devam-gold)] text-[var(--color-devam-brown)] font-bold uppercase tracking-wider hover:bg-white transition-colors rounded-sm shadow-lg text-lg"
             >
               About Us
             </Link>
