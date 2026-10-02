@@ -60,13 +60,8 @@ export function ManufacturingProcess() {
                   className="flex flex-col items-center text-center group"
                 >
                   {/* Icon Container */}
-                  <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.06)] mb-8 border-4 border-white group-hover:border-[var(--color-devam-gold)] transition-all duration-500 relative z-10">
+                  <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.06)] mb-8 border-4 border-white group-hover:border-[var(--color-devam-gold)] group-hover:shadow-[0_12px_40px_rgba(246,161,11,0.18)] transition-all duration-500 relative z-10">
                     <Icon className="w-10 h-10 text-[var(--color-devam-red)] group-hover:scale-110 transition-transform duration-500" />
-                    
-                    {/* Step number badge */}
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-[var(--color-devam-brown)] text-[var(--color-devam-gold)] rounded-full flex items-center justify-center font-bold text-sm shadow-md border-2 border-white">
-                      {index + 1}
-                    </div>
                   </div>
                   
                   <h3 className="text-xl md:text-2xl font-heading font-bold text-[var(--color-devam-brown)] mb-3">
